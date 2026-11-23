@@ -4,18 +4,18 @@ Thanks for wanting to help. Bug reports, ideas, translations and pull requests a
 
 ## Before you start
 
-- **Found a bug?** Open an [issue](https://github.com/kua8/Nectar/issues/new/choose) with the bug form. The version, your Windows build, and **Copy Diagnostics** from Settings > About make a big difference.
-- **Have a question or an idea?** Start a [discussion](https://github.com/kua8/Nectar/discussions) first, or a feature request if it is concrete.
+- **Found a bug?** Open an [issue](https://github.com/5rs6vyg9z2-oss/dz-island/issues/new/choose) with the bug form. The version, your Windows build, and **Copy Diagnostics** from Settings > About make a big difference.
+- **Have a question or an idea?** Start a [discussion](https://github.com/5rs6vyg9z2-oss/dz-island/discussions) first, or a feature request if it is concrete.
 - **Want to send a pull request for a new feature?** Please open an issue or discussion first so we can agree on it before you spend time on it. Bug fixes, translations and documentation fixes can go straight to a pull request.
-- **Security problem?** Do not open an issue. Report it privately in the [Security tab](https://github.com/kua8/Nectar?tab=security-ov-file#).
+- **Security problem?** Do not open an issue. Report it privately in the [Security tab](https://github.com/5rs6vyg9z2-oss/dz-island?tab=security-ov-file#).
 
 ## Setting up
 
 You need [Rust](https://rustup.rs/) and [Bun](https://bun.sh/), on Windows.
 
 ```bash
-git clone https://github.com/kua8/Nectar.git
-cd Nectar
+git clone https://github.com/5rs6vyg9z2-oss/dz-island.git
+cd dz-island
 bun install
 bun run tauri dev
 ```

@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report this. The more detail you give, the faster it can be fixed.
-        Please search [existing issues](https://github.com/kua8/Nectar/issues) first in case it's already reported.
+        Please search [existing issues](https://github.com/5rs6vyg9z2-oss/dz-island/issues) first in case it's already reported.
 
   - type: textarea
     id: what-happened

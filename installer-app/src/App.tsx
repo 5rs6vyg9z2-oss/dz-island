@@ -164,7 +164,7 @@ function buildFeedbackUrl(reason: string, comment: string, appVersion: string): 
     comment: comment.trim(),
     version: appVersion || "unknown",
   });
-  return `https://github.com/kua8/Nectar/issues/new?${params.toString()}`;
+  return `https://github.com/5rs6vyg9z2-oss/dz-island/issues/new?${params.toString()}`;
 }
 
 export default function App() {

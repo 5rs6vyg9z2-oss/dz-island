@@ -1,6 +1,6 @@
 # DZ Island
 
-Ilha dinâmica para Windows derivada do [Nectar](https://github.com/kua8/nectar), com interface em português, bateria dos dispositivos, integração local com agentes de IA e o mascote Serginho.
+Ilha dinâmica para Windows derivada do Nectar, com interface em português, bateria dos dispositivos, integração local com agentes de IA e o mascote Serginho.
 
 Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
 
@@ -19,12 +19,9 @@ Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
 
 <p><strong>A notch and a dock for Windows.<br />Physics-animated, reactive, and built to replace your taskbar.</strong></p>
 
-[![Latest release](https://shieldcn.dev/badge/release-v1.10.0.svg?logo=lu:Tag)](https://github.com/kua8/Nectar/releases/latest)
-[![Downloads](https://badges.kua8.lol/downloads.svg)](https://github.com/kua8/Nectar/releases)
-[![License](https://shieldcn.dev/github/license/kua8/Nectar.svg?logo=lu:Scale)](LICENSE)
 [![Platform](https://shieldcn.dev/badge/platform-Windows.svg?logo=ri:FaWindows)](https://www.microsoft.com/windows)
 
-[**Download**](https://github.com/kua8/Nectar/releases/latest) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Install](#install) &nbsp;·&nbsp; [Settings](SETTINGS.md) &nbsp;·&nbsp; [Report a bug](https://github.com/kua8/Nectar/issues/new/choose)
+[**Download**](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Install](#install) &nbsp;·&nbsp; [Settings](SETTINGS.md) &nbsp;·&nbsp; [Report a bug](https://github.com/5rs6vyg9z2-oss/dz-island/issues/new/choose)
 
 <br />
 
@@ -32,11 +29,6 @@ Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
 
 <br /><br />
 
-<a href="https://nectar.kua8.lol/#trailer">
-  <img src="docs/trailer-preview.svg" width="860" alt="Watch Nectar in action — 40-second trailer" />
-</a>
-
-[**▶ Watch Nectar in action**](https://nectar.kua8.lol/#trailer) · 40 seconds
 
 </div>
 
@@ -74,7 +66,7 @@ Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
 
 ## Install
 
-1. Download the installer from the [latest release](https://github.com/kua8/Nectar/releases/latest).
+1. Download the installer from the [latest release](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest).
 2. Choose **Just me** or **All users**. An all-users install asks for administrator permission once.
 3. Nectar starts with a short splash, then the notch and dock appear together.
 
@@ -85,7 +77,7 @@ Nectar updates itself: a green dot on the notch means an update is ready, and **
 
 <br />
 
-Only download Nectar from the [releases page](https://github.com/kua8/Nectar/releases) of this repository. Each release has a `SHA256SUMS.txt`. Compare the output of this command with the matching line:
+Only download Nectar from the [releases page](https://github.com/5rs6vyg9z2-oss/dz-island/releases) of this repository. Each release has a `SHA256SUMS.txt`. Compare the output of this command with the matching line:
 
 ```powershell
 Get-FileHash .\Nectar-Setup-<version>.exe -Algorithm SHA256
@@ -160,7 +152,7 @@ External monitors are controlled over DDC/CI. Turn DDC/CI on in the monitor's ow
 
 <br />
 
-Open **Settings › About › Copy Diagnostics** and paste the result into a [bug report](https://github.com/kua8/Nectar/issues/new/choose). It includes your versions, monitors and recent log.
+Open **Settings › About › Copy Diagnostics** and paste the result into a [bug report](https://github.com/5rs6vyg9z2-oss/dz-island/issues/new/choose). It includes your versions, monitors and recent log.
 
 </details>
 
@@ -169,8 +161,8 @@ Open **Settings › About › Copy Diagnostics** and paste the result into a [bu
 You need [Rust](https://rustup.rs/) and [Bun](https://bun.sh/) on Windows.
 
 ```bash
-git clone https://github.com/kua8/Nectar.git
-cd Nectar
+git clone https://github.com/5rs6vyg9z2-oss/dz-island.git
+cd dz-island
 bun install
 bun run tauri dev
 ```
@@ -187,7 +179,7 @@ These are ideas under consideration, not promises.
 - [x] Stable and pre-release update channels
 - [x] Multiple media sessions, Task Manager in the dock menu, show desktop corner
 
-See the [open issues](https://github.com/kua8/Nectar/issues) for requests and known bugs.
+See the [open issues](https://github.com/5rs6vyg9z2-oss/dz-island/issues) for requests and known bugs.
 
 ## Built with
 
@@ -197,17 +189,10 @@ See the [open issues](https://github.com/kua8/Nectar/issues) for requests and kn
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-## Support
-
-Nectar is free and open source. If it makes your desktop nicer, you can support its development.
-
-[![Sponsor](https://img.shields.io/badge/Sponsor-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/kua8)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/kua8)
-
 ## License
 
-Nectar is open source under the [GPLv3](LICENSE).
+DZ Island is open source under the [GPLv3](LICENSE).
 
 ## Credits
 
-Nectar began as a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the original concept and the codebase it grew from are theirs. Nectar has since been rebuilt and is maintained independently, with its own features, fixes and direction. Thanks to everyone listed on the [contributors page](https://github.com/kua8/Nectar/graphs/contributors).
+Nectar began as a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the original concept and the codebase it grew from are theirs. Nectar has since been rebuilt and is maintained independently, with its own features, fixes and direction.

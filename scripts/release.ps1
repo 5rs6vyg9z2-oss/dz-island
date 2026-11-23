@@ -16,13 +16,12 @@ function Invoke-Step([string]$label, [scriptblock]$body) {
     if ($code -ne 0) { throw "$label failed (exit code $code)" }
 }
 
-$repo = "kua8/Nectar"
+$repo = "5rs6vyg9z2-oss/dz-island"
 $tag = "v$Version"
 $root = Resolve-Path "$PSScriptRoot/.."
 Set-Location $root
 
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Version must look like 1.3.1" }
-if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw "TAURI_SIGNING_PRIVATE_KEY is not set, so the update can't be signed." }
 
 $versionFiles = @{
     "package.json"                            = (Get-Content package.json -Raw | ConvertFrom-Json).version
@@ -67,13 +66,10 @@ if ($NotesFile) {
 Write-Host "`nRelease notes:`n$notes`n"
 
 Invoke-Step "Installing frontend dependencies" { bun install }
-Invoke-Step "Building Nectar (NSIS update installer)" { bun run tauri build --bundles nsis }
+Invoke-Step "Building DZ Island" { bun run tauri build --no-bundle }
 
 $exe = Join-Path $root "src-tauri/target/release/nectar.exe"
-$setup = Join-Path $root "src-tauri/target/release/bundle/nsis/nectar_${Version}_x64-setup.exe"
-foreach ($f in @($exe, $setup, "$setup.sig")) {
-    if (-not (Test-Path $f)) { throw "Expected build output not found: $f" }
-}
+if (-not (Test-Path $exe)) { throw "Expected build output not found: $exe" }
 
 Write-Host "`n==> Packaging portable build" -ForegroundColor Cyan
 $portable = "nectar-$Version-portable-windows-x64.zip"
@@ -93,30 +89,14 @@ try {
 $installerName = "Nectar-Setup-$Version.exe"
 Copy-Item (Join-Path $root "installer-app/src-tauri/target/release/nectar-installer.exe") (Join-Path $out $installerName)
 
-$setupName = "nectar_${Version}_x64-updater.exe"
-Copy-Item $setup (Join-Path $out $setupName)
-$platform = [ordered]@{
-    signature = (Get-Content "$setup.sig" -Raw).Trim()
-    url       = "https://github.com/$repo/releases/download/$tag/$setupName"
-}
-$manifest = [ordered]@{
-    version   = $Version
-    notes     = $notes
-    pub_date  = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    platforms = [ordered]@{
-        "windows-x86_64"      = $platform
-        "windows-x86_64-nsis" = $platform
-    }
-}
-[IO.File]::WriteAllText((Join-Path $out "latest.json"), ($manifest | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding $false))
 [IO.File]::WriteAllText((Join-Path $out "notes.md"), $notes, (New-Object Text.UTF8Encoding $false))
 
-$sums = @($setupName, $portable, $installerName) | ForEach-Object {
+$sums = @($portable, $installerName) | ForEach-Object {
     "{0}  {1}" -f (Get-FileHash (Join-Path $out $_) -Algorithm SHA256).Hash.ToLower(), $_
 }
 [IO.File]::WriteAllText((Join-Path $out "SHA256SUMS.txt"), (($sums -join "`n") + "`n"), (New-Object Text.UTF8Encoding $false))
 
-$assets = @("latest.json", $setupName, $portable, $installerName, "SHA256SUMS.txt") | ForEach-Object { Join-Path $out $_ }
+$assets = @($portable, $installerName, "SHA256SUMS.txt") | ForEach-Object { Join-Path $out $_ }
 Write-Host "`nBuilt:" -ForegroundColor Green
 $assets | ForEach-Object { Write-Host ("  {0}  ({1:N1} MB)" -f (Split-Path $_ -Leaf), ((Get-Item $_).Length / 1MB)) }
 
@@ -136,7 +116,7 @@ if ($exists) {
 } else {
     $sha = (git rev-parse HEAD).Trim()
     Invoke-Step "Creating draft release $tag" {
-        gh release create $tag --repo $repo --target $sha --title "Nectar $tag" --notes-file (Join-Path $out "notes.md") --draft @assets
+        gh release create $tag --repo $repo --target $sha --title "DZ Island $tag" --notes-file (Join-Path $out "notes.md") --draft @assets
     }
     if ($Prerelease) {
         Invoke-Step "Publishing $tag as a pre-release" { gh release edit $tag --repo $repo --draft=false --prerelease }

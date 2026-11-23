@@ -338,14 +338,6 @@ function SettingsApp() {
           {!query.trim() && activeTab === "about" && (
             <AboutTab
               appVersion={settings.appVersion}
-              autoUpdate={settings.autoUpdate}
-              toggleAutoUpdate={settings.toggleAutoUpdate}
-              prereleaseChannel={settings.prereleaseChannel}
-              togglePrereleaseChannel={settings.togglePrereleaseChannel}
-              updateStatus={settings.updateStatus}
-              updateVersion={settings.updateVersion}
-              checkForUpdates={settings.checkForUpdates}
-              installUpdate={settings.installUpdate}
               exportStatus={settings.exportStatus}
               importStatus={settings.importStatus}
               handleExportSettings={settings.handleExportSettings}

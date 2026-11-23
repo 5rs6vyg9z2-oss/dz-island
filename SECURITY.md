@@ -8,7 +8,7 @@ Only the latest release of Nectar gets security fixes. Nectar updates itself, so
 
 Please do not open a public issue for a security problem.
 
-Report it privately through GitHub: go to the [Security tab](https://github.com/kua8/Nectar/security/advisories/new) and choose **Report a vulnerability**. Only the maintainer can see the report.
+Report it privately through GitHub: go to the [Security tab](https://github.com/5rs6vyg9z2-oss/dz-island/security/advisories/new) and choose **Report a vulnerability**. Only the maintainer can see the report.
 
 Please include:
 

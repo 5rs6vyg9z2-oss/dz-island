@@ -143,39 +143,14 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "Nectar ${{ github.ref_name }}"
+          releaseName: "DZ Island ${{ github.ref_name }}"
           releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
           prerelease: false
-          includeUpdaterJson: true
-          updaterJsonPreferNsis: true
+          includeUpdaterJson: false
 
-      # The NSIS installer only feeds the updater, so it gets a name that does not look like the installer
-      - name: Rename the updater installer
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          OLD="nectar_${VERSION}_x64-setup.exe"
-          NEW="nectar_${VERSION}_x64-updater.exe"
-          mkdir -p updater-rename
-          gh release download "${{ github.ref_name }}" -p "$OLD" -p latest.json -D updater-rename --clobber
-          mv "updater-rename/$OLD" "updater-rename/$NEW"
-          sed -i "s|$OLD|$NEW|g" updater-rename/latest.json
-          grep -q "$NEW" updater-rename/latest.json
-          gh release upload "${{ github.ref_name }}" "updater-rename/$NEW" updater-rename/latest.json --clobber
-          gh release delete-asset "${{ github.ref_name }}" "$OLD" -y
-
-      # tauri-action only uploads the NSIS installer (which now offers a
-      # "just me" / "all users" choice via installMode: "both" in
-      # tauri.conf.json). This adds a second, install-free artifact — the raw
-      # compiled exe, zipped — for people who just want to run it without
-      # installing anything.
       - name: Package portable build
         shell: bash
         run: |
@@ -192,10 +167,6 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           gh release upload "${{ github.ref_name }}" "nectar-${VERSION}-portable-windows-x64.zip" --clobber
 
-      # The NSIS installer above exists only to feed the silent auto-updater
-      # (tauri-plugin-updater only recognizes NSIS/MSI artifacts). This custom
-      # installer-app/ build is the actual thing people download and run —
-      # see installer-app/README.md for why the two are separate.
       - name: Package installer payload
         shell: pwsh
         run: |

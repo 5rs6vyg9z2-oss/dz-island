@@ -35,7 +35,7 @@ export const SEARCH_ENTRIES: SearchEntry[] = [
     "overlays.volume", "overlays.brightness", "overlays.edgeHover", "overlays.edgeDelay", "overlays.volumeSide", "overlays.brightnessSide",
   ]),
   ...group("about", [
-    "about.autoUpdate", "about.prerelease", "about.update.check", "about.tour", "about.export", "about.import", "about.reset", "about.uninstall",
+    "about.tour", "about.export", "about.import", "about.reset", "about.uninstall",
   ]),
   ...group("diagnostics", [
     "about.diagnostics.copy", "about.logs", "about.hitbox", "about.icons",
@@ -85,6 +85,5 @@ export const KEYWORDS: Record<string, string> = {
   "about.uninstall": "remove delete",
   "about.export": "backup save file",
   "about.import": "restore load file backup",
-  "about.autoUpdate": "upgrade version",
   "about.logs": "debug folder",
 };

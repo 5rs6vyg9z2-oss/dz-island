@@ -1,18 +1,10 @@
 import { emit } from "@tauri-apps/api/event";
-import { Compass, Download, FlaskConical, RefreshCw, FileDown, Upload, RotateCcw, Trash2 } from "lucide-react";
+import { Compass, FileDown, Upload, RotateCcw, Trash2 } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { useT } from "../i18n";
 
 interface AboutTabProps {
   appVersion: string;
-  autoUpdate: boolean;
-  toggleAutoUpdate: () => void;
-  prereleaseChannel: boolean;
-  togglePrereleaseChannel: () => void;
-  updateStatus: string;
-  updateVersion: string;
-  checkForUpdates: () => void;
-  installUpdate: () => void;
   exportStatus: string;
   importStatus: string;
   handleExportSettings: () => void;
@@ -26,14 +18,6 @@ interface AboutTabProps {
 
 export function AboutTab({
   appVersion,
-  autoUpdate,
-  toggleAutoUpdate,
-  prereleaseChannel,
-  togglePrereleaseChannel,
-  updateStatus,
-  updateVersion,
-  checkForUpdates,
-  installUpdate,
   exportStatus,
   importStatus,
   handleExportSettings,
@@ -45,49 +29,6 @@ export function AboutTab({
   handleUninstallNectar,
 }: AboutTabProps) {
   const t = useT();
-
-  const getUpdateLabel = () => {
-    switch (updateStatus) {
-      case "checking":
-        return t("about.update.checking");
-      case "available":
-        return t("about.update.available", { version: updateVersion });
-      case "uptodate":
-        return t("about.update.uptodate");
-      case "downloading":
-        return t("about.update.downloading");
-      case "installing":
-        return t("about.update.installing");
-      case "error":
-        return t("about.update.error");
-      default:
-        return t("about.update.check");
-    }
-  };
-
-  const getUpdateDesc = () =>
-    updateStatus === "available" ? t("about.update.available.desc") : t("about.update.current", { version: appVersion });
-
-  const getPillLabel = () => {
-    switch (updateStatus) {
-      case "checking":
-        return t("about.update.checking");
-      case "available":
-        return t("about.pill.update", { version: updateVersion });
-      case "uptodate":
-        return t("about.pill.uptodate");
-      case "downloading":
-        return t("about.pill.downloading");
-      case "installing":
-        return t("about.update.installing");
-      case "error":
-        return t("about.pill.error");
-      default:
-        return t("about.pill.check");
-    }
-  };
-
-  const pillBusy = ["checking", "downloading", "installing"].includes(updateStatus);
 
   const getExportLabel = () => {
     if (exportStatus === "exporting") return t("about.export.working");
@@ -130,39 +71,6 @@ export function AboutTab({
         <img src="/nectar.png" className="about-logo" alt="Serginho, mascote do DZ Island" />
         <h1 className="about-title">DZ Island</h1>
         <p className="about-version">{t("about.version", { version: appVersion || "—" })}</p>
-        <button
-          className={`update-pill update-pill--${updateStatus || "idle"}`}
-          disabled={pillBusy}
-          onClick={() => (updateStatus === "available" ? installUpdate() : checkForUpdates())}
-        >
-          {getPillLabel()}
-        </button>
-      </div>
-
-      <div className="setting-group-label">{t("about.updates.group")}</div>
-      <div className="setting-group">
-        <SettingRow icon={Download} label={t("about.autoUpdate")} desc={t("about.autoUpdate.desc")}>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={autoUpdate} onChange={toggleAutoUpdate} />
-            <span className="slider"></span>
-          </label>
-        </SettingRow>
-
-        <SettingRow icon={FlaskConical} label={t("about.prerelease")} desc={t("about.prerelease.desc")}>
-          <label className="toggle-switch">
-            <input type="checkbox" checked={prereleaseChannel} onChange={togglePrereleaseChannel} />
-            <span className="slider"></span>
-          </label>
-        </SettingRow>
-
-        <SettingRow
-          icon={RefreshCw}
-          label={getUpdateLabel()}
-          desc={getUpdateDesc()}
-          action
-          divider={false}
-          onClick={() => (updateStatus === "available" ? installUpdate() : checkForUpdates())}
-        />
       </div>
 
       <div className="setting-group-label setting-group-label--spaced">

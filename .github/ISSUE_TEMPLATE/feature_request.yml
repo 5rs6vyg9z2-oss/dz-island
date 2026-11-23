@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Ideas are welcome. Please check [existing issues](https://github.com/kua8/Nectar/issues) first so we don't duplicate a request.
+        Ideas are welcome. Please check [existing issues](https://github.com/5rs6vyg9z2-oss/dz-island/issues) first so we don't duplicate a request.
 
   - type: textarea
     id: problem

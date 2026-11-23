@@ -27,3 +27,7 @@ No Codex, abra uma nova sessão e revise os hooks do DZ Island no menu de hooks.
 A ilha mostra início, perguntas que passaram pelos hooks, solicitações de permissão, avisos suportados pelo provedor e conclusão. Para perguntas com opções, o Codex e o Gemini CLI podem usar a ferramenta **ask_island**, e o Claude Code pode usar o fluxo de perguntas compatível. Clique numa opção na ilha para devolver a resposta ao agente. Aprovações de ferramentas, perguntas em texto livre e eventos sem suporte seguem no cliente de origem. Eventos exclusivos de outros clientes e eventos na nuvem que não passam por hooks locais ficam no cliente de origem.
 
 Outros agentes podem informar estados observáveis executando `Nectar.exe agent working --name "Nome do agente"`, ou substituindo `working` por `needs-input`, `done` ou `error`.
+
+## Atualizações
+
+A edição portátil não consulta versões nem instala atualizações automaticamente. O código e eventuais versões do projeto ficam no [GitHub do DZ Island](https://github.com/5rs6vyg9z2-oss/dz-island).

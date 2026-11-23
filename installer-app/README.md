@@ -4,21 +4,7 @@ A second, self-contained Tauri v2 app — not NSIS. This is what users actually
 download and run to install Nectar. It's a real webview, so the UI is plain
 HTML/CSS matching the app's own dark theme, not NSIS's native-dialog wizard.
 
-## Why a separate app, and why NSIS is still around too
-
-`tauri-plugin-updater` (used by the main app for auto-update) only recognizes
-NSIS- or MSI-produced artifacts — it sniffs the downloaded file and, for an
-`.exe`, unconditionally appends NSIS-specific silent-install flags
-(`/UPDATE /ARGS ... /P /R` or `/S /R`). A custom installer exe can't be fed to
-it. So:
-
-- `src-tauri/`'s existing NSIS bundle config (`tauri.conf.json` →
-  `bundle.windows.nsis`, `installer/`) is **untouched** and keeps producing the
-  signed update artifact + `latest.json` for the auto-updater. Users never see
-  this one — the updater runs it silently in the background.
-- `installer-app/` (this project) is the pretty, custom-UI installer people
-  download for a first install. It is not wired into the update pipeline at
-  all.
+The release packages are built for manual installation from the DZ Island repository.
 
 ## How it works
 
