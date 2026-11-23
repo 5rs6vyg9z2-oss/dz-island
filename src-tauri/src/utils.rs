@@ -42,7 +42,7 @@ static TASKBAR_MARKER: OnceLock<PathBuf> = OnceLock::new();
 
 /// Point the crash-recovery marker at this user's app config dir (called from setup).
 pub fn init_taskbar_marker(app: &tauri::AppHandle) {
-    if let Ok(dir) = app.path().app_config_dir() {
+    if let Ok(dir) = crate::utils::portable_data_dir() {
         let _ = TASKBAR_MARKER.set(dir.join("taskbar_hidden.flag"));
     }
 }
@@ -84,18 +84,6 @@ fn taskbar_monitor(monitors: &[(windows::Win32::Foundation::RECT, bool)], primar
     }
 }
 
-unsafe fn park_below_monitor(hwnd: windows::Win32::Foundation::HWND, primary: bool) {
-    use windows::Win32::Foundation::RECT;
-    use windows::Win32::UI::WindowsAndMessaging::{GetWindowRect, SetWindowPos, SWP_NOACTIVATE, SWP_NOSIZE, SWP_NOZORDER};
-    let mut cur = RECT::default();
-    let _ = GetWindowRect(hwnd, &mut cur);
-    let (x, y) = match taskbar_monitor(&monitor_rects(), primary, &cur) {
-        Some(m) => (m.left, m.bottom),
-        None => (-10000, -10000),
-    };
-    let _ = SetWindowPos(hwnd, None, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-}
-
 unsafe fn restore_tray_position(hwnd: windows::Win32::Foundation::HWND, primary: bool, saved: Option<windows::Win32::Foundation::RECT>) {
     use windows::Win32::Foundation::RECT;
     use windows::Win32::UI::WindowsAndMessaging::{GetWindowRect, SetWindowPos, SWP_NOACTIVATE, SWP_NOSIZE, SWP_NOZORDER};
@@ -126,17 +114,23 @@ fn marker_contents(original_state: i32) -> String {
 }
 
 fn parse_marker_state(contents: &str) -> Option<i32> {
-    contents.trim().strip_prefix("abstate=")?.parse().ok()
+    contents.lines().next()?.trim().strip_prefix("abstate=")?.parse().ok()
 }
 
 /// Restores the taskbar after a session died with it hidden, using the state saved in the marker.
 pub fn restore_taskbar_after_crash() {
-    let saved = TASKBAR_MARKER
-        .get()
-        .and_then(|p| std::fs::read_to_string(p).ok())
-        .and_then(|contents| parse_marker_state(&contents));
-    if let Some(state) = saved {
-        ORIGINAL_TASKBAR_STATE.store(state, std::sync::atomic::Ordering::Relaxed);
+    if let Some(contents) = TASKBAR_MARKER.get().and_then(|p| std::fs::read_to_string(p).ok()) {
+        if let Some(state) = parse_marker_state(&contents) {
+            ORIGINAL_TASKBAR_STATE.store(state, std::sync::atomic::Ordering::Relaxed);
+        }
+        if let Some(coords) = contents.lines().find_map(|line| line.strip_prefix("rect=")) {
+            let values: Vec<i32> = coords.split(',').filter_map(|v| v.parse().ok()).collect();
+            if let [left, top, right, bottom] = values.as_slice() {
+                if let Ok(mut rect) = ORIGINAL_TRAY_RECT.lock() {
+                    *rect = Some(windows::Win32::Foundation::RECT { left: *left, top: *top, right: *right, bottom: *bottom });
+                }
+            }
+        }
     }
     set_taskbar_visibility(true, true);
 }
@@ -161,6 +155,10 @@ pub fn secondary_taskbars() -> Vec<windows::Win32::Foundation::HWND> {
 }
 
 pub fn set_taskbar_visibility(visible: bool, always_on_top: bool) {
+    // Avoid touching the native shell before this instance has hidden its taskbar.
+    if visible && !taskbar_marker_exists() {
+        return;
+    }
     if visible {
         crate::state::NATIVE_TASKBAR_HIDDEN.store(false, std::sync::atomic::Ordering::SeqCst);
     }
@@ -183,6 +181,16 @@ pub fn set_taskbar_visibility(visible: bool, always_on_top: bool) {
             ORIGINAL_TASKBAR_STATE.store(original_state as i32, std::sync::atomic::Ordering::Relaxed);
         }
 
+        // Capture the bar before Windows applies auto-hide, including custom vertical placement.
+        if !visible && ORIGINAL_TRAY_RECT.lock().is_ok_and(|rect| rect.is_none()) {
+            if let Ok(hwnd) = FindWindowA(tray_class, windows::core::PCSTR::null()) {
+                let mut rect = windows::Win32::Foundation::RECT::default();
+                if GetWindowRect(hwnd, &mut rect).is_ok() && rect_is_on_screen(&rect) {
+                    if let Ok(mut saved) = ORIGINAL_TRAY_RECT.lock() { *saved = Some(rect); }
+                }
+            }
+        }
+
         // Crash marker: written when hidden so the next launch can undo it after a force kill.
         // Written after the original state is known so it can carry it.
         if visible {
@@ -192,7 +200,13 @@ pub fn set_taskbar_visibility(visible: bool, always_on_top: bool) {
         } else if let Some(p) = TASKBAR_MARKER.get() {
             if !p.exists() {
                 let original = ORIGINAL_TASKBAR_STATE.load(std::sync::atomic::Ordering::Relaxed);
-                let _ = std::fs::write(p, marker_contents(original));
+                let mut contents = marker_contents(original);
+                if let Ok(saved) = ORIGINAL_TRAY_RECT.lock() {
+                    if let Some(rect) = saved.as_ref() {
+                        contents.push_str(&format!("\nrect={},{},{},{}", rect.left, rect.top, rect.right, rect.bottom));
+                    }
+                }
+                let _ = std::fs::write(p, contents);
             }
         }
 
@@ -255,8 +269,7 @@ pub fn set_taskbar_visibility(visible: bool, always_on_top: bool) {
                     }
                 }
                 let _ = ShowWindow(tray_hwnd, SW_HIDE);
-                // Move it far off-screen to prevent any "thin line" artifacts or flashes
-                park_below_monitor(tray_hwnd, true);
+
             }
         }
 
@@ -284,7 +297,6 @@ pub fn set_taskbar_visibility(visible: bool, always_on_top: bool) {
                     }
                 }
                 let _ = ShowWindow(secondary_tray_hwnd, SW_HIDE);
-                park_below_monitor(secondary_tray_hwnd, false);
             }
         }
 
@@ -522,7 +534,7 @@ fn settings_cache() -> &'static std::sync::Mutex<std::collections::HashMap<Strin
 /// Load settings.json into the in-memory cache. Call once at startup.
 pub fn init_settings_cache(app: &tauri::AppHandle) {
     use tauri::Manager;
-    if let Some(path) = app.path().app_config_dir().ok().map(|p| p.join("settings.json")) {
+    if let Some(path) = crate::utils::portable_data_dir().ok().map(|p| p.join("settings.json")) {
         if let Ok(content) = std::fs::read_to_string(path) {
             if let Ok(settings) = serde_json::from_str::<std::collections::HashMap<String, serde_json::Value>>(&content) {
                 if let Ok(mut cache) = settings_cache().lock() {
@@ -1040,4 +1052,12 @@ mod tests {
         assert_eq!(resolve_executable_path("nectar-definitely-not-installed"), None);
         assert_eq!(resolve_executable_path(""), None);
     }
+}
+
+/// Configuration is stored beside the portable executable.
+pub fn portable_data_dir() -> std::io::Result<std::path::PathBuf> {
+    let exe = std::env::current_exe()?;
+    let directory = exe.with_file_name("data");
+    std::fs::create_dir_all(&directory)?;
+    Ok(directory)
 }

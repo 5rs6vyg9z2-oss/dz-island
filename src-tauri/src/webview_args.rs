@@ -1,6 +1,6 @@
 
 const BASE_ARGS: &str = concat!(
-    "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,",
+    "--disable-features=msWebOOUI,msPdfOOUI,",
     "SpareRendererForSitePerProcess,",
     "InterestFeedContentSuggestions,MediaRouter,OptimizationHints,Translate,",
     "AutofillServerCommunication,CertificateTransparencyComponentUpdater,",
@@ -19,12 +19,7 @@ const BASE_ARGS: &str = concat!(
 const ULTRA_ARGS: &str = " --disable-gpu";
 
 fn settings_file() -> Option<std::path::PathBuf> {
-    let appdata = std::env::var_os("APPDATA")?;
-    Some(
-        std::path::PathBuf::from(appdata)
-            .join("com.kua8.nectar")
-            .join("settings.json"),
-    )
+    Some(crate::utils::portable_data_dir().ok()?.join("settings.json"))
 }
 
 fn read_setting(key: &str) -> Option<serde_json::Value> {
@@ -66,7 +61,7 @@ mod tests {
     fn base_args_keep_the_wry_defaults() {
         assert!(BASE_ARGS.contains("msWebOOUI"));
         assert!(BASE_ARGS.contains("msPdfOOUI"));
-        assert!(BASE_ARGS.contains("msSmartScreenProtection"));
+        assert!(!BASE_ARGS.contains("msSmartScreenProtection"));
         assert!(BASE_ARGS.contains("--autoplay-policy=no-user-gesture-required"));
     }
 

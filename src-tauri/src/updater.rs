@@ -93,8 +93,7 @@ fn now_secs() -> i64 {
 }
 
 fn state_path(app: &AppHandle) -> Option<PathBuf> {
-    app.path()
-        .app_config_dir()
+    crate::utils::portable_data_dir()
         .ok()
         .map(|dir| dir.join(STATE_FILE))
 }

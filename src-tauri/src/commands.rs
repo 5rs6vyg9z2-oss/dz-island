@@ -1100,7 +1100,7 @@ fn get_cache_key(path: &str, name: Option<&str>) -> String {
 }
 
 fn get_custom_icons_dir(app: &AppHandle) -> Result<std::path::PathBuf, String> {
-    let dir = app.path().app_config_dir().map_err(|e| e.to_string())?.join("custom_icons");
+    let dir = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("custom_icons");
     let _ = std::fs::create_dir_all(&dir);
     Ok(dir)
 }
@@ -1423,7 +1423,7 @@ pub fn schedule_icon_cache_save(app: AppHandle) {
         tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
         let last = LAST_ICON_SAVE_REQUEST.load(Ordering::Relaxed);
         if now == last || crate::utils::get_now_ms() - last >= 950 {
-            if let Ok(dir) = app.path().app_config_dir() {
+            if let Ok(dir) = crate::utils::portable_data_dir() {
                 let cache_path = dir.join("icons_cache.json");
                 if let Some(c) = crate::state::ICON_CACHE.get() {
                     let snapshot = if let Ok(lock) = c.lock() {
@@ -1512,7 +1512,7 @@ fn icon_from_exe_neighbourhood(exe: &str) -> Option<String> {
 
 #[tauri::command]
 pub async fn get_app_icon(app: AppHandle, path: String, name: Option<String>, hwnd: Option<isize>) -> Result<Option<String>, String> {
-    let cache_dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
+    let cache_dir = crate::utils::portable_data_dir().map_err(|e| e.to_string())?;
     let cache_path = cache_dir.join("icons_cache.json");
     let cache_key = get_cache_key(&path, name.as_deref());
 
@@ -1837,7 +1837,7 @@ pub async fn get_app_icon(app: AppHandle, path: String, name: Option<String>, hw
 
 #[tauri::command]
 pub fn save_pinned_apps(app: AppHandle, apps: Vec<AppInfo>) -> Result<(), String> {
-    let path = app.path().app_config_dir().map_err(|e| e.to_string())?.join("pinned_apps.json");
+    let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("pinned_apps.json");
     if let Some(parent) = path.parent() { let _ = std::fs::create_dir_all(parent); }
     let content = serde_json::to_string(&apps).map_err(|e| e.to_string())?;
     std::fs::write(path, content).map_err(|e| e.to_string())?;
@@ -1846,7 +1846,7 @@ pub fn save_pinned_apps(app: AppHandle, apps: Vec<AppInfo>) -> Result<(), String
 
 #[tauri::command]
 pub async fn load_pinned_apps(app: AppHandle) -> Vec<AppInfo> {
-    let cfg_dir = app.path().app_config_dir().unwrap_or_default();
+    let cfg_dir = crate::utils::portable_data_dir().unwrap_or_default();
     let path = cfg_dir.join("pinned_apps.json");
     let synced_marker = cfg_dir.join("taskbar_pins_synced");
 
@@ -1885,7 +1885,7 @@ fn import_taskbar_pins() -> Option<Vec<AppInfo>> {
 
 #[tauri::command]
 pub async fn clear_icon_cache(app: AppHandle) -> Result<(), String> {
-    let cache_dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
+    let cache_dir = crate::utils::portable_data_dir().map_err(|e| e.to_string())?;
     let cache_path = cache_dir.join("icons_cache.json");
     let _ = std::fs::remove_file(&cache_path);
     if let Some(c) = ICON_CACHE.get() {
@@ -2649,52 +2649,9 @@ pub async fn quit_nectar(handle: AppHandle) {
     restore_taskbar_and_exit(&handle);
 }
 
-fn registered_uninstaller() -> Option<std::path::PathBuf> {
-    use std::os::windows::process::CommandExt;
-    for root in ["HKCU", "HKLM"] {
-        let key = format!(r"{}\Software\Microsoft\Windows\CurrentVersion\Uninstall\Nectar", root);
-        let Ok(out) = std::process::Command::new("reg")
-            .args(["query", &key, "/v", "UninstallString"])
-            .creation_flags(0x0800_0000)
-            .output() else { continue };
-        let text = String::from_utf8_lossy(&out.stdout);
-        let Some(line) = text.lines().find(|l| l.contains("REG_SZ")) else { continue };
-        let value = line.split("REG_SZ").nth(1).unwrap_or("").trim();
-        let exe = if let Some(rest) = value.strip_prefix('"') {
-            rest.split('"').next().unwrap_or("")
-        } else {
-            value.split(" --").next().unwrap_or("")
-        };
-        let path = std::path::PathBuf::from(exe);
-        if !exe.is_empty() && path.exists() { return Some(path); }
-    }
-    None
-}
-
 #[tauri::command]
-pub async fn uninstall_nectar(handle: AppHandle) -> Result<(), String> {
-    crate::uninstall_registry::heal_uninstall_registration();
-
-    let mut uninstaller = std::env::current_exe()
-        .map_err(|e| e.to_string())?
-        .parent()
-        .ok_or_else(|| "Could not resolve install directory".to_string())?
-        .join("uninstall.exe");
-
-    if !uninstaller.exists() {
-        uninstaller = registered_uninstaller().ok_or_else(|| {
-            "This copy of Nectar isn't an installed one (it's a portable or development build), so there's nothing to uninstall. Run it from its install folder, or use Windows Settings > Apps.".to_string()
-        })?;
-    }
-
-    std::process::Command::new(&uninstaller)
-        .arg("--uninstall")
-        .current_dir(std::env::temp_dir())
-        .spawn()
-        .map_err(|e| format!("Couldn't launch {}: {}", uninstaller.display(), e))?;
-
-    restore_taskbar_and_exit(&handle);
-    Ok(())
+pub async fn uninstall_nectar() -> Result<(), String> {
+    Err("Feche o Nectar e mova a pasta Portatil para a Lixeira.".into())
 }
 
 #[tauri::command]
@@ -2914,7 +2871,7 @@ const MONITOR_TARGETING_KEYS: [&str; 5] = [
 
 #[tauri::command]
 pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Result<(), String> {
-    let path = app.path().app_config_dir().map_err(|e| e.to_string())?.join("settings.json");
+    let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     if let Some(parent) = path.parent() { let _ = std::fs::create_dir_all(parent); }
     let mut settings = HashMap::new();
     if let Ok(content) = std::fs::read_to_string(&path) { if let Ok(existing) = serde_json::from_str::<HashMap<String, serde_json::Value>>(&content) { settings = existing; } }
@@ -2991,7 +2948,7 @@ pub fn set_notch_mode_for_window(window: tauri::WebviewWindow, app: AppHandle, m
 
 #[tauri::command]
 pub fn load_settings(app: AppHandle) -> Result<HashMap<String, serde_json::Value>, String> {
-    let path = match app.path().app_config_dir() {
+    let path = match crate::utils::portable_data_dir() {
         Ok(p) => p.join("settings.json"),
         Err(_) => return Ok(HashMap::new()),
     };
@@ -3001,7 +2958,7 @@ pub fn load_settings(app: AppHandle) -> Result<HashMap<String, serde_json::Value
 
 #[tauri::command]
 pub fn reset_settings(app: AppHandle) -> Result<(), String> {
-    let path = app.path().app_config_dir().map_err(|e| e.to_string())?.join("settings.json");
+    let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     std::fs::write(&path, "{}").map_err(|e| e.to_string())?;
     crate::utils::replace_settings_cache(HashMap::new());
     Ok(())
@@ -3275,7 +3232,7 @@ pub fn set_brightness(app: AppHandle, brightness: u32) {
     let val = brightness.min(100);
     crate::state::CURRENT_BRIGHTNESS.store(val, Ordering::Relaxed);
     crate::state::LAST_BRIGHTNESS_CHANGE.store(crate::utils::get_now_ms(), Ordering::Relaxed);
-    if let Ok(dir) = app.path().app_config_dir() {
+    if let Ok(dir) = crate::utils::portable_data_dir() {
         let _ = std::fs::write(dir.join("last_brightness.txt"), val.to_string());
     }
     let _ = app.emit("brightness-change", BrightnessChangeEvent { brightness: val });
@@ -3692,7 +3649,7 @@ pub fn windows_accent_backup_exists(app: AppHandle) -> bool {
 
 #[tauri::command]
 pub fn export_settings(app: AppHandle) -> Result<String, String> {
-    let path = app.path().app_config_dir().map_err(|e| e.to_string())?.join("settings.json");
+    let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     if let Ok(content) = std::fs::read_to_string(&path) {
         // Validate it's valid JSON before returning
         let _settings: HashMap<String, serde_json::Value> =
@@ -3758,7 +3715,7 @@ pub fn import_settings(app: AppHandle, settings: String) -> Result<(), String> {
     let imported: HashMap<String, serde_json::Value> =
         serde_json::from_str(&settings).map_err(|e| format!("Invalid JSON: {}", e))?;
 
-    let path = app.path().app_config_dir().map_err(|e| e.to_string())?.join("settings.json");
+    let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -3783,7 +3740,7 @@ pub fn import_settings(app: AppHandle, settings: String) -> Result<(), String> {
 pub fn setup_settings_watcher(app: AppHandle) {
     use tauri::Manager;
 
-    let config_dir = match app.path().app_config_dir() {
+    let config_dir = match crate::utils::portable_data_dir() {
         Ok(p) => p,
         Err(_) => return,
     };

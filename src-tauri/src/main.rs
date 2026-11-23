@@ -24,6 +24,7 @@ mod launchers;
 mod hotkeys;
 mod connections;
 mod audio_devices;
+mod dock_bluetooth;
 mod i18n;
 mod shelf;
 mod agent_api;
@@ -64,6 +65,9 @@ fn main() {
         return;
     }
 
+    if let Ok(data) = portable_data_dir() {
+        std::env::set_var("WEBVIEW2_USER_DATA_FOLDER", data.join("webview"));
+    }
     diagnostics::init();
 
     memory_saver::init();
@@ -224,6 +228,8 @@ fn main() {
             get_wifi_status,
             set_wifi_state,
             get_bluetooth_state,
+            dock_bluetooth::dock_bluetooth_devices,
+            dock_bluetooth::open_battery_menu,
             set_bluetooth_state,
             open_bluetooth_settings,
             open_airplane_mode_settings,
@@ -284,19 +290,7 @@ fn main() {
 
             crate::utils::init_settings_cache(app.handle());
             agent_api::start(app.handle().clone());
-
-            #[cfg(not(debug_assertions))]
-            std::thread::spawn(crate::uninstall_registry::heal_uninstall_registration);
-
-            // Update check on startup (non-blocking). Always runs so the UI can
-            // show an update badge; auto-install only happens when the user
-            // enabled it and the release has aged past the rollout gate.
-            {
-                let app_handle = app.handle().clone();
-                tauri::async_runtime::spawn(async move {
-                    updater::run_startup_check(app_handle).await;
-                });
-            }
+            dock_bluetooth::start_battery_engine();
 
             crate::calendar_sync::start_background_sync(app.handle().clone());
 
@@ -357,10 +351,6 @@ fn main() {
             setup_audio_visualization(app.handle().clone());
             setup_settings_watcher(app.handle().clone());
             memory_saver::start_reclaim_worker(app.handle().clone());
-            {
-                let ah = app.handle().clone();
-                std::thread::spawn(move || startup::migrate(&ah));
-            }
             startup::mark("setup finished");
 
             // Listen for second-instance signal to open settings
@@ -402,7 +392,7 @@ fn main() {
                 let ah = app.handle().clone();
                 TrayIconBuilder::new()
                     .icon(app.default_window_icon().unwrap().clone())
-                    .tooltip("Nectar")
+                    .tooltip("DZ Island")
                     .menu(&menu)
                     .on_menu_event(move |_, event| match event.id().as_ref() {
                         "quit" => {

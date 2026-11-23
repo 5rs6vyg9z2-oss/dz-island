@@ -1135,3 +1135,31 @@ body {
   background: var(--nectar-text, #fff);
   color: var(--nectar-bg-expanded, #000);
 }
+
+.dock-bluetooth-devices {
+  display: flex;
+  max-width: 32vw;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.dock-bluetooth-device {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dock-bluetooth-name {
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

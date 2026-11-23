@@ -1,3 +1,11 @@
+# DZ Island
+
+Ilha dinâmica para Windows derivada do [Nectar](https://github.com/kua8/nectar), com interface em português, bateria dos dispositivos, integração local com agentes de IA e o mascote Serginho.
+
+Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
+
+## Documentação original
+
 <div align="center">
 
 <img src="docs/logo.png" width="128" alt="Nectar logo" />

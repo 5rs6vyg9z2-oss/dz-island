@@ -21,8 +21,8 @@ pub static HOOK_EVENTS: AtomicI64 = AtomicI64::new(0);
 pub static HOOK_LAST_EVENT_MS: AtomicI64 = AtomicI64::new(0);
 
 pub fn init() {
-    let Ok(appdata) = std::env::var("APPDATA") else { return };
-    let dir = PathBuf::from(appdata).join("com.kua8.nectar").join("logs");
+    let Ok(data) = crate::utils::portable_data_dir() else { return };
+    let dir = data.join("logs");
     if fs::create_dir_all(&dir).is_err() {
         return;
     }

@@ -1148,7 +1148,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
         let supported = first.as_ref().map(|r| !r.is_empty()).unwrap_or(false);
         let poll = if supported { 1500 } else { 30_000 };
         let saved_brightness = if supported { None } else {
-            handle_brightness.path().app_config_dir().ok()
+            crate::utils::portable_data_dir().ok()
                 .and_then(|d| std::fs::read_to_string(d.join("last_brightness.txt")).ok())
                 .and_then(|t| t.trim().parse::<u32>().ok())
                 .map(|v| v.min(100))
@@ -3300,7 +3300,7 @@ pub unsafe extern "system" fn enum_windows_proc(hwnd: HWND, lparam: LPARAM) -> B
             }
 
             // Filter out system containers and background stuff
-            if title == "Program Manager" || title == "nectar" || title == "Nectar Dock" {
+            if title == "Program Manager" || title == "DZ Island" || title == "DZ Island Dock" {
                 return true.into();
             }
 

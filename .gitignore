@@ -31,3 +31,15 @@ dist-ssr
 # Marketing site — hosted separately (Apache, own domain), not part of this repo
 /website/
 
+
+# Local toolchain and runnable portable copy
+/.nectar-local/
+/Portatil/
+
+# Environment files and private keys
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.p12

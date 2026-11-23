@@ -36,7 +36,7 @@ pub struct Detection {
 }
 
 fn links_path(app: &AppHandle) -> Option<PathBuf> {
-    app.path().app_config_dir().ok().map(|p| p.join(LINKS_FILE))
+    crate::utils::portable_data_dir().ok().map(|p| p.join(LINKS_FILE))
 }
 
 pub fn list_links(app: &AppHandle) -> Vec<LinkMeta> {

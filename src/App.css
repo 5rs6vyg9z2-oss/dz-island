@@ -2691,13 +2691,6 @@ img {
     gap: 12px;
 }
 
-.agent-panel-mascot {
-    height: 40px;
-    width: auto;
-    flex: none;
-    image-rendering: pixelated;
-}
-
 .agent-panel-text {
     display: flex;
     flex-direction: column;
@@ -2817,4 +2810,28 @@ img {
     font-weight: 600;
     margin-right: 6px;
     color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+/* Four frames in reading order. Change only the displayed frame, not the layout. */
+.serginho {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+}
+.serginho-panel { width: 50px; height: 50px; }
+.serginho-sprite {
+    width: 100%;
+    height: 100%;
+    background: url("/mascot/serginho-wave.png") 0% 0% / 200% 200% no-repeat;
+}
+.serginho-wave { animation: serginho-greeting 1.8s step-end both; }
+@keyframes serginho-greeting {
+    0%, 100% { background-position: 0% 0%; }
+    10%, 90% { background-position: 100% 0%; }
+    20%, 42%, 64% { background-position: 0% 100%; }
+    31%, 53%, 75% { background-position: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .serginho-wave { animation: none; background-position: 100% 0%; }
 }

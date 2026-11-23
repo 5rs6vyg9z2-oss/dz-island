@@ -1,4 +1,4 @@
-export const DEFAULT_PANEL_ORDER = ["command-center", "status", "music", "calendar", "shelf"] as const;
+export const DEFAULT_PANEL_ORDER = ["command-center", "shelf", "calendar", "status", "music"] as const;
 
 export type PanelId = (typeof DEFAULT_PANEL_ORDER)[number];
 
@@ -15,7 +15,7 @@ export function parsePanelOrder(raw: string | null | undefined): PanelId[] | nul
   }
 }
 
-export const CC_TILES = ["network", "dock-mode", "bluetooth", "notch-mode"] as const;
+export const CC_TILES = ["network", "bluetooth", "dock-mode", "notch-mode"] as const;
 export const CC_BUTTONS = ["dnd", "battery-saver", "tray", "notifications", "settings", "restart"] as const;
 export const CC_SLIDERS = ["volume", "brightness"] as const;
 

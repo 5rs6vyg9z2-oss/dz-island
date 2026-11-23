@@ -33,7 +33,7 @@ fn wide(s: &str) -> Vec<u16> {
 }
 
 fn backup_path(app: &AppHandle) -> Option<PathBuf> {
-    app.path().app_config_dir().ok().map(|d| d.join("windows-accent-backup.json"))
+    crate::utils::portable_data_dir().ok().map(|d| d.join("windows-accent-backup.json"))
 }
 
 fn read_value(key: &str, name: &str, binary: bool) -> Saved {

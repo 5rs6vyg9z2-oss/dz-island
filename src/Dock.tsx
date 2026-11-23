@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, memo } from 'react';
+import { Battery, Bluetooth, Gamepad2, Headphones, Keyboard, Mic, Mouse, Smartphone, Speaker } from 'lucide-react';
 import { motion, AnimatePresence, Reorder, useIsPresent } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { emit, listen } from '@tauri-apps/api/event';
@@ -521,6 +522,28 @@ function DockPreviewTooltip({
 const tourDockAction = () => { emit('tour-dock-action').catch(() => {}); };
 
 const Dock = memo(function Dock() {
+  const [bluetoothDevices, setBluetoothDevices] = useState<Array<{ id: string; name: string; percent: number | null; kind: string; charging: boolean; connected: boolean; detail: string }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | undefined;
+    async function refresh() {
+      try {
+        const devices = await invoke<typeof bluetoothDevices>("dock_bluetooth_devices");
+        if (cancelled) return;
+        setBluetoothDevices(previous => previous.length === devices.length && previous.every((device, i) =>
+          device.id === devices[i].id && device.name === devices[i].name && device.percent === devices[i].percent &&
+          device.kind === devices[i].kind && device.charging === devices[i].charging &&
+          device.connected === devices[i].connected && device.detail === devices[i].detail
+        ) ? previous : devices);
+      } catch (error) {
+        if (!cancelled) console.error(error);
+      } finally {
+        if (!cancelled) timer = window.setTimeout(refresh, 5_000);
+      }
+    }
+    void refresh();
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, []);
   const t = useT();
   useEffect(() => {
     return initTheme({ backdrop: true });
@@ -1227,7 +1250,6 @@ const Dock = memo(function Dock() {
   const nectarOptionsMenu = () => {
     const on = (id: string) => menuItems.includes(id);
     const hasTop = ["calendar", "settings", "taskmgr", "restart", "clearicons"].some(on);
-    if (!hasTop && !on("quit")) return null;
     return (
       <div
         className="menu-item has-submenu"
@@ -1237,6 +1259,7 @@ const Dock = memo(function Dock() {
         {t("dockmenu.options")}
         <span className="submenu-arrow">▶</span>
         <div className="submenu">
+          <div className="menu-item" onClick={() => { closeMenu(); invoke("open_battery_menu").catch(console.error); }}>{t("dock.battery.menu")}</div>
           {on("calendar") && <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>{t("dockmenu.openCalendar")}</div>}
           {on("settings") && <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>{t("dockmenu.openSettings")}</div>}
           {on("taskmgr") && <div className="menu-item" onClick={() => { invoke('open_app', { appName: 'taskmgr' }); closeMenu(); }}>{t("dockmenu.taskManager")}</div>}
@@ -1616,6 +1639,27 @@ const Dock = memo(function Dock() {
               transition={{ duration: 0.15, delay: startupAnimating ? 0.3 : 0 }}
               className="dock-reorder-container"
             >
+              {bluetoothDevices.length > 0 && (
+                <div className="dock-bluetooth-devices">
+                  {bluetoothDevices.map(device => {
+                    const DeviceIcon = ({ mouse: Mouse, headset: Headphones, keyboard: Keyboard, gamepad: Gamepad2,
+                      phone: Smartphone, microphone: Mic, speaker: Speaker, bluetooth: Bluetooth } as Record<string, typeof Battery>)[device.kind] ?? Battery;
+                    const battery = !device.connected ? t("cc.notConnected") : device.percent === null
+                      ? t("dock.bluetooth.connected")
+                      : `${device.percent}%`;
+                    return (
+                      <button type="button" key={device.id} className="dock-bluetooth-device"
+                        title={[device.name, battery, device.detail].filter(Boolean).join(" · ")}
+                        onClick={event => { event.stopPropagation(); invoke("open_battery_menu").catch(console.error); }}>
+                        <DeviceIcon size={14} aria-hidden="true" />
+                        <span className="dock-bluetooth-name">{device.name}</span>
+                        {device.charging && <span aria-label={t("battery.charging")}>⚡</span>}
+                        {device.connected && device.percent !== null && <span>{battery}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {startItem && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}

@@ -5,6 +5,7 @@ export type AgentState = "working" | "tool" | "needs_input" | "done" | "error";
 
 export interface AgentActivity {
   state: AgentState;
+  session?: string;
   name?: string;
   project?: string;
   window?: number;
@@ -13,14 +14,6 @@ export interface AgentActivity {
   cancelled?: number;
 }
 
-const MASCOT: Record<AgentState, string> = {
-  working: "working",
-  tool: "working",
-  needs_input: "needs-input",
-  done: "done",
-  error: "error",
-};
-
 export function useAgentLabel(activity: AgentActivity) {
   const t = useT();
   const { state, name, project } = activity;
@@ -28,19 +21,28 @@ export function useAgentLabel(activity: AgentActivity) {
   return `${name ?? t("agent.default")} · ${project ? `${status} · ${project}` : status}`;
 }
 
+function Serginho({ activity, panel = false }: { activity: AgentActivity; panel?: boolean }) {
+  const label = useAgentLabel(activity);
+  const wave = activity.state === "needs_input" || activity.state === "done";
+  const eventKey = activity.ask?.id ?? `${activity.state}:${activity.session ?? ""}`;
+  return (
+    <span className={panel ? "serginho serginho-panel" : "serginho"} title={label}>
+      <span key={eventKey} className={wave ? "serginho-sprite serginho-wave" : "serginho-sprite"} aria-hidden="true" />
+    </span>
+  );
+}
+
 export function AgentMascot({ activity }: { activity: AgentActivity }) {
   return (
-    <motion.img
+    <motion.span
       className="agent-mascot"
       key={activity.state}
-      src={`/mascot/${MASCOT[activity.state]}.svg`}
-      title={useAgentLabel(activity)}
-      alt=""
-      draggable={false}
       initial={{ scale: 0.6, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 520, damping: 22 }}
-    />
+    >
+      <Serginho activity={activity} />
+    </motion.span>
   );
 }
 
@@ -72,7 +74,7 @@ export function AgentPanel({ activity, picks, onPick, onOpen, onDismiss, onAnswe
   return (
     <>
       <div className="agent-panel-head">
-        <img className="agent-panel-mascot" src={`/mascot/${MASCOT[activity.state]}.svg`} alt="" draggable={false} />
+        <Serginho activity={activity} panel />
         <div className="agent-panel-text">
           <b>{activity.name ?? t("agent.default")}</b>
           <span>{activity.project ? `${t(`agent.${activity.state}`)} · ${activity.project}` : t(`agent.${activity.state}`)}</span>

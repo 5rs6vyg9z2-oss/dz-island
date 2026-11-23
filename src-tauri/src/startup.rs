@@ -159,11 +159,14 @@ pub fn migrate(app: &AppHandle) {
 }
 
 #[tauri::command]
-pub fn get_autostart(app: AppHandle) -> bool {
-    is_enabled(&app)
+pub fn get_autostart() -> bool {
+    false
 }
 
 #[tauri::command]
-pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<(), String> {
-    set_enabled(&app, enabled)
+pub fn set_autostart(enabled: bool) -> Result<(), String> {
+    if enabled {
+        return Err("Automatic startup is unavailable in the portable build.".into());
+    }
+    Ok(())
 }

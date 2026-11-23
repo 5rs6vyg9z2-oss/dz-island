@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "nectar",
+  "productName": "DZ Island",
   "version": "1.10.0",
-  "identifier": "com.kua8.nectar",
+  "identifier": "local.nectar.portable",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "nectar",
+        "title": "DZ Island",
         "width": 1920,
         "height": 420,
         "x": 0,
@@ -55,7 +55,7 @@
       },
       {
         "label": "dock",
-        "title": "Nectar Dock",
+        "title": "DZ Island Dock",
         "url": "dock.html",
         "width": 1920,
         "height": 600,

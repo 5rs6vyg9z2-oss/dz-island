@@ -22,7 +22,7 @@ import { NotchTour, TOUR_STEPS } from "./components/NotchTour";
 import { useStopwatch } from "./hooks/useStopwatch";
 import { t as translate, useT } from "./i18n";
 import { NotchShelf, useShelf } from "./components/NotchShelf";
-import { parseCcLayout, parsePanelOrder, resolveCcLayout, type CcKind } from "./panelOrder";
+import { DEFAULT_PANEL_ORDER, parseCcLayout, parsePanelOrder, resolveCcLayout, type CcKind } from "./panelOrder";
 import { NotchProgressBorder } from "./components/NotchProgressBorder";
 import { SurfaceShape } from "./components/SurfaceShape";
 import { playAgentSound } from "./agentSounds";
@@ -1158,16 +1158,8 @@ function App() {
   const WHEEL_STEP_THRESHOLD = 60;
   const WHEEL_IDLE_RESET_MS = 180;
 
-  // Music shifts position based on playing state:
-  // Playing: command-center → music → status → calendar (active, near command-center)
-  // Paused:  command-center → status → music → calendar (secondary, after status)
   const availableNotchModes = () => {
-    const musicBeforeStatus = isPlaying && mediaInfo.has_media && settingsMusicModeEnabled;
-    const modes: ('command-center' | 'status' | 'music' | 'calendar' | 'shelf')[] = panelOrder
-      ? [...panelOrder]
-      : musicBeforeStatus
-        ? ['command-center', 'music', 'status', 'calendar', 'shelf']
-        : ['command-center', 'status', 'music', 'calendar', 'shelf'];
+    const modes = panelOrder ?? DEFAULT_PANEL_ORDER;
     const noStatusWidgets = !panelStatus || statusWidgets.left.length + statusWidgets.right.length === 0;
     return modes.filter(m => {
       if (m === 'status' && noStatusWidgets && nectarMode !== 'status') return false;
@@ -1548,22 +1540,61 @@ function App() {
     return () => { unlisten.then(fn => fn()); };
   }, []);
 
+  const agentCurrent = useRef<AgentActivity | null>(null);
+  const agentQueue = useRef<AgentActivity[]>([]);
+  const agentTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  function displayAgent(next: AgentActivity | null) {
+    clearTimeout(agentTimer.current);
+    agentCurrent.current = next;
+    setAgentActivity(next);
+    if (next?.state === "done") {
+      agentTimer.current = setTimeout(() => displayAgent(agentQueue.current.shift() ?? null), 8000);
+    }
+  }
+
   useEffect(() => {
-    let clear: ReturnType<typeof setTimeout> | undefined;
-    const unlisten = listen<AgentActivity | null>("agent-activity", (event) => {
-      clearTimeout(clear);
-      const next = event.payload;
-      const key = next ? `${next.state}:${next.ask?.id ?? ""}` : "";
-      if (windowLabelRef.current === 'main' && next && key !== lastAgentKey.current && (next.state === 'needs_input' || next.state === 'done' || next.state === 'error')) {
-        playAgentSound(next.state);
+    const identity = (event: AgentActivity) =>
+      JSON.stringify([event.name, event.project, event.session, event.state, event.ask?.id, event.detail]);
+    const important = (event: AgentActivity | null) =>
+      !!event && (event.state === "needs_input" || event.state === "error" || event.state === "done");
+    const unlisten = listen<AgentActivity | null>("agent-activity", ({ payload: next }) => {
+      const current = agentCurrent.current;
+      if (next?.cancelled) {
+        agentQueue.current = agentQueue.current.filter(item => item.ask?.id !== next.cancelled);
+        if (current?.ask?.id === next.cancelled) displayAgent(agentQueue.current.shift() ?? next);
+        return;
       }
-      lastAgentKey.current = key;
-      setAgentActivity((prev) => (next && prev?.ask && !next.ask && next.cancelled !== prev.ask.id && (next.state === 'working' || next.state === 'tool') ? prev : next));
-      if (next && next.state === "done") clear = setTimeout(() => setAgentActivity(null), 8000);
+      if (!next) {
+        if (!important(current)) displayAgent(null);
+        return;
+      }
+      if (important(next)) {
+        const key = identity(next);
+        if ((current && identity(current) === key) || agentQueue.current.some(item => identity(item) === key)) return;
+        if (windowLabelRef.current === "main" && key !== lastAgentKey.current) {
+          playAgentSound(next.state as "needs_input" | "done" | "error");
+        }
+        lastAgentKey.current = key;
+        if (next.ask && !current?.ask) {
+          if (important(current) && current?.name !== next.name && current) agentQueue.current.unshift(current);
+          displayAgent(next);
+        } else if (important(current) && !(current?.state === "done" && next.state === "needs_input")) {
+          agentQueue.current.push(next);
+        } else {
+          displayAgent(next);
+        }
+      } else {
+        // A new tool event must not erase a pending request or completion notice.
+        if (!important(current)) displayAgent(next);
+        if (current?.state === "needs_input" && !current.ask && current.session && current.session === next.session) {
+          displayAgent(agentQueue.current.shift() ?? next);
+        }
+      }
     });
     return () => {
-      clearTimeout(clear);
-      unlisten.then((fn) => fn());
+      clearTimeout(agentTimer.current);
+      unlisten.then(fn => fn());
     };
   }, []);
 
@@ -2009,8 +2040,8 @@ function App() {
       const text = qs ? qs.reduce((a, q) => (q.question.length > a.length ? q.question : a), '') : ask?.detail ?? agentActivity?.detail ?? '';
       const lines = Math.min(8, Math.ceil(text.length / 44));
       const chipRows = qs ? Math.max(...qs.map(q => Math.ceil(q.options.reduce((n, o) => n + o.length * 6.5 + 36, 0) / 300))) : 0;
-      if (qs) return Math.min(380, 100 + lines * 16 + chipRows * 30);
-      const base = ask ? 184 : text ? 160 : 130;
+      if (qs) return Math.min(380, 110 + lines * 16 + chipRows * 30);
+      const base = ask ? 194 : text ? 170 : 140;
       return Math.min(300, base + Math.max(0, lines - 2) * 16);
     }
     if (nectarMode === 'shelf') return shelf.items.length === 0 ? 96 : 176;
@@ -2120,7 +2151,7 @@ function App() {
             const remembered = settingsRememberMode ? rememberedModeRef.current : null;
             if (agentNeedsYou) setNectarMode('agent');
             else if (remembered && availableNotchModes().includes(remembered)) setNectarMode(remembered);
-            else setNectarMode(mediaInfo.has_media && isPlaying ? 'music' : 'status');
+            else setNectarMode(availableNotchModes()[0] ?? 'status');
           }
         }}
         onHoverEnd={() => {
@@ -2858,10 +2889,10 @@ function App() {
                       picks={agentPicks.id === agentActivity.ask?.id ? agentPicks.choices : []}
                       onPick={(choices) => setAgentPicks({ id: agentActivity.ask?.id ?? 0, choices })}
                       onOpen={() => { if (agentActivity.window) invoke('focus_agent_window', { window: agentActivity.window }).catch(() => { }); }}
-                      onDismiss={() => { setAgentActivity(null); setNectarMode('status'); }}
+                      onDismiss={() => { displayAgent(agentQueue.current.shift() ?? null); setNectarMode('status'); }}
                       onAnswer={(allow, choices) => {
                         if (agentActivity.ask) invoke('agent_answer', { id: agentActivity.ask.id, allow, choices }).catch(() => { });
-                        setAgentActivity({ ...agentActivity, state: 'working', ask: undefined });
+                        displayAgent(agentQueue.current.shift() ?? { ...agentActivity, state: 'working', ask: undefined });
                         setNectarMode('status');
                       }}
                     />

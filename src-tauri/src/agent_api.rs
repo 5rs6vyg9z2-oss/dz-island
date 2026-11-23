@@ -23,6 +23,7 @@ static PENDING: Mutex<Option<HashMap<u64, mpsc::Sender<Decision>>>> = Mutex::new
 #[derive(Deserialize)]
 struct Incoming {
     state: String,
+    session: Option<String>,
     name: Option<String>,
     project: Option<String>,
     window: Option<u64>,
@@ -56,6 +57,7 @@ struct Ask {
 #[derive(Serialize, Clone)]
 struct Activity {
     state: &'static str,
+    session: Option<String>,
     name: Option<String>,
     project: Option<String>,
     window: Option<u64>,
@@ -65,7 +67,7 @@ struct Activity {
 }
 
 pub fn data_dir() -> Option<PathBuf> {
-    std::env::var_os("APPDATA").map(|dir| PathBuf::from(dir).join("com.kua8.nectar"))
+    crate::utils::portable_data_dir().ok()
 }
 
 fn config_path() -> Option<PathBuf> {
@@ -207,6 +209,7 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
             "agent-activity",
             Activity {
                 state: "needs_input",
+                session: None,
                 name: name.clone(),
                 project: project.clone(),
                 window,
@@ -233,7 +236,7 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
             Some((true, _)) => reply_json(&mut stream, r#"{"decision":"allow"}"#),
             Some((false, _)) => reply_json(&mut stream, r#"{"decision":"deny"}"#),
             None => {
-                let _ = app.emit("agent-activity", Activity { state: "working", name, project, window, detail: None, ask: None, cancelled: Some(id) });
+                let _ = app.emit("agent-activity", Activity { state: "working", session: None, name, project, window, detail: None, ask: None, cancelled: Some(id) });
                 reply(&mut stream, "204 No Content");
             }
         };
@@ -247,6 +250,7 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
     };
     let activity = state.map(|state| Activity {
         state,
+        session: clean(incoming.session, 80),
         name: clean(incoming.name, 40),
         project: clean(incoming.project, 40),
         window: incoming.window,
@@ -258,40 +262,51 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
     reply(&mut stream, "204 No Content");
 }
 
-fn hook_entries(exe: &str) -> Vec<(&'static str, Option<&'static str>, serde_json::Value)> {
-    let hook = |args: &[&str], timeout: Option<u64>| {
-        let mut all = vec!["agent"];
-        all.extend_from_slice(args);
-        all.extend_from_slice(&["--name", "Claude Code"]);
-        let mut entry = serde_json::json!({ "type": "command", "command": exe, "args": all });
-        if let Some(timeout) = timeout {
-            entry["timeout"] = timeout.into();
-        }
-        entry
-    };
-    vec![
-        ("UserPromptSubmit", None, hook(&["working"], None)),
-        ("PreToolUse", None, hook(&["tool"], None)),
-        ("PostToolUse", None, hook(&["working"], None)),
-        ("PostToolUseFailure", None, hook(&["error"], None)),
-        ("PermissionRequest", None, hook(&["ask"], Some(ASK_WAIT + 10))),
-        ("Notification", Some("idle_prompt"), hook(&["needs-input"], None)),
-        ("Stop", None, hook(&["done"], None)),
-        ("SessionEnd", None, hook(&["clear"], None)),
-    ]
+type HookGroup = (&'static str, Option<&'static str>);
+
+fn hook_groups(provider: &str) -> &'static [HookGroup] {
+    match provider {
+        "Codex" => &[
+            ("UserPromptSubmit", None), ("PermissionRequest", None),
+            ("PreToolUse", Some("request_user_input|AskUserQuestion")),
+            ("PostToolUse", Some("request_user_input|AskUserQuestion")),
+            ("Stop", None), ("Interrupt", None),
+        ],
+        "Claude Code" => &[
+            ("UserPromptSubmit", None), ("PermissionRequest", None),
+            ("PreToolUse", Some("AskUserQuestion")), ("PostToolUse", Some("AskUserQuestion")),
+            ("PostToolUseFailure", None), ("Notification", None), ("Stop", None),
+        ],
+        "Gemini CLI" => &[
+            ("BeforeAgent", None), ("Notification", None), ("AfterAgent", None),
+        ],
+        _ => &[],
+    }
 }
 
-fn is_ours(group: &serde_json::Value) -> bool {
-    group["hooks"].as_array().is_some_and(|hooks| {
-        hooks.iter().any(|hook| {
-            hook["args"][0].as_str() == Some("agent") && hook["command"].as_str().is_some_and(|c| c.to_ascii_lowercase().contains("nectar"))
-        })
-    })
+fn hook_entry(exe: &str, provider: &str) -> serde_json::Value {
+    if provider == "Claude Code" {
+        return serde_json::json!({ "type": "command", "command": exe,
+            "args": ["agent", "hook", "--name", provider], "timeout": ASK_WAIT + 10 });
+    }
+    // PowerShell runs the absolute executable path while passing through the hook's stdin.
+    let path = exe.replace('\\', "/").replace('\'', "''");
+    let statement = format!("& '{path}' agent hook --name '{provider}'");
+    let command = format!("powershell.exe -NoProfile -NonInteractive -Command \"{statement}\"");
+    let timeout = if provider == "Gemini CLI" { 4000 } else { 4 };
+    serde_json::json!({ "type": "command", "command": command, "timeout": timeout })
 }
 
-fn sync_claude_hooks(enable: bool) {
-    let Some(path) = std::env::var_os("USERPROFILE").map(|d| PathBuf::from(d).join(".claude").join("settings.json")) else { return };
+fn is_ours(hook: &serde_json::Value, exe: &str) -> bool {
+    let Some(command) = hook["command"].as_str() else { return false };
+    let path = exe.replace('\\', "/").replace('\'', "''");
+    (command == exe && hook["args"][0].as_str() == Some("agent"))
+        || (command.contains(&path) && command.contains("agent hook --name"))
+}
+
+fn sync_hooks(path: PathBuf, provider: &str, enable: bool, exe: &str) {
     let text = std::fs::read_to_string(&path).ok();
+    if text.is_none() && path.exists() { return; }
     let mut root: serde_json::Value = match text.as_deref().map(str::trim) {
         Some(t) if !t.is_empty() => match serde_json::from_str(t) {
             Ok(value) => value,
@@ -301,19 +316,23 @@ fn sync_claude_hooks(enable: bool) {
         _ => return,
     };
     let original = root.clone();
-    let Some(exe) = std::env::current_exe().ok().map(|p| p.to_string_lossy().into_owned()) else { return };
     let Some(object) = root.as_object_mut() else { return };
 
     let hooks = object.entry("hooks").or_insert_with(|| serde_json::json!({}));
     let Some(hooks) = hooks.as_object_mut() else { return };
     for event in hooks.values_mut() {
         if let Some(groups) = event.as_array_mut() {
-            groups.retain(|group| !is_ours(group));
+            for group in groups.iter_mut() {
+                if let Some(handlers) = group["hooks"].as_array_mut() {
+                    handlers.retain(|hook| !is_ours(hook, exe));
+                }
+            }
+            groups.retain(|group| group["hooks"].as_array().is_none_or(|handlers| !handlers.is_empty()));
         }
     }
     if enable {
-        for (event, matcher, hook) in hook_entries(&exe) {
-            let mut group = serde_json::json!({ "hooks": [hook] });
+        for &(event, matcher) in hook_groups(provider) {
+            let mut group = serde_json::json!({ "hooks": [hook_entry(exe, provider)] });
             if let Some(matcher) = matcher {
                 group["matcher"] = matcher.into();
             }
@@ -327,6 +346,20 @@ fn sync_claude_hooks(enable: bool) {
     if hooks.is_empty() {
         object.remove("hooks");
     }
+    if provider == "Gemini CLI" {
+        if enable {
+            let servers = object.entry("mcpServers").or_insert_with(|| serde_json::json!({}));
+            if let Some(servers) = servers.as_object_mut() {
+                servers.entry("nectar-island").or_insert_with(|| serde_json::json!({
+                    "command": exe, "args": ["agent", "mcp", "--name", "Gemini CLI"], "timeout": 135000
+                }));
+            }
+        } else if let Some(servers) = object.get_mut("mcpServers").and_then(serde_json::Value::as_object_mut) {
+            if servers.get("nectar-island").is_some_and(|server| server["command"].as_str() == Some(exe)) {
+                servers.remove("nectar-island");
+            }
+        }
+    }
     if root == original {
         return;
     }
@@ -334,26 +367,33 @@ fn sync_claude_hooks(enable: bool) {
     let Ok(mut out) = serde_json::to_string_pretty(&root) else { return };
     out.push('\n');
     if let Some(text) = &text {
-        let backup = path.with_file_name("settings.json.nectar-backup");
+        let backup = path.with_extension("json.nectar-backup");
         if !backup.exists() {
             let _ = std::fs::write(&backup, text);
         }
     }
-    let temp = path.with_file_name("settings.json.nectar-tmp");
+    let temp = path.with_extension("json.nectar-tmp");
     if std::fs::write(&temp, out).is_ok() && std::fs::rename(&temp, &path).is_err() {
         let _ = std::fs::remove_file(&temp);
     }
 }
 
 pub fn set_hooks(enable: bool) {
-    let is_build_output = std::env::current_exe().is_ok_and(|p| p.components().any(|c| c.as_os_str() == "target"));
-    if cfg!(debug_assertions) || is_build_output {
+    let Ok(exe) = std::env::current_exe() else { return };
+    if cfg!(debug_assertions) || exe.components().any(|c| c.as_os_str() == "target") {
         return;
     }
-    if enable && !std::env::var_os("USERPROFILE").is_some_and(|d| PathBuf::from(d).join(".claude").is_dir()) {
-        return;
+    let Some(home) = std::env::var_os("USERPROFILE").map(PathBuf::from) else { return };
+    let codex = std::env::var_os("CODEX_HOME").map(PathBuf::from).unwrap_or_else(|| home.join(".codex"));
+    for (provider, path) in [
+        ("Codex", codex.join("hooks.json")),
+        ("Claude Code", home.join(".claude").join("settings.json")),
+        ("Gemini CLI", home.join(".gemini").join("settings.json")),
+    ] {
+        if path.parent().is_some_and(|parent| parent.is_dir() || (enable && std::fs::create_dir_all(parent).is_ok())) {
+            sync_hooks(path, provider, enable, &exe.to_string_lossy());
+        }
     }
-    sync_claude_hooks(enable);
 }
 
 pub fn start(app: AppHandle) {
@@ -490,10 +530,14 @@ fn send_with(args: &[String], detail: Option<String>) -> Option<()> {
 }
 
 fn ask(args: &[String]) {
-    let (name, project) = flags(args);
     let mut input = String::new();
-    let _ = std::io::stdin().read_to_string(&mut input);
-    let event: serde_json::Value = serde_json::from_str(&input).unwrap_or_default();
+    if std::io::stdin().take(1_048_576).read_to_string(&mut input).is_err() { return; }
+    let Ok(event) = serde_json::from_str(&input) else { return };
+    ask_from_event(args, event);
+}
+
+fn ask_from_event(args: &[String], event: serde_json::Value) {
+    let (name, project) = flags(args);
     let tool_input = &event["tool_input"];
     let detail: Option<String>;
     let mut asked: Option<Vec<(String, Vec<String>)>> = None;
@@ -561,11 +605,137 @@ fn ask(args: &[String]) {
     println!("{}", serde_json::json!({ "hookSpecificOutput": { "hookEventName": "PermissionRequest", "decision": behavior } }));
 }
 
+
+fn handle_hook(args: &[String]) {
+    let mut input = String::new();
+    if std::io::stdin().take(1_048_576).read_to_string(&mut input).is_err() { return; }
+    let Ok(event) = serde_json::from_str::<serde_json::Value>(&input) else { return };
+    let (name, project) = flags(args);
+    let tool = event["tool_name"].as_str().unwrap_or("ferramenta");
+    let event_name = event["hook_event_name"].as_str().unwrap_or_default();
+    if name.as_deref() == Some("Claude Code") && event_name == "PermissionRequest" && tool == "AskUserQuestion" {
+        ask_from_event(args, event);
+        return;
+    }
+    let text = |value: &serde_json::Value| value.as_str().unwrap_or_default().to_owned();
+    let (state, detail) = match event_name {
+        "UserPromptSubmit" | "BeforeAgent" | "PostToolUse" => ("working", None),
+        "Stop" | "AfterAgent" => ("done", Some("Tarefa concluída.".to_owned())),
+        "Interrupt" => ("error", Some("Tarefa interrompida.".to_owned())),
+        "PermissionRequest" => ("needs-input", Some(format!("Permissão solicitada para {tool}. Responda no agente."))),
+        "PreToolUse" => {
+            let questions = event["tool_input"]["questions"].as_array().map(|questions| {
+                questions.iter().filter_map(|q| q["question"].as_str()).take(4).collect::<Vec<_>>().join(" • ")
+            }).unwrap_or_default();
+            let question = if questions.is_empty() { text(&event["tool_input"]["question"]) } else { questions };
+            ("needs-input", Some(if question.is_empty() { "O agente tem uma pergunta. Responda na conversa.".into() } else { question }))
+        }
+        "Notification" => {
+            let kind = event["notification_type"].as_str().unwrap_or_default().to_ascii_lowercase();
+            let message = text(&event["message"]);
+            let state = if kind.contains("error") { "error" } else { "needs-input" };
+            (state, Some(if message.is_empty() { "Aviso do agente.".into() } else { message }))
+        }
+        "PostToolUseFailure" => ("error", Some(format!("Falha em {tool}."))),
+        _ => return,
+    };
+    let project = event["cwd"].as_str().and_then(|cwd| std::path::Path::new(cwd).file_name())
+        .map(|name| name.to_string_lossy().into_owned()).or(project);
+    let window = if matches!(state, "needs-input" | "error" | "done") { ancestor_window() } else { None };
+    let body = serde_json::json!({
+        "state": state, "name": name, "project": project, "detail": detail, "window": window,
+        "session": event["session_id"].as_str(),
+    }).to_string();
+    // Observational hooks always allow the agent's original UI and approval flow to proceed.
+    let _ = post("/activity", body, 2);
+}
+
+
+fn island_tool_result(text: String, error: bool) -> serde_json::Value {
+    serde_json::json!({ "content": [{ "type": "text", "text": text }], "isError": error })
+}
+
+fn island_mcp_call(request: &serde_json::Value, agent: &str) -> serde_json::Value {
+    let args = &request["params"]["arguments"];
+    if request["params"]["name"] != "ask_island" {
+        return island_tool_result("Unknown Nectar tool.".into(), true);
+    }
+    let Ok(questions) = serde_json::from_value::<Vec<AskQuestion>>(args["questions"].clone()) else {
+        return island_tool_result("Provide questions and their answer options.".into(), true);
+    };
+    if !(1..=4).contains(&questions.len()) || questions.iter().any(|q| {
+        q.question.trim().is_empty() || q.question.chars().count() > 500
+            || !(2..=4).contains(&q.options.len())
+            || q.options.iter().any(|o| o.trim().is_empty() || o.chars().count() > 80)
+    }) {
+        return island_tool_result("Use 1 to 4 questions with 2 to 4 short choices per question.".into(), true);
+    }
+    let body = serde_json::json!({
+        "name": agent, "questions": questions, "project": project_name(), "window": ancestor_window()
+    }).to_string();
+    let answer = post("/ask", body, ASK_WAIT + 3)
+        .and_then(|response| response.split_once("\r\n\r\n").and_then(|(_, body)| serde_json::from_str::<serde_json::Value>(body).ok()));
+    let selected = answer.as_ref().and_then(|answer| {
+        let choices = answer["choices"].as_array()?;
+        if choices.len() != questions.len() { return None; }
+        questions.iter().zip(choices).map(|(question, choice)| {
+            let selected = question.options.get(usize::try_from(choice.as_u64()?).ok()?)?;
+            Some(serde_json::json!({ "question": question.question, "answer": selected }))
+        }).collect::<Option<Vec<_>>>()
+    });
+    match selected {
+        Some(answers) => island_tool_result(serde_json::json!({ "answers": answers }).to_string(), false),
+        None => island_tool_result("Nectar received no answer. Ask in the original chat instead.".into(), true),
+    }
+}
+
+fn run_island_mcp(agent: &str) {
+    use std::io::BufRead;
+    for line in std::io::stdin().lock().lines().map_while(Result::ok) {
+        let Ok(request) = serde_json::from_str::<serde_json::Value>(&line) else { continue };
+        let Some(id) = request.get("id") else { continue };
+        let result = match request["method"].as_str() {
+            Some("initialize") => serde_json::json!({
+                "protocolVersion": request["params"]["protocolVersion"].as_str().unwrap_or("2024-11-05"),
+                "capabilities": { "tools": {} },
+                "serverInfo": { "name": "nectar-island", "version": env!("CARGO_PKG_VERSION") },
+                "instructions": "For user choices in this local session, prefer ask_island. It shows options in the Nectar island and returns the answer. Use normal agent approval UI for tool permissions. If Nectar gives no answer, use the original chat."
+            }),
+            Some("ping") => serde_json::json!({}),
+            Some("tools/list") => serde_json::json!({ "tools": [{
+                "name": "ask_island",
+                "description": "Present one or more multiple-choice questions to the user in the local Nectar island and wait for the user's answer. Use for questions and decisions, not tool permissions.",
+                "inputSchema": {
+                    "type": "object", "required": ["questions"], "additionalProperties": false,
+                    "properties": { "questions": { "type": "array", "minItems": 1, "maxItems": 4,
+                        "items": { "type": "object", "required": ["question", "options"], "additionalProperties": false,
+                            "properties": { "question": { "type": "string", "maxLength": 500 },
+                                "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "maxLength": 80 } } } } } }
+                }
+            }] }),
+            Some("tools/call") => island_mcp_call(&request, agent),
+            _ => {
+                println!("{}", serde_json::json!({ "jsonrpc": "2.0", "id": id, "error": { "code": -32601, "message": "Method not found" } }));
+                let _ = std::io::stdout().flush();
+                continue;
+            }
+        };
+        println!("{}", serde_json::json!({ "jsonrpc": "2.0", "id": id, "result": result }));
+        let _ = std::io::stdout().flush();
+    }
+}
+
 pub fn run_cli(args: &[String]) -> Option<i32> {
     if args.get(1).map(String::as_str) != Some("agent") {
         return None;
     }
     match args.get(2).map(String::as_str) {
+        Some("hook") => { handle_hook(&args[3..]); return Some(0); }
+        Some("mcp") => {
+            let (name, _) = flags(&args[3..]);
+            run_island_mcp(name.as_deref().unwrap_or("Codex"));
+            return Some(0);
+        }
         Some("install-hooks") => {
             set_hooks(true);
             return Some(0);
