@@ -40,7 +40,11 @@ jobs:
         shell: pwsh
         run: ./scripts/test-portable-update.ps1
       - name: Build the Windows app
-        run: bun run tauri build --no-bundle
+        shell: pwsh
+        run: |
+          # Compatibility directory for Tauri's WebView2 loader discovery with Cargo 1.100.
+          New-Item -ItemType Directory -Path src-tauri/target/release/build/build -Force | Out-Null
+          bun run tauri build --no-bundle
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
