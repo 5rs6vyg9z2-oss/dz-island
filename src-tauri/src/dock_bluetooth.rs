@@ -78,7 +78,7 @@ fn connected_windows_devices() -> windows::core::Result<Vec<DockBluetoothDevice>
     let mut queried = false;
     for selector in selectors {
         let collection = match selector.and_then(|s: HSTRING| DeviceInformation::FindAllAsyncAqsFilter(&s))
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
         {
             Ok(collection) => collection,
             Err(error) => {

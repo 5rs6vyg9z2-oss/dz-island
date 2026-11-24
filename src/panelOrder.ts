@@ -1,4 +1,4 @@
-export const DEFAULT_PANEL_ORDER = ["command-center", "shelf", "calendar", "status", "music"] as const;
+export const DEFAULT_PANEL_ORDER = ["command-center", "agent", "shelf", "calendar", "status", "music"] as const;
 
 export type PanelId = (typeof DEFAULT_PANEL_ORDER)[number];
 

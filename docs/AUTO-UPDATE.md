@@ -1,0 +1,25 @@
+# Atualizações do DZ Island
+
+Fonte oficial desta cópia: https://github.com/5rs6vyg9z2-oss/dz-island.
+
+Cada push na branch `main` inicia o workflow **Build and publish Windows update**. Ele testa e compila a aplicação e o serviço de bateria, monta `DZ-Island-windows-x64.zip` e publica uma Release estável. A versão usa o major/minor de `package.json` e o número crescente da execução como patch: por exemplo, `1.11.23`. Falhas de build ou teste impedem a publicação.
+
+O aplicativo consulta a última Release 20 segundos após abrir e, depois, a cada hora. Uma versão estável mais recente é baixada e instalada automaticamente; perguntas pendentes adiam a instalação. Também é possível usar **Verificar atualizações** nas configurações.
+
+São exigidos HTTPS, URL do repositório acima, nome fixo do pacote, limite de tamanho e SHA-256 do asset informado pela API do GitHub. Não se trata de uma assinatura de editor independente: a confiança vem do acesso HTTPS ao repositório e ao digest do GitHub. Proteja o acesso à conta e à branch `main`.
+
+A substituição usa uma lista limitada de arquivos. `data/`, preferências, histórico e atalhos não são sobrescritos. Antes da troca, os arquivos atuais são copiados para `data/updates/<id>/backup`; uma falha de cópia restaura esses arquivos e relança a versão anterior. O resultado fica em `data/update-result.json` e os erros em `data/updates/<id>/error.txt`. Uma falha funcional que só apareça depois de abrir a nova versão exige restauração manual do backup.
+
+## Validar antes de publicar
+
+```powershell
+bun install --frozen-lockfile
+bun run build
+./scripts/test-portable-update.ps1
+rustc --edition=2021 --test src-tauri/src/update_policy.rs -o update-policy-tests.exe
+./update-policy-tests.exe
+```
+
+Os testes de instalação usam aplicativos simulados em uma pasta temporária. Não alteram a instalação do usuário.
+
+O payload inclui o código principal compilado, WebView2Loader, serviço de bateria recompilado, HeadsetControl com hash fixado, avisos de licença e a ponte local de perguntas. Arquivos pessoais e tokens de `data/` nunca devem ser publicados.

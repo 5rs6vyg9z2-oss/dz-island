@@ -26,7 +26,8 @@ import { DEFAULT_PANEL_ORDER, parseCcLayout, parsePanelOrder, resolveCcLayout, t
 import { NotchProgressBorder } from "./components/NotchProgressBorder";
 import { SurfaceShape } from "./components/SurfaceShape";
 import { playAgentSound } from "./agentSounds";
-import { AgentLeft, AgentDot, AgentPanel, type AgentActivity } from "./components/AgentStatus";
+import { AgentLeft, AgentDot, type AgentActivity } from "./components/AgentStatus";
+import { CodexCompanion } from "./components/CodexCompanion";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
 import {
   DEFAULT_DUAL_CLOCK_ZONE,
@@ -539,7 +540,6 @@ function App() {
   const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("nectar-dock-enabled") !== "false");
   const [isNotchHovered, setIsNotchHovered] = useState(false);
   const [agentActivity, setAgentActivity] = useState<AgentActivity | null>(null);
-  const [agentPicks, setAgentPicks] = useState<{ id: number; choices: number[] }>({ id: 0, choices: [] });
   const lastAgentKey = useRef("");
   const windowLabelRef = useRef("");
   windowLabelRef.current = windowLabel;
@@ -593,9 +593,11 @@ function App() {
       if (nectarRef.current && isNotchWindow) {
         const rect = nectarRef.current.getBoundingClientRect();
         const card = tourActive ? document.querySelector('.tour-bar')?.getBoundingClientRect() : undefined;
-        const left = card ? Math.min(rect.left, card.left) : rect.left;
-        const right = card ? Math.max(rect.right, card.right) : rect.right;
-        const bottom = card ? Math.max(rect.bottom, card.bottom) : rect.bottom;
+        const companion = document.querySelector('.codex-companion')?.getBoundingClientRect();
+        const regions = [rect, card, companion].filter((r): r is DOMRect => !!r);
+        const left = Math.min(...regions.map(r => r.left));
+        const right = Math.max(...regions.map(r => r.right));
+        const bottom = Math.max(...regions.map(r => r.bottom));
         const next = {
           x: Math.round(left),
           y: Math.round(rect.y),
@@ -613,6 +615,8 @@ function App() {
     window.addEventListener('resize', updateRect);
     const observer = new ResizeObserver(updateRect);
     if (nectarRef.current) observer.observe(nectarRef.current);
+    const companion = document.querySelector('.codex-companion');
+    if (companion) observer.observe(companion);
 
     const poll = setVisibleInterval(updateRect, 500);
 
@@ -621,7 +625,7 @@ function App() {
       observer.disconnect();
       clearInterval(poll);
     };
-  }, [isExpanded, isHidden, windowLabel, scale, tourActive]);
+  }, [isExpanded, isHidden, windowLabel, scale, tourActive, isReady]);
 
   useEffect(() => {
     if (!windowLabel) return;
@@ -1159,7 +1163,9 @@ function App() {
   const WHEEL_IDLE_RESET_MS = 180;
 
   const availableNotchModes = () => {
-    const modes = panelOrder ?? DEFAULT_PANEL_ORDER;
+    const savedModes = (panelOrder ?? DEFAULT_PANEL_ORDER).filter(m => m !== 'agent');
+    const modes: Array<(typeof DEFAULT_PANEL_ORDER)[number]> = [...savedModes];
+    modes.splice(Math.max(0, modes.indexOf('command-center') + 1), 0, 'agent');
     const noStatusWidgets = !panelStatus || statusWidgets.left.length + statusWidgets.right.length === 0;
     return modes.filter(m => {
       if (m === 'status' && noStatusWidgets && nectarMode !== 'status') return false;
@@ -1173,7 +1179,7 @@ function App() {
 
   const handleWheel = (e: React.WheelEvent) => {
     const target = e.target as HTMLElement;
-    const scroller = target.closest('.cal-scroll, .cv-list') as HTMLElement | null;
+    const scroller = target.closest('.cal-scroll, .cv-list, .codex-companion-body') as HTMLElement | null;
     if (scroller && scroller.scrollHeight > scroller.clientHeight + 1) return;
 
     if (!isHovered) return;
@@ -1192,7 +1198,6 @@ function App() {
 
     const availableModes = availableNotchModes();
 
-    if (nectarMode === 'agent') { if (availableModes[0]) setNectarMode(availableModes[0]); return; }
     const currentIndex = availableModes.indexOf(nectarMode);
     if (currentIndex === -1) return;
 
@@ -1840,7 +1845,6 @@ function App() {
       resetTimer();
       return;
     }
-    if (nectarMode === 'agent') { const first = availableNotchModes()[0]; if (first) setNectarMode(first); return; }
     const modes = availableNotchModes();
     const index = modes.indexOf(nectarMode);
     if (index === -1 || modes.length < 2) return;
@@ -1976,8 +1980,11 @@ function App() {
   }, [nectarMode, panelControlCenter, panelShelf]);
 
   useEffect(() => {
-    if (nectarMode === 'agent' && (!agentActivity || agentActivity.state === 'working' || agentActivity.state === 'tool' || agentActivity.state === 'done')) setNectarMode('status');
-  }, [nectarMode, agentActivity]);
+    if (agentActivity?.ask && windowLabel === 'main') {
+      setNectarMode('agent');
+      setIsHovered(true);
+    }
+  }, [agentActivity?.ask?.id, windowLabel]);
 
   // Music mode shows any time we have media info (playing or paused) and music mode setting is enabled
   const isMusicMode = mediaInfo.has_media && nectarMode === 'music' && settingsMusicModeEnabled;
@@ -1996,14 +2003,14 @@ function App() {
   );
 
   // Calculate width dynamically based on enabled features
-  const agentNeedsYou = !!agentActivity && isNotchWindow && (agentActivity.state === 'needs_input' || agentActivity.state === 'error');
-  const agentWings = !!agentActivity && isNotchWindow && !isHovered && (nectarMode === 'status' || isMusicMode);
+  const agentNeedsYou = windowLabel !== 'main' && !!agentActivity && isNotchWindow && (agentActivity.state === 'needs_input' || agentActivity.state === 'error');
+  const agentWings = windowLabel !== 'main' && !!agentActivity && isNotchWindow && !isHovered && (nectarMode === 'status' || isMusicMode);
 
   const getDynamicWidth = () => {
     const widgetsRowWidth = isHovered && statusWidgets.left.length + statusWidgets.right.length > 0
       ? Math.min(200 + Math.max(statusWidgets.left.length, statusWidgets.right.length) * 2 * 65, 530) + dualClockExtra
       : 0;
-    if (nectarMode === 'agent') return 340;
+    if (nectarMode === 'agent') return isHovered ? 380 : 140;
     if (nectarMode === 'shelf') return Math.max(300, Math.min(120 + shelf.items.length * 70, 460), widgetsRowWidth);
     if (isCalendarMode) return Math.max(settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270, 140 + dualClockExtra, widgetsRowWidth);
     if (nectarMode === 'command-center' && isHovered) {
@@ -2035,13 +2042,13 @@ function App() {
       return isImpacted ? 28.9 : 44.2;
     }
     if (nectarMode === 'agent') {
+      if (!isHovered) return 36;
       const ask = agentActivity?.ask;
       const qs = ask?.questions;
       const text = qs ? qs.reduce((a, q) => (q.question.length > a.length ? q.question : a), '') : ask?.detail ?? agentActivity?.detail ?? '';
       const lines = Math.min(8, Math.ceil(text.length / 44));
-      const chipRows = qs ? Math.max(...qs.map(q => Math.ceil(q.options.reduce((n, o) => n + o.length * 6.5 + 36, 0) / 300))) : 0;
-      if (qs) return Math.min(380, 110 + lines * 16 + chipRows * 30);
-      const base = ask ? 194 : text ? 170 : 140;
+      if (qs) return Math.min(390, 140 + lines * 18 + Math.max(...qs.map(q => q.options.length)) * 48);
+      const base = ask ? 194 : text ? 170 : 170;
       return Math.min(300, base + Math.max(0, lines - 2) * 16);
     }
     if (nectarMode === 'shelf') return shelf.items.length === 0 ? 96 : 176;
@@ -2068,7 +2075,7 @@ function App() {
 
   const isCalendarMode = nectarMode === 'calendar';
   // Calendar, command center and shelf are big, dense panels; glass styles thicken the fill for them
-  const isPanelOpen = isHovered && (isCalendarMode || nectarMode === 'command-center' || nectarMode === 'shelf');
+  const isPanelOpen = isHovered && (isCalendarMode || nectarMode === 'command-center' || nectarMode === 'shelf' || nectarMode === 'agent');
 
   // Album tints the whole notch, collapsed pill included. The expanded state
   // reads --nectar-bg-expanded and the muted/border vars live on :root, so all
@@ -2121,7 +2128,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
         <motion.div
           ref={nectarRef}
           className={`nectar ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isPanelOpen ? 'panel-open' : ''}`}
@@ -2147,6 +2154,7 @@ function App() {
         onHoverStart={() => {
           clearTimeout(shelfCollapseTimer.current);
           setIsHovered(true);
+          if (nectarMode === 'agent') return;
           if (nectarMode !== 'shelf') {
             const remembered = settingsRememberMode ? rememberedModeRef.current : null;
             if (agentNeedsYou) setNectarMode('agent');
@@ -2155,6 +2163,7 @@ function App() {
           }
         }}
         onHoverEnd={() => {
+          if (nectarMode === 'agent' && agentActivity?.ask) return;
           if (tourActive) return;
           if (nectarMode === 'shelf' && shelfHoldsOpen()) {
             deferShelfCollapse();
@@ -2874,7 +2883,7 @@ function App() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {nectarMode === 'agent' && agentActivity && (
+                {nectarMode === 'agent' && isHovered && (
                   <motion.div
                     key="agent-panel"
                     className="agent-panel"
@@ -2884,16 +2893,12 @@ function App() {
                     exit={{ opacity: 0, transition: { duration: 0.1 } }}
                     transition={{ duration: 0.18, delay: 0.22 }}
                   >
-                    <AgentPanel
+                    <CodexCompanion
                       activity={agentActivity}
-                      picks={agentPicks.id === agentActivity.ask?.id ? agentPicks.choices : []}
-                      onPick={(choices) => setAgentPicks({ id: agentActivity.ask?.id ?? 0, choices })}
-                      onOpen={() => { if (agentActivity.window) invoke('focus_agent_window', { window: agentActivity.window }).catch(() => { }); }}
-                      onDismiss={() => { displayAgent(agentQueue.current.shift() ?? null); setNectarMode('status'); }}
-                      onAnswer={(allow, choices) => {
-                        if (agentActivity.ask) invoke('agent_answer', { id: agentActivity.ask.id, allow, choices }).catch(() => { });
-                        displayAgent(agentQueue.current.shift() ?? { ...agentActivity, state: 'working', ask: undefined });
-                        setNectarMode('status');
+                      onAnswer={async (allow, choices) => {
+                        if (!agentActivity?.ask) throw new Error('No pending question');
+                        await invoke('agent_answer', { id: agentActivity.ask.id, allow, choices: choices ?? [] });
+                        displayAgent(agentQueue.current.shift() ?? null);
                       }}
                     />
                   </motion.div>

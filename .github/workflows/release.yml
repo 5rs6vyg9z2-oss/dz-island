@@ -1,191 +1,80 @@
-name: Release
-
+name: Build and publish Windows update
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-
+permissions:
+  contents: write
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
 jobs:
   release:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [windows-latest]
-
-    concurrency:
-      group: release-${{ github.ref }}
-      cancel-in-progress: false
-
-    runs-on: ${{ matrix.platform }}
-    permissions:
-      contents: write
-
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          fetch-depth: 0
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+          bun-version: 1.4.5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
         with:
-          bun-version: 1.4.0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            src-tauri
-            installer-app/src-tauri
-
-      - name: Verify version matches tag
-        shell: bash
-        run: |
-          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
-            echo "::error::This workflow must run on a version tag (e.g. v3.8.7)."
-            exit 1
-          fi
-
-          VERSION="${GITHUB_REF_NAME#v}"
-          if [[ $VERSION =~ ^[0-9]+\.[0-9]+$ ]]; then
-            VERSION="$VERSION.0"
-          fi
-
-          PKG_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('package.json','utf8')).version)")
-          CONF_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('src-tauri/tauri.conf.json','utf8')).version)")
-          CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -n 1)
-          INSTALLER_PKG_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('installer-app/package.json','utf8')).version)")
-          INSTALLER_CONF_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('installer-app/src-tauri/tauri.conf.json','utf8')).version)")
-          INSTALLER_CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' installer-app/src-tauri/Cargo.toml | head -n 1)
-
-          echo "Tag: $VERSION | package.json: $PKG_VERSION | tauri.conf.json: $CONF_VERSION | Cargo.toml: $CARGO_VERSION"
-          echo "installer-app -- package.json: $INSTALLER_PKG_VERSION | tauri.conf.json: $INSTALLER_CONF_VERSION | Cargo.toml: $INSTALLER_CARGO_VERSION"
-
-          if [ "$PKG_VERSION" != "$VERSION" ] || [ "$CONF_VERSION" != "$VERSION" ] || [ "$CARGO_VERSION" != "$VERSION" ] || \
-             [ "$INSTALLER_PKG_VERSION" != "$VERSION" ] || [ "$INSTALLER_CONF_VERSION" != "$VERSION" ] || [ "$INSTALLER_CARGO_VERSION" != "$VERSION" ]; then
-            echo "::error::Version files do not match tag $VERSION. Run 'bun run bump $VERSION' and commit before tagging."
-            exit 1
-          fi
-
-      - name: Generate release notes
-        id: notes
-        shell: bash
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="${TAG#v}"
-          PREV_TAG=$(git tag --sort=-version:refname | grep '^v' | sed -n '2p')
-          if [ -n "$PREV_TAG" ]; then
-            RANGE="${PREV_TAG}..HEAD"
-          else
-            RANGE="HEAD"
-          fi
-          COMMIT_COUNT=$(git rev-list --count --no-merges "$RANGE")
-
-          COMPARE=""
-          if [ -n "$PREV_TAG" ]; then
-            COMPARE=$(printf "\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s" "$GITHUB_REPOSITORY" "$PREV_TAG" "$TAG")
-          fi
-
-          HEAD_BODY=$(git log -1 --pretty=format:"%b" --no-merges)
-          if [ "$COMMIT_COUNT" -eq 1 ] || printf "%s" "$HEAD_BODY" | grep -qE "^(### |What's New:?$|Improvements:?$|Changed:?$|Bug Fixes:?$)"; then
-            BODY=$(git log "$RANGE" -1 --pretty=format:"%b" --no-merges)
-            if [ -z "$(printf "%s" "$BODY" | tr -d "[:space:]")" ]; then
-              BODY=$(git log "$RANGE" -1 --pretty=format:"%s" --no-merges)
-            fi
-            BODY=$(printf "%s" "$BODY" | sed -E "s/^(What's New|Improvements|Changed|Bug Fixes|Other):?$/### \1/")
-            NOTES=$(printf "%s%s\n" "$BODY" "$COMPARE")
-            echo "body<<EOF" >> "$GITHUB_OUTPUT"
-            echo "$NOTES" >> "$GITHUB_OUTPUT"
-            echo "EOF" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          COMMITS=$(git log "$RANGE" --pretty=format:"%s" --no-merges)
-
-          FEATURES=""
-          FIXES=""
-          OTHER=""
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            if [[ "$line" =~ ^feat[\(:] ]]; then
-              FEATURES+=$(printf "\n- %s" "${line#*: }")
-            elif [[ "$line" =~ ^fix[\(:] ]]; then
-              FIXES+=$(printf "\n- %s" "${line#*: }")
-            else
-              OTHER+=$(printf "\n- %s" "$line")
-            fi
-          done <<< "$COMMITS"
-
-          NOTES=""
-          if [ -n "$FEATURES" ]; then
-            NOTES+=$(printf "\n\n### What's New%s\n" "$FEATURES")
-          fi
-          if [ -n "$FIXES" ]; then
-            NOTES+=$(printf "\n\n### Bug Fixes%s\n" "$FIXES")
-          fi
-          if [ -n "$OTHER" ]; then
-            NOTES+=$(printf "\n\n### Other%s\n" "$OTHER")
-          fi
-          NOTES=$(printf "%s%s\n" "$NOTES" "$COMPARE" | sed '/./,$!d')
-          echo "body<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$NOTES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-      - name: Install frontend dependencies
-        run: bun install
-
-      - name: Build Tauri App
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "DZ Island ${{ github.ref_name }}"
-          releaseBody: ${{ steps.notes.outputs.body }}
-          releaseDraft: false
-          prerelease: false
-          includeUpdaterJson: false
-
-      - name: Package portable build
-        shell: bash
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          cd src-tauri/target/release
-          7z a "nectar-${VERSION}-portable-windows-x64.zip" nectar.exe
-          mv "nectar-${VERSION}-portable-windows-x64.zip" "$GITHUB_WORKSPACE/"
-
-      - name: Upload portable build to release
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          gh release upload "${{ github.ref_name }}" "nectar-${VERSION}-portable-windows-x64.zip" --clobber
-
-      - name: Package installer payload
+          workspaces: src-tauri
+      - name: Assign a version for this update
         shell: pwsh
         run: |
-          Compress-Archive -Path "src-tauri/target/release/nectar.exe" -DestinationPath "installer-app/src-tauri/payload.zip" -Force
-
-      - name: Install installer-app dependencies
-        working-directory: installer-app
-        run: npm install
-
-      - name: Build custom installer
-        working-directory: installer-app
-        run: npm run tauri build -- --no-bundle
-
-      - name: Rename and upload custom installer
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          $base = (Get-Content package.json -Raw | ConvertFrom-Json).version.Split('.')
+          $version = "$($base[0]).$($base[1]).${{ github.run_number }}"
+          bun run bump $version
+          "RELEASE_VERSION=$version" >> $env:GITHUB_ENV
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+      - name: Test local HTTP boundary
+        shell: pwsh
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          OUT="Nectar-Setup-${VERSION}.exe"
-          cp "installer-app/src-tauri/target/release/nectar-installer.exe" "$OUT"
-          gh release upload "${{ github.ref_name }}" "$OUT" --clobber
+          rustc --edition=2021 --test src-tauri/src/agent_http.rs -o agent-http-tests.exe
+          ./agent-http-tests.exe
+          rustc --edition=2021 --test src-tauri/src/update_policy.rs -o update-policy-tests.exe
+          ./update-policy-tests.exe
+      - name: Test updater archive boundaries
+        shell: pwsh
+        run: ./scripts/test-portable-update.ps1
+      - name: Build the Windows app
+        run: bun run tauri build --no-bundle
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: make mingw-w64-x86_64-gcc
+      - name: Build the battery companion from source
+        shell: msys2 {0}
+        run: make -C vendor/batteryhub -j2 VERSION="$RELEASE_VERSION" CHANNEL=stable
+      - name: Package the portable application
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path release-package/Battery -Force | Out-Null
+          Copy-Item src-tauri/target/release/nectar.exe release-package/Nectar.exe
+          $loader = Get-ChildItem src-tauri/target/release/build -Filter WebView2Loader.dll -Recurse | Where-Object FullName -Match '\\out\\x64\\' | Select-Object -First 1
+          if (!$loader) { throw 'Missing x64 WebView2Loader.dll' }
+          Copy-Item $loader.FullName release-package/WebView2Loader.dll
+          Copy-Item LICENSE release-package/LICENSE.txt
+          Copy-Item vendor/batteryhub/BatteryHub.exe release-package/Battery/BatteryEngine.exe
+          Copy-Item vendor/batteryhub/LICENSE release-package/Battery/LICENSE.txt
+          Copy-Item scripts/Perguntar-Na-Ilha.ps1,scripts/PERGUNTAS-NA-ILHA.txt release-package/
+          Invoke-WebRequest https://github.com/Sapd/HeadsetControl/releases/download/4.3.0/headsetcontrol-windows-x86_64.exe -OutFile release-package/Battery/headsetcontrol.exe
+          if ((Get-FileHash release-package/Battery/headsetcontrol.exe -Algorithm SHA256).Hash -ne 'E371DA043710DDB8FC70AF77F2CCAD1CD03F8C6F49BA423E08764AD7A94A3C40') { throw 'HeadsetControl checksum mismatch' }
+          Copy-Item scripts/BATTERY-THIRD-PARTY-NOTICES.txt release-package/Battery/THIRD_PARTY_NOTICES.txt
+          Compress-Archive -Path release-package/* -DestinationPath DZ-Island-windows-x64.zip
+          $sha = (Get-FileHash DZ-Island-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha  DZ-Island-windows-x64.zip" | Set-Content SHA256SUMS.txt -Encoding ascii
+      - name: Publish the stable release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "v$env:RELEASE_VERSION"
+          $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'Version already exists. Start a new workflow run instead of rerunning this release.' }
+          gh release create $tag DZ-Island-windows-x64.zip SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "DZ Island $env:RELEASE_VERSION" --notes "Atualização automática do DZ Island. Commit: $env:GITHUB_SHA. Configurações locais são preservadas."
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release failed' }

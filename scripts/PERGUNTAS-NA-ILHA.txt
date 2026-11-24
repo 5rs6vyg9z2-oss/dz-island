@@ -1,0 +1,10 @@
+PAINEL CODEX — seção interna do DZ Island
+
+O Codex fica DENTRO da ilha dinâmica, como segunda seção, logo após os controles de Wi-Fi. Para navegar, passe o mouse sobre a ilha e avance uma seção pela roda do mouse ou clicando no relógio.
+Uma pergunta recebida abre automaticamente o painel Codex na própria ilha e mantém o painel aberto para você clicar em uma opção.
+O painel confirma o envio da resposta. Há também a opção de dispensar a pergunta. O prazo de resposta é de dez minutos.
+
+Ponte local: Perguntar-Na-Ilha.ps1 -QuestionFile <JSON>
+JSON: lista de objetos question/options, com 2 a 4 opções por pergunta, até 4 perguntas. Aguarde a saída JSON com a resposta escolhida pelo usuário.
+O painel recebe perguntas e estados enviados pela ponte deste projeto. Perguntas nativas de outros chats não são copiadas automaticamente. Aprovações do Codex continuam no Codex.
+Sem hooks instalados em outros aplicativos. Comunicação somente por localhost autenticado.

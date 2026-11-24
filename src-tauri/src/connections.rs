@@ -305,14 +305,14 @@ fn paired_bluetooth_devices() -> Result<Vec<BluetoothDeviceInfo>, String> {
     }
     let selector = BluetoothDevice::GetDeviceSelectorFromPairingState(true).map_err(|e| e.to_string())?;
     let infos = DeviceInformation::FindAllAsyncAqsFilter(&selector)
-        .and_then(|op| op.get())
+        .and_then(|op| op.join())
         .map_err(|e| e.to_string())?;
     let mut devices = Vec::new();
     for i in 0..infos.Size().unwrap_or(0) {
         let Ok(info) = infos.GetAt(i) else { continue };
         let (Ok(id), Ok(name)) = (info.Id(), info.Name()) else { continue };
         let connected = BluetoothDevice::FromIdAsync(&id)
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
             .and_then(|device| device.ConnectionStatus())
             .map(|status| status == BluetoothConnectionStatus::Connected)
             .unwrap_or(false);
@@ -335,12 +335,12 @@ pub async fn bluetooth_unpair(id: String) -> Result<(), String> {
             let _ = windows::Win32::System::Com::CoInitializeEx(None, windows::Win32::System::Com::COINIT_MULTITHREADED);
         }
         let info = DeviceInformation::CreateFromIdAsync(&HSTRING::from(id))
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
             .map_err(|e| e.to_string())?;
         let result = info
             .Pairing()
             .and_then(|pairing| pairing.UnpairAsync())
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
             .map_err(|e| e.to_string())?;
         match result.Status() {
             Ok(DeviceUnpairingResultStatus::Unpaired) | Ok(DeviceUnpairingResultStatus::AlreadyUnpaired) => Ok(()),

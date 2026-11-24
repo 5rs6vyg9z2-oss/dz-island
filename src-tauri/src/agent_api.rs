@@ -8,10 +8,8 @@ use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
-const MAX_HEAD: usize = 8192;
-const MAX_BODY: usize = 8192;
 const MAX_CONNECTIONS: usize = 8;
-const ASK_WAIT: u64 = 120;
+const ASK_WAIT: u64 = 600;
 const DETAIL_MAX: usize = 600;
 const SETTING: &str = "nectar-agent-api";
 
@@ -19,6 +17,10 @@ static ACTIVE: AtomicUsize = AtomicUsize::new(0);
 static NEXT_ASK: AtomicU64 = AtomicU64::new(1);
 type Decision = (bool, Vec<usize>);
 static PENDING: Mutex<Option<HashMap<u64, mpsc::Sender<Decision>>>> = Mutex::new(None);
+
+pub fn has_pending_question() -> bool {
+    PENDING.lock().map(|map| map.as_ref().is_some_and(|m| !m.is_empty())).unwrap_or(true)
+}
 
 #[derive(Deserialize)]
 struct Incoming {
@@ -99,20 +101,12 @@ fn random_token() -> Option<String> {
     Some(bytes.iter().map(|b| format!("{b:02x}")).collect())
 }
 
-fn same(a: &str, b: &str) -> bool {
-    a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
-}
-
 fn reply(stream: &mut TcpStream, status: &str) {
     let _ = write!(stream, "HTTP/1.1 {status}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
 }
 
 fn reply_json(stream: &mut TcpStream, body: &str) {
     let _ = write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
-}
-
-fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
-    haystack.windows(needle.len()).position(|w| w == needle)
 }
 
 pub fn answer(id: u64, allow: bool, choices: Vec<usize>) {
@@ -146,55 +140,13 @@ fn wait_for_answer(stream: &mut TcpStream, id: u64, rx: &mpsc::Receiver<Decision
 }
 
 fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
-    let mut buf = Vec::new();
-    let mut chunk = [0u8; 1024];
-    let head_end = loop {
-        match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => return,
-            Ok(n) => buf.extend_from_slice(&chunk[..n]),
-        }
-        if let Some(pos) = find(&buf, b"\r\n\r\n") {
-            break pos + 4;
-        }
-        if buf.len() > MAX_HEAD {
-            return reply(&mut stream, "431 Request Header Fields Too Large");
-        }
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(2)));
+    let request = match crate::agent_http::read_request(&mut stream, token, Duration::from_secs(2)) {
+        Ok(request) => request,
+        Err(status) => return reply(&mut stream, status),
     };
-
-    let head = String::from_utf8_lossy(&buf[..head_end]).into_owned();
-    let mut lines = head.split("\r\n");
-    let request = lines.next().unwrap_or("");
-    let ask = match request {
-        "POST /activity HTTP/1.1" | "POST /activity HTTP/1.0" => false,
-        "POST /ask HTTP/1.1" | "POST /ask HTTP/1.0" => true,
-        _ => return reply(&mut stream, "404 Not Found"),
-    };
-    let (mut auth, mut length) = (String::new(), 0usize);
-    for line in lines {
-        if let Some((name, value)) = line.split_once(':') {
-            match name.trim().to_ascii_lowercase().as_str() {
-                "authorization" => auth = value.trim().to_string(),
-                "content-length" => length = value.trim().parse().unwrap_or(usize::MAX),
-                _ => {}
-            }
-        }
-    }
-    if !same(&auth, &format!("Bearer {token}")) {
-        return reply(&mut stream, "401 Unauthorized");
-    }
-    if length > MAX_BODY {
-        return reply(&mut stream, "413 Payload Too Large");
-    }
-    let mut body = buf[head_end..].to_vec();
-    while body.len() < length {
-        match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => return,
-            Ok(n) => body.extend_from_slice(&chunk[..n]),
-        }
-    }
-    body.truncate(length);
-
+    let ask = request.ask;
+    let body = request.body;
     if ask {
         let Ok(incoming) = serde_json::from_slice::<IncomingAsk>(&body) else {
             return reply(&mut stream, "400 Bad Request");
@@ -401,7 +353,10 @@ pub fn start(app: AppHandle) {
     if !enabled {
         return;
     }
-    std::thread::spawn(|| set_hooks(true));
+    // A local question bridge does not need to modify other agents' hook files.
+    if crate::utils::get_setting_str(&app, "nectar-agent-hooks").as_deref() != Some("false") {
+        std::thread::spawn(|| set_hooks(true));
+    }
     let Some(token) = random_token() else { return };
     let Ok(listener) = TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))) else { return };
     let Ok(addr) = listener.local_addr() else { return };

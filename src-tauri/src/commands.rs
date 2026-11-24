@@ -2196,14 +2196,14 @@ pub struct AppMediaSession {
 pub fn get_app_media_sessions() -> Vec<AppMediaSession> {
     use windows::Media::Control::{GlobalSystemMediaTransportControlsSessionManager, GlobalSystemMediaTransportControlsSessionPlaybackStatus};
 
-    let Ok(mgr) = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.get()) else { return Vec::new() };
+    let Ok(mgr) = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.join()) else { return Vec::new() };
     let Ok(sessions) = mgr.GetSessions() else { return Vec::new() };
 
     sessions
         .into_iter()
         .filter_map(|session| {
             let app_id = session.SourceAppUserModelId().ok()?.to_string();
-            let props = session.TryGetMediaPropertiesAsync().ok()?.get().ok()?;
+            let props = session.TryGetMediaPropertiesAsync().ok()?.join().ok()?;
             let is_playing = session.GetPlaybackInfo().ok().and_then(|p| p.PlaybackStatus().ok())
                 == Some(GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing);
             Some(AppMediaSession {
@@ -2221,7 +2221,7 @@ pub fn app_media_control(app_id: String, action: String) -> Result<(), String> {
     use windows::Media::Control::GlobalSystemMediaTransportControlsSessionManager;
 
     let mgr = GlobalSystemMediaTransportControlsSessionManager::RequestAsync()
-        .and_then(|op| op.get())
+        .and_then(|op| op.join())
         .map_err(|e| e.to_string())?;
     let session = mgr
         .GetSessions()
@@ -2248,7 +2248,7 @@ pub fn open_media_source_app() {
         use windows::Win32::Foundation::{HWND, LPARAM};
         use windows::Win32::System::Threading::OpenProcess;
 
-        let mgr = match GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.get()) {
+        let mgr = match GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.join()) {
             Ok(m) => m,
             Err(_) => return,
         };
@@ -2889,7 +2889,9 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
 
     if key == "nectar-agent-api" {
         let on = matches!(settings[&key].as_str(), Some("true")) || settings[&key].as_bool() == Some(true);
-        std::thread::spawn(move || crate::agent_api::set_hooks(on));
+        if !on || crate::utils::get_setting_str(&app, "nectar-agent-hooks").as_deref() != Some("false") {
+            std::thread::spawn(move || crate::agent_api::set_hooks(on));
+        }
     }
 
     if key == "nectar-notch-hotkey" {
@@ -3035,7 +3037,7 @@ fn get_radio_state_sync(kind: windows::Devices::Radios::RadioKind) -> Result<boo
         );
     }
     let radios = Radio::GetRadiosAsync()
-        .and_then(|op| op.get())
+        .and_then(|op| op.join())
         .map_err(|e| e.to_string())?;
     for i in 0..radios.Size().unwrap_or(0) {
         if let Ok(radio) = radios.GetAt(i) {
@@ -3055,13 +3057,13 @@ fn set_radio_state_sync(kind: windows::Devices::Radios::RadioKind, enabled: bool
         );
     }
     let radios = Radio::GetRadiosAsync()
-        .and_then(|op| op.get())
+        .and_then(|op| op.join())
         .map_err(|e| e.to_string())?;
     for i in 0..radios.Size().unwrap_or(0) {
         if let Ok(radio) = radios.GetAt(i) {
             if radio.Kind().ok() == Some(kind) {
                 let target = if enabled { RadioState::On } else { RadioState::Off };
-                let _ = radio.SetStateAsync(target).and_then(|op| op.get());
+                let _ = radio.SetStateAsync(target).and_then(|op| op.join());
                 return Ok(());
             }
         }

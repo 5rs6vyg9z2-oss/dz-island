@@ -442,7 +442,7 @@ export function NotchTab({
         <SettingRow icon={ListOrdered} label={t("notch.panelOrder")} desc={t("notch.panelOrder.desc")} divider={false} stacked>
           <OrderList
             ids={panelOrder ?? DEFAULT_PANEL_ORDER}
-            label={(id) => t(`panel.${id}`)}
+            label={(id) => id === 'agent' ? 'Codex' : t(`panel.${id}`)}
             icon={(id) => {
               const Icon = PANEL_ICONS[id] ?? Circle;
               return <Icon size={14} strokeWidth={2} />;

@@ -2835,3 +2835,21 @@ img {
 @media (prefers-reduced-motion: reduce) {
     .serginho-wave { animation: none; background-position: 100% 0%; }
 }
+
+/* Codex is an internal island section, following the Wi-Fi controls. */
+.codex-companion { position:relative; width:100%; color:var(--nectar-text,#f2f5f6); box-sizing:border-box; font-family:inherit; }
+.codex-companion-toggle { display:flex; align-items:center; gap:10px; min-height:38px; padding:0 0 8px; }
+.codex-companion-toggle > span:nth-child(2) { display:flex; flex-direction:column; gap:2px; }
+.codex-companion-toggle b { font-size:13px; }
+.codex-companion-toggle small { color:var(--nectar-text-muted,#9bb1b8); font-size:10px; }
+.codex-companion-mark { color:#8ce8d0; font-size:23px; }
+.codex-companion-body { max-height:280px; overflow:auto; overscroll-behavior:contain; }
+.codex-companion-body p { font-size:12px; line-height:1.5; color:var(--nectar-text-muted,#bdccd0); margin:6px 0; }
+.codex-companion-question { margin:0; padding:0; border:0; min-width:0; display:flex; flex-direction:column; gap:12px; }
+.codex-companion .agent-panel-head { display:none; }
+.codex-companion .agent-ask { gap:12px; font-size:13px; line-height:1.45; }
+.codex-companion .agent-options { display:flex; flex-direction:column; gap:8px; }
+.codex-companion .agent-option { flex:auto; height:auto; min-height:38px; padding:9px 12px; text-align:left; white-space:normal; background:var(--nectar-group-bg,#27383e); border:1px solid var(--nectar-border,#3e565e); }
+.codex-companion .agent-option:hover { background:#35594f; }
+.codex-companion-dismiss { margin-top:12px; border:0; background:transparent; color:var(--nectar-text-muted,#9bb1b8); cursor:pointer; font-size:11px; }
+.codex-companion button:focus-visible { outline:2px solid #8ce8d0; outline-offset:2px; }

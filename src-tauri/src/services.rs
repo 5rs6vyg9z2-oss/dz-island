@@ -864,7 +864,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                 }
             }
 
-            let mut manager = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.get()).ok();
+            let mut manager = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.join()).ok();
             let mut last_processed_media = std::time::Instant::now();
             let mut last_device_check = std::time::Instant::now();
             #[allow(clippy::type_complexity)]
@@ -908,7 +908,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                     }
                 }
 
-                if manager.is_none() { manager = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.get()).ok(); }
+                if manager.is_none() { manager = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().and_then(|op| op.join()).ok(); }
 
                 let mut pending: Option<SystemCommand> = None;
                 let wait = if active_until.elapsed() < std::time::Duration::from_secs(2) {
@@ -1007,7 +1007,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                                 if let Ok(session) = sessions.GetAt(i) {
                                     let title = session
                                         .TryGetMediaPropertiesAsync()
-                                        .and_then(|op| op.get())
+                                        .and_then(|op| op.join())
                                         .and_then(|p| p.Title())
                                         .map(|t| t.to_string())
                                         .unwrap_or_default();
@@ -1037,7 +1037,7 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
                                 if Some(i) != chosen_i { continue; }
                                 if let Ok(session) = sessions.GetAt(i) {
                                     let is_playing = session.GetPlaybackInfo().ok().and_then(|p| p.PlaybackStatus().ok()) == Some(GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing);
-                                    if let Ok(props) = session.TryGetMediaPropertiesAsync().and_then(|op| op.get()) {
+                                    if let Ok(props) = session.TryGetMediaPropertiesAsync().and_then(|op| op.join()) {
                                         let title = props.Title().unwrap_or_default().to_string();
                                         if !title.is_empty() {
                                             let artist = props.Artist().unwrap_or_default().to_string();
@@ -1061,13 +1061,13 @@ pub fn setup_system_worker(app_handle: AppHandle) -> Sender<SystemCommand> {
 
                                             if !got_art_from_cache {
                                                 artwork = (|| -> Option<Vec<String>> {
-                                                    let stream = props.Thumbnail().ok()?.OpenReadAsync().ok()?.get().ok()?;
+                                                    let stream = props.Thumbnail().ok()?.OpenReadAsync().ok()?.join().ok()?;
                                                     let content_type = stream.ContentType().ok()?.to_string().split(',').next().unwrap_or("image/jpeg").trim().to_string();
                                                     let reader = DataReader::CreateDataReader(&stream).ok()?;
                                                     let mut all_bytes = Vec::new();
                                                     let chunk_size = 65536u32;
                                                     loop {
-                                                        let loaded = reader.LoadAsync(chunk_size).ok()?.get().ok()?;
+                                                        let loaded = reader.LoadAsync(chunk_size).ok()?.join().ok()?;
                                                         if loaded == 0 { break; }
                                                         let mut chunk = vec![0u8; loaded as usize];
                                                         reader.ReadBytes(&mut chunk).ok()?;

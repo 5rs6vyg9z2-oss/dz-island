@@ -1,3 +1,21 @@
+/* Secondary monitors use a flat launcher and avoid glass/animation layers. */
+.dock-secondary .dock {
+  background: var(--nectar-bg, #202024) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  box-shadow: none !important;
+  gap: 6px;
+  padding: 5px;
+}
+.dock-secondary .dock::before,
+.dock-secondary .dock::after { display: none !important; }
+.dock-secondary *, .dock-secondary *::before, .dock-secondary *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: none !important;
+}
+.dock-secondary .dock-icon { box-shadow: none; }
+
 html,
 body {
   margin: 0;

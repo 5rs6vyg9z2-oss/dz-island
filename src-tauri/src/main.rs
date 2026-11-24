@@ -10,6 +10,7 @@ mod services;
 mod commands;
 mod monitors;
 mod updater;
+mod update_policy;
 mod uninstall_registry;
 mod native_uninstall;
 mod diagnostics;
@@ -28,6 +29,7 @@ mod dock_bluetooth;
 mod i18n;
 mod shelf;
 mod agent_api;
+mod agent_http;
 mod memory_saver;
 mod webview_args;
 mod on_demand_windows;
@@ -289,6 +291,7 @@ fn main() {
 
             crate::utils::init_settings_cache(app.handle());
             agent_api::start(app.handle().clone());
+            updater::start(app.handle().clone());
             dock_bluetooth::start_battery_engine();
 
             crate::calendar_sync::start_background_sync(app.handle().clone());

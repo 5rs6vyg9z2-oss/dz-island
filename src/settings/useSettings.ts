@@ -589,6 +589,9 @@ export function useSettings() {
         case "done":
           setUpdateStatus((prev) => (prev === "downloading" || prev === "installing" ? "idle" : prev));
           break;
+        case "error":
+          setUpdateStatus("error");
+          break;
       }
     });
     return () => {

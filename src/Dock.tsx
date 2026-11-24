@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, memo } from 'react';
 import { Battery, Bluetooth, Gamepad2, Headphones, Keyboard, Mic, Mouse, Smartphone, Speaker } from 'lucide-react';
-import { motion, AnimatePresence, Reorder, useIsPresent } from 'framer-motion';
+import { motion, AnimatePresence, Reorder, useIsPresent, MotionConfig } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { emit, listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -522,8 +522,11 @@ function DockPreviewTooltip({
 const tourDockAction = () => { emit('tour-dock-action').catch(() => {}); };
 
 const Dock = memo(function Dock() {
+  // Extra monitor windows keep the launcher, without duplicating rich panels.
+  const isSecondaryDock = getCurrentWebviewWindow().label !== 'dock';
   const [bluetoothDevices, setBluetoothDevices] = useState<Array<{ id: string; name: string; percent: number | null; kind: string; charging: boolean; connected: boolean; detail: string }>>([]);
   useEffect(() => {
+    if (isSecondaryDock) return;
     let cancelled = false;
     let timer: number | undefined;
     async function refresh() {
@@ -546,19 +549,20 @@ const Dock = memo(function Dock() {
   }, []);
   const t = useT();
   useEffect(() => {
-    return initTheme({ backdrop: true });
+    return initTheme({ backdrop: !isSecondaryDock });
   }, []);
 
   const [pinnedApps, setPinnedApps] = useState<AppInfo[]>([]);
   const [activeApps, setActiveApps] = useState<AppInfo[]>([]);
   const iconsRef = useRef<Record<string, string>>({});
-  const [, setIconsTick] = useState(0); 
+  const [, setIconsTick] = useState(0);
   const [dockMode, setDockMode] = useState(() => {
     const raw = localStorage.getItem("nectar-dock-mode") || "smart";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
-  const [dockPreviewEnabled, setDockPreviewEnabled] = useState(() => localStorage.getItem("nectar-dock-preview-enabled") !== "false");
+  const [dockPreviewConfigured, setDockPreviewEnabled] = useState(() => localStorage.getItem("nectar-dock-preview-enabled") !== "false");
+  const dockPreviewEnabled = dockPreviewConfigured && !isSecondaryDock;
   const [previewDelay, setPreviewDelay] = useState(() => { const v = localStorage.getItem("nectar-dock-preview-delay"); return v === null ? 300 : Number(v) || 0; });
   const [hideDelay, setHideDelay] = useState(() => Number(localStorage.getItem("nectar-dock-hide-delay")) || 800);
   const [dockAttentionEnabled, setDockAttentionEnabled] = useState(() => localStorage.getItem("nectar-dock-attention-enabled") !== "false");
@@ -654,7 +658,7 @@ const Dock = memo(function Dock() {
   const isCurrentlyHovered = isDockHovered || isEdgeHovered;
   const [interactionState, setInteractionState] = useState<'active' | 'grace' | 'none'>('none');
   const isAnyInteraction = isCurrentlyHovered || !!contextMenu || popupOpen;
-  
+
   const previewTimerRef = useRef<any>(null);
   const isPreviewHoveredRef = useRef(false);
   const [mediaSessions, setMediaSessions] = useState<AppMediaSession[]>([]);
@@ -742,7 +746,7 @@ const Dock = memo(function Dock() {
     const observer = new ResizeObserver(updateRect);
     if (dockRef.current) observer.observe(dockRef.current);
 
-    const poll = setVisibleInterval(updateRect, 500);
+    const poll = setVisibleInterval(updateRect, isSecondaryDock ? 2000 : 500);
 
     return () => {
       window.removeEventListener('resize', updateRect);
@@ -934,7 +938,7 @@ const Dock = memo(function Dock() {
     });
 
     // Safety net: even if a window event is missed, converge on the real state
-    const interval = setVisibleInterval(poll, 10000);
+    const interval = setVisibleInterval(poll, isSecondaryDock ? 20000 : 10000);
 
     // Windows that flashed for attention; the backend drops them once they're activated or closed
     invoke<number[]>('get_attention_windows').then(list => setAttentionWindows(new Set(list))).catch(() => {});
@@ -954,7 +958,7 @@ const Dock = memo(function Dock() {
   const fetchIcon = async (path: string, name?: string, hwnd?: number, retryCount = 0) => {
     const isHost = isBrowserHost(path);
     const cacheKey = isHost && name ? `${path}:${name.toLowerCase()}` : (hwnd ? `${path}-${hwnd}` : path);
-    
+
     if (iconsRef.current[cacheKey]) return;
     try {
       const icon = await invoke<string | null>('get_app_icon', { path, name: name || null, hwnd: hwnd || null });
@@ -1094,7 +1098,7 @@ const Dock = memo(function Dock() {
       // Same app pinned under another entry shape (running window vs shortcut) must not duplicate.
       if (pinnedApps.some(a => isSameApp(a, app))) return;
       newPinned = [...pinnedApps, { ...app, is_pinned: true, is_running: false, hwnd: undefined }];
-      fetchIcon(app.path, app.name); 
+      fetchIcon(app.path, app.name);
     }
     setPinnedApps(newPinned);
     await invoke('save_pinned_apps', { apps: newPinned });
@@ -1157,20 +1161,20 @@ const Dock = memo(function Dock() {
 
     if (contextMenu && menuRef.current) {
       const r = menuRef.current.getBoundingClientRect();
-      rect = { 
-        x: Math.round(r.x), 
-        y: Math.round(r.y), 
-        width: Math.round(r.width + (activeSubmenu ? 160 : 0)), 
-        height: Math.round(r.height) 
+      rect = {
+        x: Math.round(r.x),
+        y: Math.round(r.y),
+        width: Math.round(r.width + (activeSubmenu ? 160 : 0)),
+        height: Math.round(r.height)
       };
       open = true;
     } else if (popupOpen && popupRef.current) {
       const r = popupRef.current.getBoundingClientRect();
-      rect = { 
-        x: Math.round(r.x), 
-        y: Math.round(r.y), 
-        width: Math.round(r.width), 
-        height: Math.round(r.height) 
+      rect = {
+        x: Math.round(r.x),
+        y: Math.round(r.y),
+        width: Math.round(r.width),
+        height: Math.round(r.height)
       };
       open = true;
     }
@@ -1185,7 +1189,7 @@ const Dock = memo(function Dock() {
       const id = appIdentity(a.path, a.executable, a.name);
       if (!runningMap.has(id)) runningMap.set(id, a);
     });
-    
+
     const matchedRunningKeys = new Set<string>();
 
     const findRunningApp = (p: AppInfo) => {
@@ -1586,7 +1590,8 @@ const Dock = memo(function Dock() {
   );
 
   return (
-    <div className={`dock-container ${isDragging ? 'dragging' : ''}`} onClick={closeMenu}>
+    <MotionConfig reducedMotion={isSecondaryDock ? 'always' : 'user'}>
+    <div className={`dock-container ${isSecondaryDock ? 'dock-secondary' : ''} ${isDragging ? 'dragging' : ''}`} onClick={closeMenu}>
       <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
         <motion.div
           ref={dockRef}
@@ -1622,13 +1627,13 @@ const Dock = memo(function Dock() {
         style={{ originX: 0.5, originY: 1, minWidth: 34 }}
         onContextMenu={(e) => handleContextMenu(e, null)}
       >
-        <SurfaceShape
+        {!isSecondaryDock && <SurfaceShape
           edge="bottom"
           flare={isExpanded && !isHidden ? 13 : 0}
           settling={startupAnimating}
           radius={(isImpacted || isExpanded) && !isHidden ? 18 : 17}
           edgeRadius={(isImpacted || isExpanded) && !isHidden ? 0 : 17}
-        />
+        />}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
@@ -1673,7 +1678,7 @@ const Dock = memo(function Dock() {
                   {(!dockPreviewEnabled || (dockPreviewEnabled && hoveredApp === itemKey(startItem))) && (
                     <div className="tooltip">{t("dockmenu.start")}</div>
                   )}
-                  <motion.div 
+                  <motion.div
                     className="dock-icon"
                     variants={ICON_VARIANTS}
                     animate={pressedApp === itemKey(startItem) ? "tap" : (hoveredApp === itemKey(startItem) ? "hover" : "idle")}
@@ -1689,7 +1694,7 @@ const Dock = memo(function Dock() {
                   </motion.div>
                 </motion.div>
               )}
-              
+
               {dockSearchEnabled && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
@@ -1825,12 +1830,12 @@ const Dock = memo(function Dock() {
                     />
                   )}
                 </AnimatePresence>
-                
+
                 {/* Fallback to text tooltip if previews are disabled, app isn't running, or preview failed to load */}
                 {(!dockPreviewEnabled || (dockPreviewEnabled && hoveredApp === itemKey(app) && !previewData)) && (
                   <div className="tooltip">{displayName(app)}</div>
                 )}
-                <motion.div 
+                <motion.div
                   className="dock-icon"
                   variants={ICON_VARIANTS}
                   animate={pressedApp === itemKey(app) ? "tap" : (isDragging && !app.is_pinned ? "idle" : (hoveredApp === itemKey(app) && !isDragging ? "hover" : "idle"))}
@@ -1845,9 +1850,9 @@ const Dock = memo(function Dock() {
                     // Running host items skip the shared path fallback, or the browser's icon leaks onto its PWAs.
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
-                    
+
                     const isNectarOrSettings = isNectarWindow(app);
-                    
+
                     return (icon || isNectarOrSettings) ? (
                       <DockAppIcon src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} nectar={isNectarOrSettings} />
                     ) : (
@@ -2167,9 +2172,9 @@ const Dock = memo(function Dock() {
           />
         )}
         {showAddPopup && (
-          <AddAppPopup 
+          <AddAppPopup
             containerRef={popupRef}
-            onClose={closePopup} 
+            onClose={closePopup}
             onAdd={(app: AppInfo) => { togglePin(app); closePopup(); }}
             scale={scale}
             runningApps={activeApps}
@@ -2194,6 +2199,7 @@ const Dock = memo(function Dock() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   );
 });
 
