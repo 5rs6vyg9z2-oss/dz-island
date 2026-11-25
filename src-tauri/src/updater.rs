@@ -79,7 +79,8 @@ async fn install_inner(app: &AppHandle) -> Result<(), String> {
     let _ = app.emit("auto-update-status", serde_json::json!({"status":"downloading"}));
     let response = client()?.get(&asset.browser_download_url).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?;
     let bytes = bounded_body(response, MAX_PACKAGE).await?;
-    if bytes.len() != asset.size || format!("sha256:{:x}", Sha256::digest(&bytes)) != asset.digest.unwrap_or_default().to_ascii_lowercase() {
+    let package_digest=format!("{:x}",Sha256::digest(&bytes));
+    if bytes.len() != asset.size || format!("sha256:{package_digest}") != asset.digest.unwrap_or_default().to_ascii_lowercase() {
         return Err("Falha na verificação SHA-256 do pacote do GitHub.".into());
     }
     if pending_question() { return Err("Atualização adiada: há uma pergunta aguardando resposta.".into()); }
@@ -89,13 +90,22 @@ async fn install_inner(app: &AppHandle) -> Result<(), String> {
     let stage = crate::utils::portable_data_dir().map_err(|e|e.to_string())?.join("updates").join(format!("{nonce}"));
     std::fs::create_dir_all(&stage).map_err(|e|e.to_string())?;
     std::fs::write(stage.join("package.zip"), bytes).map_err(|e|e.to_string())?;
-    std::fs::write(stage.join("apply.ps1"), include_str!("../../scripts/apply-portable-update.ps1")).map_err(|e|e.to_string())?;
-    std::fs::write(stage.join("plan.json"), serde_json::json!({"root":root,"parent":std::process::id(),"version":release.version}).to_string()).map_err(|e|e.to_string())?;
+    std::fs::copy(root.join("DZUpdater.exe"), stage.join("DZUpdater.exe")).map_err(|e|e.to_string())?;
+    std::fs::write(stage.join("plan.json"), serde_json::json!({"root":root,"parent":std::process::id(),"version":release.version,"digest":package_digest}).to_string()).map_err(|e|e.to_string())?;
     use std::os::windows::process::CommandExt;
-    let powershell = std::env::var_os("SystemRoot").map(std::path::PathBuf::from).ok_or("Missing SystemRoot")?.join("System32/WindowsPowerShell/v1.0/powershell.exe");
-    std::process::Command::new(powershell).args(["-NoProfile","-NonInteractive","-File"])
-        .arg(stage.join("apply.ps1")).arg("-Plan").arg(stage.join("plan.json"))
-        .creation_flags(0x08000000).spawn().map_err(|e|e.to_string())?;
+    let mut helper = std::process::Command::new(stage.join("DZUpdater.exe"))
+        .arg(stage.join("plan.json")).creation_flags(0x08000000).spawn().map_err(|e|e.to_string())?;
+    let started=Instant::now();
+    loop {
+        if stage.join("ready.flag").is_file() { break; }
+        if let Some(status)=helper.try_wait().map_err(|e|e.to_string())? {
+            let error=std::fs::read_to_string(stage.join("error.txt")).unwrap_or_else(|_|format!("Installer exited: {status}"));
+            return Err(error);
+        }
+        if started.elapsed()>Duration::from_secs(45) { let _=helper.kill(); return Err("Installer readiness timeout".into()); }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    if pending_question() {let _=helper.kill();return Err("Update deferred for a pending question".into());}
     let _ = app.emit("auto-update-status", serde_json::json!({"status":"installing"}));
     crate::commands::restore_taskbar_and_exit(app);
     Ok(())

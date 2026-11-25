@@ -36,15 +36,15 @@ jobs:
           ./agent-http-tests.exe
           rustc --edition=2021 --test src-tauri/src/update_policy.rs -o update-policy-tests.exe
           ./update-policy-tests.exe
-      - name: Test updater archive boundaries
-        shell: pwsh
-        run: ./scripts/test-portable-update.ps1
       - name: Build the Windows app
         shell: pwsh
         run: |
           # Compatibility directory for Tauri's WebView2 loader discovery with Cargo 1.100.
           New-Item -ItemType Directory -Path src-tauri/target/release/build/build -Force | Out-Null
           bun run tauri build --no-bundle
+      - name: Test native updater and recovery
+        shell: pwsh
+        run: ./scripts/test-portable-update.ps1
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -59,6 +59,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path release-package/Battery -Force | Out-Null
           Copy-Item src-tauri/target/release/nectar.exe release-package/Nectar.exe
+          Copy-Item src-tauri/target/release/dz-update-helper.exe release-package/DZUpdater.exe
           $loader = Get-ChildItem src-tauri/target/release/build -Filter WebView2Loader.dll -Recurse | Where-Object FullName -Match '\\out\\x64\\' | Select-Object -First 1
           if (!$loader) { throw 'Missing x64 WebView2Loader.dll' }
           Copy-Item $loader.FullName release-package/WebView2Loader.dll
@@ -82,3 +83,6 @@ jobs:
           if ($LASTEXITCODE -eq 0) { throw 'Version already exists. Start a new workflow run instead of rerunning this release.' }
           gh release create $tag DZ-Island-windows-x64.zip SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "DZ Island $env:RELEASE_VERSION" --notes "Atualização automática do DZ Island. Commit: $env:GITHUB_SHA. Configurações locais são preservadas."
           if ($LASTEXITCODE -ne 0) { throw 'GitHub release failed' }
+          if ($env:RELEASE_VERSION -eq '1.11.3') {
+            gh release edit v1.11.2 --repo $env:GITHUB_REPOSITORY --prerelease --notes 'Substituída pela versão estável 1.11.3, com instalador nativo. Use a Release estável mais recente.'
+          }

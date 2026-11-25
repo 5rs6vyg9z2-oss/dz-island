@@ -1,14 +1,16 @@
+param([string]$Helper = (Join-Path $PSScriptRoot '../src-tauri/target/release/dz-update-helper.exe'))
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('dz-updater-tests-' + [guid]::NewGuid().ToString('N'))
-$helper = Join-Path $PSScriptRoot 'apply-portable-update.ps1'
+
 $cases = @(
     @{name='valid';entries=@('Nectar.exe','WebView2Loader.dll');fail=$false},
     @{name='traversal';entries=@('Nectar.exe','../outside.txt');fail=$true},
     @{name='settings';entries=@('Nectar.exe','data/settings.json');fail=$true},
     @{name='duplicate';entries=@('Nectar.exe','NECTAR.EXE');fail=$true},
     @{name='missing-exe';entries=@('LICENSE.txt');fail=$true},
-    @{name='unexpected-script';entries=@('Nectar.exe','run.bat');fail=$true}
+    @{name='unexpected-script';entries=@('Nectar.exe','run.bat');fail=$true},
+    @{name='bad-digest';entries=@('Nectar.exe');fail=$true}
 )
 foreach ($case in $cases) {
     $stage = Join-Path $testRoot $case.name
@@ -25,15 +27,17 @@ foreach ($case in $cases) {
         }
     } finally { $archive.Dispose() }
     $plan = Join-Path $stage 'plan.json'
-    @{root=$root;parent=$PID;version='1.11.1'} | ConvertTo-Json | Set-Content -LiteralPath $plan -Encoding UTF8
-    & $helper -Plan $plan -ValidateOnly
+    $digest=(Get-FileHash -LiteralPath (Join-Path $stage 'package.zip') -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($case.name -eq 'bad-digest') {$digest='0'*64}
+    @{root=$root;parent=$PID;version='1.11.1';digest=$digest} | ConvertTo-Json | Set-Content -LiteralPath $plan -Encoding UTF8
+    $process = Start-Process -FilePath $Helper -ArgumentList @(('"' + $plan + '"'),'--validate-only') -Wait -PassThru -WindowStyle Hidden
     $failed=Test-Path -LiteralPath (Join-Path $stage 'error.txt')
     if ($failed -ne $case.fail) { throw "Unexpected validation result: $($case.name)" }
     if ([IO.File]::ReadAllText((Join-Path $root 'data/settings.json')) -ne '{"preserve":true}') { throw 'Settings modified during validation.' }
     if ([IO.File]::ReadAllBytes((Join-Path $root 'Nectar.exe'))[2] -ne 0) { throw 'Application changed during validation.' }
     Write-Output "PASS $($case.name)"
 }
-Write-Output '6 archive boundary tests passed.'
+Write-Output '7 archive boundary tests passed.'
 
 # Exercise replacement, restart and rollback with harmless mock applications.
 $compiler = Join-Path $env:SystemRoot 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
@@ -63,11 +67,11 @@ foreach ($scenario in @('replace','rollback')) {
         }
     } finally { $archive.Dispose() }
     $plan=Join-Path $stage 'plan.json'
-    @{root=$root;parent=2147483647;version='1.11.1'} | ConvertTo-Json | Set-Content -LiteralPath $plan -Encoding UTF8
+    @{root=$root;parent=2147483647;version='1.11.1';digest=(Get-FileHash -LiteralPath (Join-Path $stage 'package.zip') -Algorithm SHA256).Hash.ToLowerInvariant()} | ConvertTo-Json | Set-Content -LiteralPath $plan -Encoding UTF8
     $lock=$null
     try {
         if ($scenario -eq 'rollback') { $lock=[IO.File]::Open((Join-Path $root 'WebView2Loader.dll'),[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None) }
-        & $helper -Plan $plan
+        $process = Start-Process -FilePath $Helper -ArgumentList @('"' + $plan + '"') -Wait -PassThru -WindowStyle Hidden
     } finally { if ($lock) { $lock.Dispose() } }
     Start-Sleep -Milliseconds 800
     $result=Get-Content -LiteralPath (Join-Path $root 'data/update-result.json') -Raw | ConvertFrom-Json
