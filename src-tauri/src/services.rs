@@ -2379,55 +2379,17 @@ unsafe fn process_mouse_move(app_handle: &AppHandle, cursor: windows::Win32::Fou
                             if let Ok(region) = crate::state::notch_rects().try_lock() {
                                 if let Some(r) = region.get("main").copied() {
                                     let scale = main_win.scale_factor().unwrap_or(1.0);
-                                    let pad_x = (20.0 * scale) as i32;
-                                    let pad_y_bottom = (5.0 * scale) as i32;
-                                    // Hysteresis keeps the notch interactive a little past
-                                    // its bounds once grabbed, so removing the edge-forced
-                                    // interactivity doesn't reintroduce boundary flicker.
-                                    let hyst = if MH_LAST_MAIN_IGNORE.load(Ordering::Relaxed) == 0 { (10.0 * scale) as i32 } else { 0 };
-                                    let rx = win_pos.x + (r.x as f64 * scale) as i32 - pad_x - hyst;
-                                    let rw = (r.width as f64 * scale) as i32 + (pad_x * 2) + (hyst * 2);
-                                    let ry_top = win_pos.y;
-                                    let ry_bottom = win_pos.y + (r.height as f64 * scale) as i32 + pad_y_bottom + hyst;
-
-                                    // A hidden notch must not eat clicks, in smart/peek it's off screen most of the time.
+                                    let bounds = crate::notch_hit_test::HitBox::from_logical(
+                                        (win_pos.x,win_pos.y),scale,(r.x,r.y,r.width,r.height));
                                     let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), "main");
                                     let hover_active = is_notch_hovered || now < MH_TOPBAR_EXPIRY_MS.load(Ordering::Relaxed);
-                                    if (!notch_hidden || hover_active)
-                                        && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
-                                        is_click_interactive = true;
-                                    }
-                                    dbg_box = Some((rx, ry_top, rw, ry_bottom - ry_top));
+                                    is_click_interactive = (!notch_hidden || hover_active) && bounds.contains(cursor.x,cursor.y);
+                                    dbg_box = Some((bounds.left,bounds.top,bounds.right-bounds.left,bounds.bottom-bounds.top));
                                     dbg_rect = Some(r);
-
-                                    // Approaching along the top edge keeps the window
-                                    // interactive while near the notch's horizontal
-                                    // span, so peek/hover can't flicker at the
-                                    // boundary. The screen corners stay click-through.
-                                    // Keep this immediate (not dwell-gated), the notch rect lags the animation and flipping
-                                    // click-through mid-hover makes it flicker. Still gated on the notch being visible or hovered.
-                                    let edge_pad = (60.0 * scale) as i32;
-                                    if !fg_fs && in_top_band && (!notch_hidden || hover_active)
-                                        && cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad {
-                                        is_click_interactive = true;
-                                    }
-
-                                    if left_button_held() {
-                                        let over_span = cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad;
-                                        let over_box = cursor.x >= rx && cursor.x <= rx + rw && cursor.y >= ry_top && cursor.y <= ry_bottom;
-                                        if over_box || (in_top_band && over_span) {
-                                            is_click_interactive = true;
-                                        }
-                                    }
                                 }
                             }
                         }
 
-                        if is_click_interactive && !in_notch_hover && !left_button_held() && caption_buttons_under(cursor) {
-                            is_click_interactive = false;
-                            is_notch_hovered = false;
-                            MH_TOPBAR_EXPIRY_MS.store(0, Ordering::Relaxed);
-                        }
 
                         let final_notch_hover = is_notch_hovered || now < MH_TOPBAR_EXPIRY_MS.load(Ordering::Relaxed);
                         let prev = MH_LAST_TOP_EDGE_HOVER.load(Ordering::Relaxed);
@@ -2821,36 +2783,11 @@ fn hit_test_extra_notch_windows(app_handle: &AppHandle, cursor: windows::Win32::
         let main_rect_val = crate::state::main_window_rects().lock().ok().and_then(|m| m.get(&label).copied());
         if let Some((win_pos, _)) = main_rect_val {
             if let Some(r) = crate::state::notch_rects().lock().ok().and_then(|m| m.get(&label).copied()) {
-                let pad_x = (20.0 * scale) as i32;
-                let pad_y_bottom = (5.0 * scale) as i32;
-                let last_ignore = crate::state::get_i32(crate::state::notch_extra_last_ignore(), &label, -1);
-                let hyst = if last_ignore == 0 { (10.0 * scale) as i32 } else { 0 };
-                let rx = win_pos.x + (r.x as f64 * scale) as i32 - pad_x - hyst;
-                let rw = (r.width as f64 * scale) as i32 + (pad_x * 2) + (hyst * 2);
-                let ry_top = win_pos.y;
-                let ry_bottom = win_pos.y + (r.height as f64 * scale) as i32 + pad_y_bottom + hyst;
-
+                let bounds = crate::notch_hit_test::HitBox::from_logical(
+                    (win_pos.x,win_pos.y),scale,(r.x,r.y,r.width,r.height));
                 let notch_hidden = crate::state::get_flag(crate::state::notch_hidden(), &label);
-                let hover_active = is_notch_hovered
-                    || now < crate::state::get_i64(crate::state::notch_extra_expiry_ms(), &label, 0);
-                if (!notch_hidden || hover_active)
-                    && cursor.x >= rx && cursor.x <= (rx + rw) && cursor.y >= ry_top && cursor.y <= ry_bottom {
-                    is_click_interactive = true;
-                }
-
-                let edge_pad = (60.0 * scale) as i32;
-                if !fg_fs && in_top_band && (!notch_hidden || hover_active)
-                    && cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad {
-                    is_click_interactive = true;
-                }
-
-                if left_button_held() {
-                    let over_span = cursor.x >= rx - edge_pad && cursor.x <= rx + rw + edge_pad;
-                    let over_box = cursor.x >= rx && cursor.x <= rx + rw && cursor.y >= ry_top && cursor.y <= ry_bottom;
-                    if over_box || (in_top_band && over_span) {
-                        is_click_interactive = true;
-                    }
-                }
+                let hover_active = is_notch_hovered || now < crate::state::get_i64(crate::state::notch_extra_expiry_ms(), &label, 0);
+                is_click_interactive = (!notch_hidden || hover_active) && bounds.contains(cursor.x,cursor.y);
             }
         }
 

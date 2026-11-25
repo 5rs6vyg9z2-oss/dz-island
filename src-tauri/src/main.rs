@@ -11,6 +11,7 @@ mod commands;
 mod monitors;
 mod updater;
 mod update_policy;
+mod notch_hit_test;
 mod uninstall_registry;
 mod native_uninstall;
 mod diagnostics;

@@ -1,7 +1,7 @@
 PAINEL CODEX — seção interna do DZ Island
 
 O Codex fica DENTRO da ilha dinâmica, como segunda seção, logo após os controles de Wi-Fi. Para navegar, passe o mouse sobre a ilha e avance uma seção pela roda do mouse ou clicando no relógio.
-Uma pergunta recebida abre automaticamente o painel Codex na própria ilha e mantém o painel aberto para você clicar em uma opção.
+Uma pergunta recebida sinaliza o horário. Clique no horário para abrir o painel Codex e responder. Passar o mouse pela ilha não abre o painel.
 O painel confirma o envio da resposta. Há também a opção de dispensar a pergunta. O prazo de resposta é de dez minutos.
 
 Ponte local: Perguntar-Na-Ilha.ps1 -QuestionFile <JSON>

@@ -36,6 +36,8 @@ jobs:
           ./agent-http-tests.exe
           rustc --edition=2021 --test src-tauri/src/update_policy.rs -o update-policy-tests.exe
           ./update-policy-tests.exe
+          rustc --edition=2021 --test src-tauri/src/notch_hit_test.rs -o notch-hit-tests.exe
+          ./notch-hit-tests.exe
       - name: Build the Windows app
         shell: pwsh
         run: |

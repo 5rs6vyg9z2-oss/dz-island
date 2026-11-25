@@ -591,9 +591,15 @@ function App() {
     let lastSent = "";
     const updateRect = () => {
       if (nectarRef.current && isNotchWindow) {
-        const rect = nectarRef.current.getBoundingClientRect();
+        const clock = document.querySelector('.time-flip-container')?.getBoundingClientRect();
+        const rect = !isHovered && !tourActive ? clock : nectarRef.current.getBoundingClientRect();
+        if (!rect) {
+          invoke('update_notch_rect', { rect: { x: 0, y: 0, width: 0, height: 0 } }).catch(() => {});
+          lastSent = '';
+          return;
+        }
         const card = tourActive ? document.querySelector('.tour-bar')?.getBoundingClientRect() : undefined;
-        const companion = document.querySelector('.codex-companion')?.getBoundingClientRect();
+        const companion = isHovered ? document.querySelector('.codex-companion')?.getBoundingClientRect() : undefined;
         const regions = [rect, card, companion].filter((r): r is DOMRect => !!r);
         const left = Math.min(...regions.map(r => r.left));
         const right = Math.max(...regions.map(r => r.right));
@@ -625,7 +631,7 @@ function App() {
       observer.disconnect();
       clearInterval(poll);
     };
-  }, [isExpanded, isHidden, windowLabel, scale, tourActive, isReady]);
+  }, [isExpanded, isHidden, windowLabel, scale, tourActive, isReady, isHovered]);
 
   useEffect(() => {
     if (!windowLabel) return;
@@ -1839,8 +1845,15 @@ function App() {
     });
   };
 
-  const cycleNotchMode = (e: React.MouseEvent) => {
+  const cycleNotchMode = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
+    if (!isHovered) {
+      clearTimeout(shelfCollapseTimer.current);
+      setIsHovered(true);
+      const remembered = settingsRememberMode ? rememberedModeRef.current : null;
+      setNectarMode(agentActivity?.ask ? 'agent' : remembered ?? availableNotchModes()[0] ?? 'status');
+      return;
+    }
     if (isTimerFinished) {
       resetTimer();
       return;
@@ -1965,12 +1978,13 @@ function App() {
   };
   const shelf = useShelf(windowLabel, isNotchWindow && !settingsLegacyMode && panelShelf, settingsShelfPersist, {
     onDragEnter: () => {
+      if (!isHovered) return;
       setIsHovered(true);
       setIsNotchHovered(true);
       setNectarMode('shelf');
     },
     onDragLeave: collapseAfterShelfDrag,
-    onDrop: () => setNectarMode('shelf'),
+    onDrop: () => { if (isHovered) setNectarMode('shelf'); },
   });
 
   useEffect(() => {
@@ -1981,8 +1995,8 @@ function App() {
 
   useEffect(() => {
     if (agentActivity?.ask && windowLabel === 'main') {
-      setNectarMode('agent');
-      setIsHovered(true);
+      if (isHovered) setNectarMode('agent');
+      triggerEventPeek(6000);
     }
   }, [agentActivity?.ask?.id, windowLabel]);
 
@@ -2003,7 +2017,6 @@ function App() {
   );
 
   // Calculate width dynamically based on enabled features
-  const agentNeedsYou = windowLabel !== 'main' && !!agentActivity && isNotchWindow && (agentActivity.state === 'needs_input' || agentActivity.state === 'error');
   const agentWings = windowLabel !== 'main' && !!agentActivity && isNotchWindow && !isHovered && (nectarMode === 'status' || isMusicMode);
 
   const getDynamicWidth = () => {
@@ -2152,15 +2165,7 @@ function App() {
           e.stopPropagation();
         }}
         onHoverStart={() => {
-          clearTimeout(shelfCollapseTimer.current);
-          setIsHovered(true);
-          if (nectarMode === 'agent') return;
-          if (nectarMode !== 'shelf') {
-            const remembered = settingsRememberMode ? rememberedModeRef.current : null;
-            if (agentNeedsYou) setNectarMode('agent');
-            else if (remembered && availableNotchModes().includes(remembered)) setNectarMode(remembered);
-            else setNectarMode(availableNotchModes()[0] ?? 'status');
-          }
+          // Only clicking the clock opens the island; pointer proximity does not.
         }}
         onHoverEnd={() => {
           if (nectarMode === 'agent' && agentActivity?.ask) return;
@@ -2476,7 +2481,11 @@ function App() {
                             {/* Center - Time (always visible) */}
                             <div className="time-center">
                               <div
-                                className="time-flip-container"
+                                className={`time-flip-container ${agentActivity?.ask ? 'clock-has-question' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={agentActivity?.ask ? 'Abrir pergunta do Codex' : 'Abrir ilha pelo horário'}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleNotchMode(e); } }}
                                 onClick={cycleNotchMode}
                                 style={batteryLow ? { minWidth: Math.max(96, Math.ceil(t("battery.low").length * 10), dualClockSize?.main ?? 0) } : dualClockSize ? { minWidth: dualClockSize.main } : undefined}
                               >
