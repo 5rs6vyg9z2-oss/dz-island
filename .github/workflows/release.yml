@@ -75,13 +75,20 @@ jobs:
           Copy-Item vendor/batteryhub/BatteryHub.exe release-package/Battery/BatteryEngine.exe
           Copy-Item vendor/batteryhub/LICENSE release-package/Battery/LICENSE.txt
           Copy-Item scripts/Perguntar-Na-Ilha.ps1,scripts/PERGUNTAS-NA-ILHA.txt release-package/
-          Copy-Item scripts/ZEUS-ESTIMATIVA.md release-package/
+          Copy-Item scripts/ZEUS-ESTIMATIVA.md release-package/LEIA-ME.txt
           Invoke-WebRequest https://github.com/Sapd/HeadsetControl/releases/download/4.3.0/headsetcontrol-windows-x86_64.exe -OutFile release-package/Battery/headsetcontrol.exe
           if ((Get-FileHash release-package/Battery/headsetcontrol.exe -Algorithm SHA256).Hash -ne 'E371DA043710DDB8FC70AF77F2CCAD1CD03F8C6F49BA423E08764AD7A94A3C40') { throw 'HeadsetControl checksum mismatch' }
           Copy-Item scripts/BATTERY-THIRD-PARTY-NOTICES.txt release-package/Battery/THIRD_PARTY_NOTICES.txt
           Compress-Archive -Path release-package/* -DestinationPath DZ-Island-windows-x64.zip
           $sha = (Get-FileHash DZ-Island-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           "$sha  DZ-Island-windows-x64.zip" | Set-Content SHA256SUMS.txt -Encoding ascii
+          # Validate the actual release ZIP against the installer's unchanged allowlist.
+          New-Item -ItemType Directory -Path update-package-check -Force | Out-Null
+          Copy-Item DZ-Island-windows-x64.zip update-package-check/package.zip
+          @{root=(Resolve-Path release-package).Path;parent=0;version=$env:RELEASE_VERSION;digest=$sha} | ConvertTo-Json -Compress | Set-Content update-package-check/plan.json -Encoding utf8NoBOM
+          $planPath = (Resolve-Path update-package-check/plan.json).Path
+          $validation = Start-Process -FilePath ((Resolve-Path release-package/DZUpdater.exe).Path) -ArgumentList @(('"' + $planPath + '"'), '--validate-only') -WindowStyle Hidden -Wait -PassThru
+          if ($validation.ExitCode -ne 0) { throw 'Release ZIP is incompatible with the native updater.' }
       - name: Publish the stable release
         shell: pwsh
         env:
