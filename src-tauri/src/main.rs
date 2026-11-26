@@ -27,6 +27,8 @@ mod hotkeys;
 mod connections;
 mod audio_devices;
 mod dock_bluetooth;
+mod zeus_estimate;
+mod zeus_estimate_math;
 mod i18n;
 mod shelf;
 mod agent_api;
@@ -232,6 +234,10 @@ fn main() {
             get_bluetooth_state,
             dock_bluetooth::dock_bluetooth_devices,
             dock_bluetooth::open_battery_menu,
+            zeus_estimate::zeus_estimate_status,
+            zeus_estimate::zeus_estimate_update,
+            agent_api::agent_pending_questions,
+            agent_api::agent_alert_visibility,
             set_bluetooth_state,
             open_bluetooth_settings,
             open_airplane_mode_settings,
@@ -294,6 +300,7 @@ fn main() {
             agent_api::start(app.handle().clone());
             updater::start(app.handle().clone());
             dock_bluetooth::start_battery_engine();
+            zeus_estimate::start_clock();
 
             crate::calendar_sync::start_background_sync(app.handle().clone());
 

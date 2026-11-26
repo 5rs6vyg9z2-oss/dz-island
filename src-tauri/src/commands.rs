@@ -4176,8 +4176,8 @@ pub async fn focus_agent_window(window: u64) {
 }
 
 #[tauri::command]
-pub fn agent_answer(id: u64, allow: bool, choices: Option<Vec<usize>>) {
-    crate::agent_api::answer(id, allow, choices.unwrap_or_default());
+pub fn agent_answer(id: u64, allow: bool, choices: Option<Vec<usize>>) -> Result<(), String> {
+    crate::agent_api::answer(id, allow, choices.unwrap_or_default())
 }
 
 const AGENT_SOUND_STATES: [&str; 3] = ["needs_input", "done", "error"];

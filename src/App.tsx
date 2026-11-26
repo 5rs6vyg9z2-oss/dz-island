@@ -25,9 +25,9 @@ import { NotchShelf, useShelf } from "./components/NotchShelf";
 import { DEFAULT_PANEL_ORDER, parseCcLayout, parsePanelOrder, resolveCcLayout, type CcKind } from "./panelOrder";
 import { NotchProgressBorder } from "./components/NotchProgressBorder";
 import { SurfaceShape } from "./components/SurfaceShape";
-import { playAgentSound } from "./agentSounds";
 import { AgentLeft, AgentDot, type AgentActivity } from "./components/AgentStatus";
 import { CodexCompanion } from "./components/CodexCompanion";
+import { ZeusEstimate } from "./components/ZeusEstimate";
 import type { WidgetConfig } from "./components/StatusWidgetConfig";
 import {
   DEFAULT_DUAL_CLOCK_ZONE,
@@ -540,7 +540,6 @@ function App() {
   const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("nectar-dock-enabled") !== "false");
   const [isNotchHovered, setIsNotchHovered] = useState(false);
   const [agentActivity, setAgentActivity] = useState<AgentActivity | null>(null);
-  const lastAgentKey = useRef("");
   const windowLabelRef = useRef("");
   windowLabelRef.current = windowLabel;
 
@@ -555,14 +554,16 @@ function App() {
   const notchModeInitial = useRef(true);
 
   const [nectarMode, setNectarMode] = useState<'music' | 'calendar' | 'command-center' | 'status' | 'shelf' | 'agent'>('status');
+  const modeBeforeAgentAlert = useRef<typeof nectarMode | null>(null);
   const [tourActive, setTourActive] = useState(false);
 
   const isAnyInteraction = isHovered || isNotchHovered || isEdgeHovered;
-  const isHidden = hotkeyHidden || ((notchMode === 'smart' || notchMode === 'peek') && isFullscreen) ||
+  const hasAgentAlert = windowLabel === 'main' && !!agentActivity && (!!agentActivity.ask || ['needs_input', 'error', 'done'].includes(agentActivity.state));
+  const isHidden = !hasAgentAlert && (hotkeyHidden || ((notchMode === 'smart' || notchMode === 'peek') && isFullscreen) ||
     (!startupAnimating && !tourActive && !(agentActivity && isNotchWindow) && (
       (notchMode === 'smart' && isOverlapped && interactionState === 'none') ||
       (notchMode === 'peek' && interactionState === 'none' && !eventPeek)
-    ));
+    )));
 
   useEffect(() => {
     if (isAnyInteraction) {
@@ -1552,6 +1553,8 @@ function App() {
   }, []);
 
   const agentCurrent = useRef<AgentActivity | null>(null);
+  const agentRevision = useRef(0);
+  const closedAgentQuestions = useRef(new Set<number>());
   const agentQueue = useRef<AgentActivity[]>([]);
   const agentTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -1569,7 +1572,9 @@ function App() {
       JSON.stringify([event.name, event.project, event.session, event.state, event.ask?.id, event.detail]);
     const important = (event: AgentActivity | null) =>
       !!event && (event.state === "needs_input" || event.state === "error" || event.state === "done");
-    const unlisten = listen<AgentActivity | null>("agent-activity", ({ payload: next }) => {
+    const receiveActivity = (next: AgentActivity | null) => {
+      agentRevision.current += 1;
+      if (next?.ask && closedAgentQuestions.current.has(next.ask.id)) return;
       const current = agentCurrent.current;
       if (next?.cancelled) {
         agentQueue.current = agentQueue.current.filter(item => item.ask?.id !== next.cancelled);
@@ -1581,12 +1586,15 @@ function App() {
         return;
       }
       if (important(next)) {
+        if (current?.ask && next.state === 'done' && !next.ask
+            && (!next.name || next.name === current.name)
+            && (!next.project || !current.project || next.project === current.project)) {
+          displayAgent({ ...current, finished: true });
+          return;
+        }
         const key = identity(next);
         if ((current && identity(current) === key) || agentQueue.current.some(item => identity(item) === key)) return;
-        if (windowLabelRef.current === "main" && key !== lastAgentKey.current) {
-          playAgentSound(next.state as "needs_input" | "done" | "error");
-        }
-        lastAgentKey.current = key;
+        // Important notices are sounded by the native API, even with an idle WebView.
         if (next.ask && !current?.ask) {
           if (important(current) && current?.name !== next.name && current) agentQueue.current.unshift(current);
           displayAgent(next);
@@ -1602,8 +1610,28 @@ function App() {
           displayAgent(agentQueue.current.shift() ?? next);
         }
       }
-    });
+    };
+    const unlisten = listen<AgentActivity | null>("agent-activity", ({ payload }) => receiveActivity(payload));
+    let disposed = false;
+    const restoreQuestions = async () => {
+      if (disposed || windowLabelRef.current !== 'main') return;
+      try {
+        const revision = agentRevision.current;
+        const pending = await invoke<AgentActivity[]>('agent_pending_questions');
+        if (disposed || revision !== agentRevision.current) return;
+        const ids = new Set(pending.map(item => item.ask?.id));
+        agentQueue.current = agentQueue.current.filter(item => !item.ask || ids.has(item.ask.id));
+        if (agentCurrent.current?.ask && !ids.has(agentCurrent.current.ask.id)) {
+          displayAgent(agentQueue.current.shift() ?? null);
+        }
+        pending.forEach(receiveActivity);
+      } catch { /* Keep the visible question during a transient IPC failure. */ }
+    };
+    void unlisten.then(() => restoreQuestions());
+    const recoveryTimer = window.setInterval(() => void restoreQuestions(), 5000);
     return () => {
+      disposed = true;
+      window.clearInterval(recoveryTimer);
       clearTimeout(agentTimer.current);
       unlisten.then(fn => fn());
     };
@@ -1994,11 +2022,22 @@ function App() {
   }, [nectarMode, panelControlCenter, panelShelf]);
 
   useEffect(() => {
-    if (agentActivity?.ask && windowLabel === 'main') {
-      if (isHovered) setNectarMode('agent');
+    if (windowLabel !== 'main') return;
+    const alert = !!agentActivity && (agentActivity.ask || ['needs_input', 'error', 'done'].includes(agentActivity.state));
+    if (alert) {
+      invoke('agent_alert_visibility', { visible: true }).catch(() => {});
+      if (modeBeforeAgentAlert.current === null) modeBeforeAgentAlert.current = nectarMode;
+      setNectarMode('agent');
+      setIsHovered(true);
       triggerEventPeek(6000);
+    } else if (modeBeforeAgentAlert.current !== null) {
+      invoke('agent_alert_visibility', { visible: false }).catch(() => {});
+      const previous = modeBeforeAgentAlert.current;
+      modeBeforeAgentAlert.current = null;
+      setIsHovered(false);
+      setNectarMode(previous === 'agent' ? 'status' : previous);
     }
-  }, [agentActivity?.ask?.id, windowLabel]);
+  }, [agentActivity, windowLabel, nectarMode, isHovered]);
 
   // Music mode shows any time we have media info (playing or paused) and music mode setting is enabled
   const isMusicMode = mediaInfo.has_media && nectarMode === 'music' && settingsMusicModeEnabled;
@@ -2072,7 +2111,7 @@ function App() {
       const tilesH = tileRows ? tileRows * 42 + (tileRows - 1) * 10 + 14 : 0;
       const buttonsH = ccResolved.buttons.length ? 44 : 0;
       const slidersH = ccResolved.sliders.length ? ccResolved.sliders.length * 22 + (ccResolved.sliders.length - 1) * 12 + 14 : 0;
-      return 46 + tilesH + buttonsH + slidersH;
+      return 46 + tilesH + buttonsH + slidersH + (showConnections ? 0 : 218);
     }
     if (nectarMode === 'status') return 36;
     if (isMusicMode && isHovered) {
@@ -2089,6 +2128,12 @@ function App() {
   const isCalendarMode = nectarMode === 'calendar';
   // Calendar, command center and shelf are big, dense panels; glass styles thicken the fill for them
   const isPanelOpen = isHovered && (isCalendarMode || nectarMode === 'command-center' || nectarMode === 'shelf' || nectarMode === 'agent');
+
+  useEffect(() => {
+    if (tourActive || !isNotchWindow) return;
+    // The expanded controls can now exceed the native 420px canvas.
+    invoke('set_window_height', { height: nectarMode === 'command-center' && isHovered ? 660 : 420 }).catch(() => {});
+  }, [nectarMode, isHovered, tourActive, isNotchWindow]);
 
   // Album tints the whole notch, collapsed pill included. The expanded state
   // reads --nectar-bg-expanded and the muted/border vars live on :root, so all
@@ -2144,7 +2189,7 @@ function App() {
       <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
         <motion.div
           ref={nectarRef}
-          className={`nectar ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isPanelOpen ? 'panel-open' : ''}`}
+          className={`nectar ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isPanelOpen ? 'panel-open' : ''} ${agentActivity?.ask ? 'has-agent-question' : ''}`}
           onMouseEnter={() => setIsNotchHovered(true)}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
@@ -2168,7 +2213,7 @@ function App() {
           // Only clicking the clock opens the island; pointer proximity does not.
         }}
         onHoverEnd={() => {
-          if (nectarMode === 'agent' && agentActivity?.ask) return;
+          if (nectarMode === 'agent' && hasAgentAlert) return;
           if (tourActive) return;
           if (nectarMode === 'shelf' && shelfHoldsOpen()) {
             deferShelfCollapse();
@@ -2527,6 +2572,7 @@ function App() {
                                     </motion.span>
                                   )}
                                 </AnimatePresence>
+                                {agentActivity?.ask && <span className="clock-question-badge" aria-hidden="true">?</span>}
                               </div>
                               {showDualClock && (
                                 <div className="time-secondary" onClick={toggleCalendarMode} data-tooltip={dualClockTooltip}>
@@ -2833,6 +2879,7 @@ function App() {
                         <span className="cc-classic-percentage">{currentBrightness}%</span>
                       </div>
                     </div>
+                    <ZeusEstimate />
                     </div>
                   </motion.div>
                 )}
@@ -2904,9 +2951,18 @@ function App() {
                   >
                     <CodexCompanion
                       activity={agentActivity}
+                      onDismiss={() => displayAgent(agentQueue.current.shift() ?? null)}
                       onAnswer={async (allow, choices) => {
                         if (!agentActivity?.ask) throw new Error('No pending question');
-                        await invoke('agent_answer', { id: agentActivity.ask.id, allow, choices: choices ?? [] });
+                        const id = agentActivity.ask.id;
+                        agentRevision.current += 1;
+                        await invoke('agent_answer', { id, allow, choices: choices ?? [] });
+                        closedAgentQuestions.current.add(id);
+                        if (closedAgentQuestions.current.size > 256) {
+                          const oldest = closedAgentQuestions.current.values().next().value;
+                          if (oldest !== undefined) closedAgentQuestions.current.delete(oldest);
+                        }
+                        agentRevision.current += 1;
                         displayAgent(agentQueue.current.shift() ?? null);
                       }}
                     />

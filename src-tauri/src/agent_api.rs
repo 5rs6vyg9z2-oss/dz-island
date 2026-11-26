@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
@@ -15,11 +15,50 @@ const SETTING: &str = "nectar-agent-api";
 
 static ACTIVE: AtomicUsize = AtomicUsize::new(0);
 static NEXT_ASK: AtomicU64 = AtomicU64::new(1);
+static ALERT_PANEL_VISIBLE: AtomicBool = AtomicBool::new(false);
 type Decision = (bool, Vec<usize>);
-static PENDING: Mutex<Option<HashMap<u64, mpsc::Sender<Decision>>>> = Mutex::new(None);
+struct PendingAsk { sender: Option<mpsc::Sender<Decision>>, activity: Activity, persistent: bool }
+static PENDING: Mutex<Option<HashMap<u64, PendingAsk>>> = Mutex::new(None);
 
 pub fn has_pending_question() -> bool {
     PENDING.lock().map(|map| map.as_ref().is_some_and(|m| !m.is_empty())).unwrap_or(true)
+}
+
+pub fn alert_visible() -> bool {
+    ALERT_PANEL_VISIBLE.load(Ordering::Relaxed) || has_pending_question()
+}
+
+#[tauri::command]
+pub fn agent_alert_visibility(window: tauri::Window, visible: bool) {
+    if window.label() == "main" { ALERT_PANEL_VISIBLE.store(visible, Ordering::Relaxed); }
+}
+
+#[tauri::command]
+pub fn agent_pending_questions() -> Vec<Activity> {
+    let mut questions: Vec<_> = PENDING.lock().ok()
+        .and_then(|map| map.as_ref().map(|map| map.values().map(|pending| pending.activity.clone()).collect()))
+        .unwrap_or_default();
+    questions.sort_by_key(|activity| activity.ask.as_ref().map(|ask| ask.id));
+    questions
+}
+
+fn notify_agent(app: &AppHandle, state: &str) {
+    use windows::core::PCWSTR;
+    use windows::Win32::Media::Audio::{PlaySoundW, SND_ASYNC, SND_MEMORY, SND_NODEFAULT};
+    let enabled = crate::utils::get_setting_str(app, &format!("nectar-agent-sound-{state}"));
+    if crate::utils::get_setting_str(app, "nectar-agent-sounds").as_deref() == Some("false")
+        || enabled.as_deref() == Some("false")
+        || (state == "done" && enabled.as_deref() != Some("true")) { return; }
+    // Static PCM bytes remain alive for asynchronous WinMM playback. This does
+    // not depend on WebView autoplay, focus or the frontend being awake.
+    let chime: &'static [u8] = match state {
+        "needs_input" => include_bytes!("../../public/sounds/agent-needs_input.wav"),
+        "error" => include_bytes!("../../public/sounds/agent-error.wav"),
+        "done" => include_bytes!("../../public/sounds/agent-done.wav"),
+        _ => return,
+    };
+    let played = unsafe { PlaySoundW(PCWSTR(chime.as_ptr().cast()), None, SND_ASYNC | SND_MEMORY | SND_NODEFAULT) }.as_bool();
+    crate::diagnostics::log(&format!("agent {state}: native sound started={played}"));
 }
 
 #[derive(Deserialize)]
@@ -48,7 +87,7 @@ struct AskQuestion {
     options: Vec<String>,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct Ask {
     id: u64,
     tool: Option<String>,
@@ -56,8 +95,57 @@ struct Ask {
     questions: Option<Vec<AskQuestion>>,
 }
 
+#[derive(Serialize, Deserialize)]
+struct StoredQuestion {
+    name: Option<String>, project: Option<String>, window: Option<u64>, ask: Ask,
+}
+
+fn persist_questions() {
+    let Ok(map) = PENDING.lock() else { return };
+    let stored: Vec<_> = map.as_ref().into_iter().flat_map(|map| map.values())
+        .filter(|pending| pending.persistent)
+        .filter_map(|pending| pending.activity.ask.clone().map(|ask| StoredQuestion {
+            name: pending.activity.name.clone(), project: pending.activity.project.clone(), window: pending.activity.window, ask,
+        })).collect();
+    let result = (|| -> Result<(), String> {
+        let dir = data_dir().ok_or("Pasta local indisponível")?;
+        let bytes = serde_json::to_vec(&stored).map_err(|e| e.to_string())?;
+        std::fs::write(dir.join("agent-pending.tmp"), bytes).map_err(|e| e.to_string())?;
+        std::fs::rename(dir.join("agent-pending.tmp"), dir.join("agent-pending.json")).map_err(|e| e.to_string())
+    })();
+    if let Err(error) = result { crate::diagnostics::log(&format!("agent pending save: {error}")); }
+}
+
+fn valid_questions(questions: &[AskQuestion]) -> bool {
+    (1..=4).contains(&questions.len()) && questions.iter().all(|q| {
+        !q.question.trim().is_empty() && q.question.chars().count() <= DETAIL_MAX
+            && (2..=4).contains(&q.options.len())
+            && q.options.iter().all(|option| !option.trim().is_empty() && option.chars().count() <= 80)
+    })
+}
+
+fn restore_questions() {
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(1);
+    NEXT_ASK.fetch_max(now, Ordering::SeqCst);
+    let Some(dir) = data_dir() else { return };
+    let path = dir.join("agent-pending.json");
+    if std::fs::metadata(&path).map(|meta| meta.len() > 524288).unwrap_or(true) { return; }
+    let Some(stored) = std::fs::read(path).ok().and_then(|bytes| serde_json::from_slice::<Vec<StoredQuestion>>(&bytes).ok()) else { return };
+    if let Ok(mut map) = PENDING.lock() {
+        let map = map.get_or_insert_with(HashMap::new);
+        for item in stored.into_iter().take(64) {
+            if item.ask.id == 0 || item.ask.id >= 9_007_199_254_740_991
+                || !item.ask.questions.as_deref().is_some_and(valid_questions) { continue; }
+            NEXT_ASK.fetch_max(item.ask.id + 1, Ordering::SeqCst);
+            let activity = Activity { state: "needs_input", session: None, name: item.name, project: item.project,
+                window: item.window, detail: None, ask: Some(item.ask), cancelled: None };
+            map.insert(activity.ask.as_ref().unwrap().id, PendingAsk { sender: None, activity, persistent: true });
+        }
+    }
+}
+
 #[derive(Serialize, Clone)]
-struct Activity {
+pub struct Activity {
     state: &'static str,
     session: Option<String>,
     name: Option<String>,
@@ -109,14 +197,35 @@ fn reply_json(stream: &mut TcpStream, body: &str) {
     let _ = write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
 }
 
-pub fn answer(id: u64, allow: bool, choices: Vec<usize>) {
-    let sender = PENDING.lock().ok().and_then(|mut map| map.as_mut().and_then(|m| m.remove(&id)));
+pub fn answer(id: u64, allow: bool, choices: Vec<usize>) -> Result<(), String> {
+    let pending = {
+        let mut map = PENDING.lock().map_err(|e| e.to_string())?;
+        let map = map.as_mut().ok_or("Pergunta não está mais pendente")?;
+        let pending = map.get(&id).ok_or("Pergunta não está mais pendente")?;
+        if pending.persistent {
+            let questions = pending.activity.ask.as_ref().and_then(|ask| ask.questions.as_ref()).ok_or("Pergunta inválida")?;
+            if allow && (choices.len() != questions.len() || choices.iter().zip(questions).any(|(&index, q)| index >= q.options.len())) {
+                return Err("Opções de resposta inválidas".into());
+            }
+            let answers: Vec<_> = questions.iter().enumerate().map(|(i,q)| serde_json::json!({
+                "question": q.question, "answer": choices.get(i).and_then(|index| q.options.get(*index))
+            })).collect();
+            let dir = data_dir().ok_or("Pasta local indisponível")?.join("agent-answers");
+            std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+            let response = serde_json::json!({"id":id,"status":if allow {"answered"}else{"dismissed"},"answers":answers});
+            std::fs::write(dir.join(format!("{id}.json")), response.to_string()).map_err(|e| e.to_string())?;
+        }
+        map.remove(&id).unwrap()
+    };
+    let sender = pending.sender;
     if let Some(sender) = sender {
         let _ = sender.send((allow, choices));
     }
+    if pending.persistent { persist_questions(); }
+    Ok(())
 }
 
-fn wait_for_answer(stream: &mut TcpStream, id: u64, rx: &mpsc::Receiver<Decision>) -> Option<Decision> {
+fn wait_for_answer(stream: &mut TcpStream, id: u64, rx: &mpsc::Receiver<Decision>, persistent: bool) -> Option<Decision> {
     let _ = stream.set_nonblocking(true);
     let mut waited = 0;
     while waited < ASK_WAIT {
@@ -130,11 +239,11 @@ fn wait_for_answer(stream: &mut TcpStream, id: u64, rx: &mpsc::Receiver<Decision
             break;
         }
     }
-    if let Ok(mut map) = PENDING.lock() {
+    if !persistent { if let Ok(mut map) = PENDING.lock() {
         if let Some(map) = map.as_mut() {
             map.remove(&id);
         }
-    }
+    } }
     let _ = stream.set_nonblocking(false);
     None
 }
@@ -151,15 +260,13 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
         let Ok(incoming) = serde_json::from_slice::<IncomingAsk>(&body) else {
             return reply(&mut stream, "400 Bad Request");
         };
+        let persistent = incoming.questions.as_deref().is_some_and(valid_questions);
+        if incoming.questions.is_some() && !persistent { return reply(&mut stream, "400 Bad Request"); }
+        if PENDING.lock().map(|map| map.as_ref().is_some_and(|map| map.len() >= 64)).unwrap_or(true) { return reply(&mut stream, "429 Too Many Requests"); }
         let id = NEXT_ASK.fetch_add(1, Ordering::SeqCst);
         let (tx, rx) = mpsc::channel();
-        if let Ok(mut map) = PENDING.lock() {
-            map.get_or_insert_with(HashMap::new).insert(id, tx);
-        }
         let (name, project, window) = (clean(incoming.name, 40), clean(incoming.project, 40), incoming.window);
-        let _ = app.emit(
-            "agent-activity",
-            Activity {
+        let activity = Activity {
                 state: "needs_input",
                 session: None,
                 name: name.clone(),
@@ -181,12 +288,20 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
                     }),
                 }),
                 cancelled: None,
-            },
-        );
-        return match wait_for_answer(&mut stream, id, &rx) {
+            };
+        if let Ok(mut map) = PENDING.lock() {
+            let map = map.get_or_insert_with(HashMap::new);
+            if map.len() >= 64 { return reply(&mut stream, "429 Too Many Requests"); }
+            map.insert(id, PendingAsk { sender: Some(tx), activity: activity.clone(), persistent });
+        } else { return reply(&mut stream, "503 Service Unavailable"); }
+        if persistent { persist_questions(); }
+        notify_agent(app, "needs_input");
+        let _ = app.emit("agent-activity", activity);
+        return match wait_for_answer(&mut stream, id, &rx, persistent) {
             Some((true, choices)) if !choices.is_empty() => reply_json(&mut stream, &serde_json::json!({ "decision": "allow", "choices": choices }).to_string()),
             Some((true, _)) => reply_json(&mut stream, r#"{"decision":"allow"}"#),
             Some((false, _)) => reply_json(&mut stream, r#"{"decision":"deny"}"#),
+            None if persistent => reply_json(&mut stream, &serde_json::json!({"decision":"pending","id":id}).to_string()),
             None => {
                 let _ = app.emit("agent-activity", Activity { state: "working", session: None, name, project, window, detail: None, ask: None, cancelled: Some(id) });
                 reply(&mut stream, "204 No Content");
@@ -210,11 +325,56 @@ fn handle(mut stream: TcpStream, app: &AppHandle, token: &str) {
         ask: None,
         cancelled: None,
     });
+    if let Some(activity) = &activity { notify_agent(app, activity.state); }
     let _ = app.emit("agent-activity", activity);
     reply(&mut stream, "204 No Content");
 }
 
 type HookGroup = (&'static str, Option<&'static str>);
+
+#[cfg(test)]
+mod question_recovery_tests {
+    use super::*;
+    #[test]
+    fn pending_question_survives_missed_event_and_disappears_after_answer() {
+        let id = u64::MAX - 1;
+        let (sender, receiver) = mpsc::channel();
+        let activity = Activity {
+            state: "needs_input", session: None, name: Some("Codex".into()),
+            project: None, window: None, detail: None,
+            ask: Some(Ask { id, tool: None, detail: None,
+                questions: Some(vec![AskQuestion { question: "Teste".into(), options: vec!["Sim".into(), "Não".into()] }]) }),
+            cancelled: None,
+        };
+        PENDING.lock().unwrap().get_or_insert_with(HashMap::new).insert(id, PendingAsk { sender:Some(sender), activity, persistent:false });
+        assert!(agent_pending_questions().iter().any(|item| item.ask.as_ref().is_some_and(|ask| ask.id == id)));
+        answer(id, true, vec![0]).unwrap();
+        assert_eq!(receiver.recv_timeout(Duration::from_secs(1)).unwrap(), (true, vec![0]));
+        assert!(!agent_pending_questions().iter().any(|item| item.ask.as_ref().is_some_and(|ask| ask.id == id)));
+    }
+    #[test]
+    fn durable_question_restores_without_client_and_archives_late_answer() {
+        let id = 1_700_000_000_123;
+        let activity = Activity {
+            state:"needs_input", session:None, name:Some("Codex".into()), project:None,
+            window:None, detail:None, cancelled:None,
+            ask:Some(Ask { id, tool:None, detail:None, questions:Some(vec![AskQuestion {
+                question:"Pergunta que deve continuar aberta".into(), options:vec!["Sim".into(),"Não".into()]
+            }]) }),
+        };
+        PENDING.lock().unwrap().get_or_insert_with(HashMap::new).insert(id, PendingAsk { sender:None, activity, persistent:true });
+        persist_questions();
+        PENDING.lock().unwrap().as_mut().unwrap().remove(&id);
+        restore_questions();
+        assert!(agent_pending_questions().iter().any(|item| item.ask.as_ref().is_some_and(|ask| ask.id == id)));
+        assert!(answer(id, true, vec![99]).is_err());
+        answer(id, true, vec![1]).unwrap();
+        let bytes = std::fs::read(data_dir().unwrap().join("agent-answers").join(format!("{id}.json"))).unwrap();
+        let response: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(response["answers"][0]["answer"], "Não");
+        assert!(!agent_pending_questions().iter().any(|item| item.ask.as_ref().is_some_and(|ask| ask.id == id)));
+    }
+}
 
 fn hook_groups(provider: &str) -> &'static [HookGroup] {
     match provider {
@@ -353,6 +513,7 @@ pub fn start(app: AppHandle) {
     if !enabled {
         return;
     }
+    restore_questions();
     // A local question bridge does not need to modify other agents' hook files.
     if crate::utils::get_setting_str(&app, "nectar-agent-hooks").as_deref() != Some("false") {
         std::thread::spawn(|| set_hooks(true));

@@ -39,6 +39,8 @@ struct BatteryHubDevice {
     hidden: bool,
     #[serde(default, rename = "displayName")]
     display_name: String,
+    #[serde(default)]
+    asleep: bool,
 }
 
 #[derive(Default)]
@@ -139,6 +141,31 @@ fn read_batteryhub() -> Vec<BatteryHubDevice> {
         .and_then(|dir| std::fs::read(dir.join("battery-snapshot.json")).ok())
         .and_then(|json| serde_json::from_slice(&json).ok())
         .unwrap_or_default()
+}
+
+pub fn zeus_bluetooth_observation() -> crate::zeus_estimate_math::BluetoothObservation {
+    use crate::zeus_estimate_math::BluetoothObservation;
+    let is_zeus = |name: &str| {
+        let name = name.to_lowercase();
+        name.contains("h510-pro") || name.contains("zeus pro")
+    };
+    // PnP presence and a stored percentage alone do not prove a live connection.
+    let Ok(connected) = connected_windows_devices() else { return BluetoothObservation::Unavailable };
+    let count = connected.iter().filter(|device| is_zeus(&device.name)).count();
+    if count == 0 { return BluetoothObservation::Disconnected; }
+    if count != 1 { return BluetoothObservation::Unavailable; }
+    let fresh = crate::utils::portable_data_dir().ok()
+        .and_then(|dir| std::fs::metadata(dir.join("battery-snapshot.json")).ok())
+        .and_then(|meta| meta.modified().ok())
+        .and_then(|time| time.elapsed().ok())
+        .is_some_and(|age| age <= Duration::from_secs(120));
+    if !fresh { return BluetoothObservation::Connected { percent: None, charging: false }; }
+    let readings: Vec<_> = read_batteryhub().into_iter().filter(|device| {
+        is_zeus(&device.name) && device.via.eq_ignore_ascii_case("Bluetooth")
+            && device.connected && !device.asleep && (0..=100).contains(&device.percent)
+    }).collect();
+    if readings.len() != 1 { return BluetoothObservation::Connected { percent: None, charging: false }; }
+    BluetoothObservation::Connected { percent: Some(readings[0].percent as u8), charging: readings[0].charging }
 }
 
 #[tauri::command]

@@ -2140,6 +2140,7 @@ fn in_show_desktop_corner(x: i32, y: i32) -> bool {
 
 /// Smart and Peek notches stay hidden while a fullscreen window covers their monitor.
 fn notch_suppressed(app_handle: &AppHandle, label: &str) -> bool {
+    if label == "main" && crate::agent_api::alert_visible() { return false; }
     crate::state::get_flag(crate::state::notch_fullscreen(), label)
         && crate::monitors::resolve_mode_for_label(app_handle, crate::types::WindowKind::Notch, label) != "fixed"
 }

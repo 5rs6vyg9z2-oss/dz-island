@@ -824,7 +824,8 @@ void PublishDockBattery() {
         auto status = entry.st;
         status.hidden = IsEntryHidden(entry) || (!status.connected && !g_showDisconnectedDevices);
         status.displayName = DisplayName(entry);
-        if (status.connected && !g_hideLastKnown && status.percent < 0) status.percent = entry.lastPct;
+        // The island must distinguish a current reading from a remembered level.
+        // Keep percent=-1 here when polling did not return battery data.
         devices.push_back(std::move(status));
     }
     const auto folder = ExePath();

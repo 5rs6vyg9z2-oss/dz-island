@@ -1,10 +1,15 @@
-PAINEL CODEX — seção interna do DZ Island
+PAINEL DE AGENTES — seção interna do DZ Island
 
-O Codex fica DENTRO da ilha dinâmica, como segunda seção, logo após os controles de Wi-Fi. Para navegar, passe o mouse sobre a ilha e avance uma seção pela roda do mouse ou clicando no relógio.
-Uma pergunta recebida sinaliza o horário. Clique no horário para abrir o painel Codex e responder. Passar o mouse pela ilha não abre o painel.
-O painel confirma o envio da resposta. Há também a opção de dispensar a pergunta. O prazo de resposta é de dez minutos.
+Perguntas e avisos importantes (atenção, erro e conclusão) abrem automaticamente a ilha inteira no painel do agente. Perguntas ficam abertas até serem respondidas ou dispensadas. Depois da resposta, a ilha volta ao tamanho pequeno; se houver outra pergunta na fila, ela é mostrada antes de recolher. Avisos podem ser fechados no botão Fechar aviso; conclusões somem após oito segundos.
+
+O relógio e a borda recebem destaque âmbar enquanto há pergunta. O aviso sonoro é tocado pelo Windows, respeitando as opções de som de agentes. Volume e silêncio do Windows continuam valendo. Perguntas pendentes são recuperadas a cada cinco segundos se o evento inicial não chegar à interface.
+
+Sem aviso, passar o mouse não abre a ilha: clique no horário para abrir e navegar. O Codex continua DENTRO da ilha, na seção após os controles de Wi-Fi. O comportamento automático é uma exceção para perguntas e avisos importantes.
 
 Ponte local: Perguntar-Na-Ilha.ps1 -QuestionFile <JSON>
-JSON: lista de objetos question/options, com 2 a 4 opções por pergunta, até 4 perguntas. Aguarde a saída JSON com a resposta escolhida pelo usuário.
+JSON: lista de objetos question/options, com 2 a 4 opções por pergunta, até 4 perguntas. Aguarde a saída JSON com a resposta escolhida pelo usuário. A chamada aguarda dez minutos; depois disso a pergunta continua visível e a resposta tardia fica em data/agent-answers. Perguntas com opções são preservadas em data/agent-pending.json e restauradas ao reiniciar a ilha. Pedidos de permissão sem opções continuam sujeitos ao prazo original.
+
 O painel recebe perguntas e estados enviados pela ponte deste projeto. Perguntas nativas de outros chats não são copiadas automaticamente. Aprovações do Codex continuam no Codex.
 Sem hooks instalados em outros aplicativos. Comunicação somente por localhost autenticado.
+
+Enquanto houver pergunta com opções pendente, o mascote continua acenando. Um aviso de conclusão do mesmo agente muda o texto para Concluído / resposta pendente, sem esconder a pergunta.

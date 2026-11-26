@@ -2843,6 +2843,8 @@ img {
 .codex-companion-toggle b { font-size:13px; }
 .codex-companion-toggle small { color:var(--nectar-text-muted,#9bb1b8); font-size:10px; }
 .codex-companion-mark { color:#8ce8d0; font-size:23px; }
+.codex-companion.needs-answer .serginho-wave { animation-iteration-count:infinite; }
+.codex-companion .codex-pending-note { color:#ffd387; font-size:11px; }
 .codex-companion-body { max-height:280px; overflow:auto; overscroll-behavior:contain; }
 .codex-companion-body p { font-size:12px; line-height:1.5; color:var(--nectar-text-muted,#bdccd0); margin:6px 0; }
 .codex-companion-question { margin:0; padding:0; border:0; min-width:0; display:flex; flex-direction:column; gap:12px; }
@@ -2853,5 +2855,10 @@ img {
 .codex-companion .agent-option:hover { background:#35594f; }
 .codex-companion-dismiss { margin-top:12px; border:0; background:transparent; color:var(--nectar-text-muted,#9bb1b8); cursor:pointer; font-size:11px; }
 .codex-companion button:focus-visible { outline:2px solid #8ce8d0; outline-offset:2px; }
-.time-flip-container.clock-has-question { box-shadow:0 0 0 1px #73d9bd; border-radius:6px; }
+.time-flip-container.clock-has-question { position:relative; border-radius:6px; background:rgba(255,172,57,.2); box-shadow:0 0 0 2px #ffb340,0 0 14px #ffb34080; animation:question-clock-glow 1.8s ease-in-out infinite; }
+.clock-has-question .time { color:#ffd387 !important; text-shadow:0 0 8px #ffb34080; }
+.clock-question-badge { position:absolute; right:-7px; top:-6px; width:13px; height:13px; display:grid; place-items:center; border-radius:50%; background:#ffb340; color:#231300; font:bold 10px/1 sans-serif; pointer-events:none; }
+.nectar.has-agent-question { box-shadow:inset 0 0 0 2px #ffb340,0 0 20px #ffb34060; }
+@keyframes question-clock-glow { 50% { background:rgba(255,172,57,.4); box-shadow:0 0 0 2px #ffd387,0 0 20px #ffb340b0; } }
+@media (prefers-reduced-motion:reduce) { .time-flip-container.clock-has-question { animation:none; } }
 .time-flip-container:focus-visible { outline:2px solid #73d9bd; outline-offset:2px; }

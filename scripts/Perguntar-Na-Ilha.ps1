@@ -12,6 +12,7 @@ $body = @{name='Codex';project='DZ Island';tool='Pergunta';questions=@($question
 $bytes = [Text.Encoding]::UTF8.GetBytes($body)
 if ($bytes.Length -gt 8192) { throw 'Perguntas excedem o limite da integração local.' }
 $response = Invoke-RestMethod -Uri "http://127.0.0.1:$($config.port)/ask" -Method Post -Headers @{Authorization="Bearer $($config.token)"} -ContentType 'application/json; charset=utf-8' -Body $bytes -TimeoutSec 610
+if ($response.decision -eq 'pending') { @{status='pending';id=$response.id;detail='A pergunta continua na ilha. A resposta tardia sera salva em data/agent-answers.'} | ConvertTo-Json -Compress; exit }
 if ($response.decision -ne 'allow' -or @($response.choices).Count -ne $questions.Count) { @{status='cancelled'} | ConvertTo-Json -Compress; exit }
 $answers = for ($i=0; $i -lt $questions.Count; $i++) {
     $choice = $response.choices[$i]

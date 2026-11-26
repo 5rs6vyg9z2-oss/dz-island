@@ -12,6 +12,7 @@ export interface AgentActivity {
   detail?: string;
   ask?: { id: number; tool?: string; detail?: string; questions?: { question: string; options: string[] }[] };
   cancelled?: number;
+  finished?: boolean;
 }
 
 export function useAgentLabel(activity: AgentActivity) {
