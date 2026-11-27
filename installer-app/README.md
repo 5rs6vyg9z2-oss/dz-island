@@ -1,10 +1,8 @@
-# DZ Island installer
+# Protótipo do instalador DZ Island
 
-A second, self-contained Tauri v2 app — not NSIS. This is what users actually
-download and run to install DZ Island. It's a real webview, so the UI is plain
-HTML/CSS matching the app's own dark theme, not NSIS's native-dialog wizard.
+O instalador oficial **DZ-Island-Setup.exe** é gerado pelo workflow do Windows com [scripts/DZ-Island-Setup.nsi](../scripts/DZ-Island-Setup.nsi) e inclui o motor de bateria. Baixe-o na [página de versões](https://github.com/5rs6vyg9z2-oss/dz-island/releases).
 
-The release packages are built for manual installation from the DZ Island repository.
+Esta pasta contém um projeto auxiliar de instalador Tauri.
 
 ## How it works
 

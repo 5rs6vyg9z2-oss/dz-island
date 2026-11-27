@@ -4,6 +4,8 @@ Ilha dinâmica para Windows com o dragão Serginho, controles de conexões, indi
 
 ## Download para Windows 10 e 11 de 64 bits
 
+[Página oficial de downloads](https://dz-island.dxgtzbppmn.chatgpt.site).
+
 [Baixar o instalador](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest/download/DZ-Island-Setup.exe) ou [baixar o DZ Island portátil](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest/download/DZ-Island-portable-windows-x64.zip). Na edição portátil, extraia toda a pasta e execute `DZ-Island.exe`. Os outros arquivos da pasta incluem o serviço de bateria e o atualizador.
 
 Consulte o [guia de uso local](USO-LOCAL.md), as [configurações](SETTINGS.md) e as [versões no GitHub](https://github.com/5rs6vyg9z2-oss/dz-island/releases).
