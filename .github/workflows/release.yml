@@ -50,7 +50,7 @@ jobs:
         shell: pwsh
         run: ./scripts/test-portable-update.ps1
       - name: Test Zeus Bluetooth and estimate transitions
-        run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin nectar zeus_estimate::
+        run: 'cargo test --release --manifest-path src-tauri/Cargo.toml --bin nectar zeus_estimate::'
       - name: Test pending agent question recovery
         run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin nectar question_recovery_tests
       - uses: msys2/setup-msys2@v2
