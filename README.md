@@ -21,6 +21,10 @@ bun run tauri build --no-bundle
 
 O GitHub Actions gera o pacote completo, incluindo o serviço de bateria. [Detalhes das atualizações](docs/AUTO-UPDATE.md).
 
+## Agradecimentos
+
+Agradecemos a **kua8**, criador do Nectar, por compartilhar o código que serviu de base para o DZ Island. Também agradecemos a **Sehajveer Singh**, criador do Bloom, projeto do qual o Nectar deriva.
+
 ## Licença
 
 Distribuído sob a [GPLv3](LICENSE). Os avisos de autoria e as contribuições anteriores constam na licença, nos arquivos de origem e no histórico Git. A [licença do motor de bateria](vendor/batteryhub/LICENSE) e os [avisos das dependências](scripts/BATTERY-THIRD-PARTY-NOTICES.txt) acompanham o código.
