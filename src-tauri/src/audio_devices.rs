@@ -6,7 +6,7 @@ use windows::Win32::Media::Audio::{
     DEVICE_STATE_ACTIVE,
 };
 use windows::Win32::System::Com::StructuredStorage::{PropVariantClear, PropVariantToStringAlloc};
-use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoTaskMemFree, CLSCTX_ALL, COINIT_MULTITHREADED, STGM_READ};
+use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, CLSCTX_ALL, COINIT_MULTITHREADED, STGM_READ};
 
 const CPOLICY_CONFIG_CLIENT: GUID = GUID::from_u128(0x870af99c_171d_4f9e_af0d_e63df40c2bc9);
 const IID_POLICY_CONFIG: GUID = GUID::from_u128(0xf8679f50_850a_41cf_9c72_430f290290c8);
@@ -40,9 +40,18 @@ unsafe fn device_name(device: &IMMDevice) -> String {
     name
 }
 
+struct ComApartment(bool);
+impl Drop for ComApartment {
+    fn drop(&mut self) { if self.0 { unsafe { CoUninitialize(); } } }
+}
+
+pub fn zeus_present() -> Result<bool, String> {
+    list_devices().map(|devices| devices.iter().any(|device| crate::zeus_estimate_math::is_zeus_pro(&device.name)))
+}
+
 fn list_devices() -> Result<Vec<AudioDevice>, String> {
     unsafe {
-        let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+        let _apartment = ComApartment(CoInitializeEx(None, COINIT_MULTITHREADED).is_ok());
         let enumerator: IMMDeviceEnumerator = CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|e| e.to_string())?;
         let default = enumerator
             .GetDefaultAudioEndpoint(eRender, eConsole)
@@ -63,7 +72,7 @@ fn set_default(id: &str) -> Result<(), String> {
     type SetDefaultEndpoint = unsafe extern "system" fn(*mut std::ffi::c_void, PCWSTR, ERole) -> HRESULT;
     type Release = unsafe extern "system" fn(*mut std::ffi::c_void) -> u32;
     unsafe {
-        let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+        let _apartment = ComApartment(CoInitializeEx(None, COINIT_MULTITHREADED).is_ok());
         let unknown: IUnknown = CoCreateInstance(&CPOLICY_CONFIG_CLIENT, None, CLSCTX_ALL).map_err(|e| e.to_string())?;
         let mut raw: *mut std::ffi::c_void = std::ptr::null_mut();
         unknown.query(&IID_POLICY_CONFIG, &mut raw).ok().map_err(|e| e.to_string())?;

@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Headphones } from 'lucide-react';
 import './ZeusEstimate.css';
 
 interface Estimate {
-  initialized: boolean; hours: number; used_seconds: number;
+  detected: boolean; initialized: boolean; hours: number; used_seconds: number;
   running: boolean; percent: number; remaining_seconds: number;
-  source: 'checking' | 'bluetooth' | 'bluetooth-unavailable' | 'estimate';
+  source: 'absent' | 'checking' | 'bluetooth' | 'bluetooth-unavailable' | 'estimate';
   charging: boolean; level_increased: boolean; manual_pause: boolean;
 }
 
-export function ZeusEstimate() {
+export function ZeusEstimate({ onHeightChange }: { onHeightChange: (height: number) => void }) {
+  const section = useRef<HTMLDetailsElement>(null);
   const [state, setState] = useState<Estimate | null>(null);
   const [hours, setHours] = useState('18');
   const [busy, setBusy] = useState(false);
@@ -35,6 +36,15 @@ export function ZeusEstimate() {
     } catch { setError('Não foi possível salvar. Confira a autonomia (1–100 h).'); }
     finally { setBusy(false); }
   };
+  useLayoutEffect(() => {
+    const element = section.current;
+    if (!element) { onHeightChange(0); return; }
+    const measure = () => onHeightChange(Math.ceil(element.getBoundingClientRect().height) + 12);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => { observer.disconnect(); onHeightChange(0); };
+  }, [state?.detected, onHeightChange]);
   const left = state ? Math.ceil(state.remaining_seconds / 60) : 0;
   const bluetooth = state?.source === 'bluetooth';
   const estimating = state?.source === 'estimate';
@@ -46,7 +56,9 @@ export function ZeusEstimate() {
       : !estimating ? 'Verificando conexão Bluetooth…'
         : state?.initialized ? `${state.running ? 'Contando automaticamente' : 'Estimativa pausada'} · ≈ ${Math.floor(left / 60)} h ${left % 60} min`
           : 'Conecte por Bluetooth para calibrar automaticamente.';
-  return <section className="zeus-estimate" aria-label="Bateria do Zeus Pro" onClick={event => event.stopPropagation()}>
+  if (!state?.detected) return null;
+  return <details ref={section} className="zeus-estimate" aria-label="Bateria do Zeus Pro" onClick={event => event.stopPropagation()}>
+    <summary>Opções de bateria</summary>
     <header><Headphones size={17} /><b>Zeus Pro</b><span>{bluetooth ? 'Bluetooth · Windows' : 'Estimativa'}</span>
       <strong>{showPercent ? `${bluetooth ? '' : '≈ '}${state.percent}%` : '—'}</strong></header>
     <p aria-live="polite">{status}</p>
@@ -61,5 +73,5 @@ export function ZeusEstimate() {
         onClick={() => void update('hours')}>Salvar</button></div>
     <small>Bluetooth atualiza a base automaticamente. Só no receptor, pause ao desligar ou carregar: ele não informa esses estados.</small>
     {error && <small role="alert">{error}</small>}
-  </section>;
+  </details>;
 }

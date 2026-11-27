@@ -6,6 +6,11 @@ pub enum BluetoothObservation {
     Connected { percent: Option<u8>, charging: bool },
 }
 
+pub fn is_zeus_pro(name: &str) -> bool {
+    let name = name.to_lowercase();
+    name.contains("h510-pro") || name.contains("zeus pro")
+}
+
 pub fn remaining(used: u64, hours: u32) -> (u8, u64) {
     let total = u64::from(hours.clamp(1, 100)) * 3600;
     let left = total.saturating_sub(used);

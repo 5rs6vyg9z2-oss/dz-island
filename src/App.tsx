@@ -748,6 +748,7 @@ function App() {
   const [settingsArtworkTheme, setSettingsArtworkTheme] = useState(() => localStorage.getItem("nectar-media-artwork-theme") === "true");
   const [settingsCornersEnabled, setSettingsCornersEnabled] = useState(() => localStorage.getItem("nectar-corners-enabled") === "true");
   const [mediaLayout, setMediaLayout] = useState<'classic' | 'compact'>(() => (localStorage.getItem("nectar-media-layout") as 'classic' | 'compact') || 'classic');
+  const [deviceBatteryHeight, setDeviceBatteryHeight] = useState(0);
   const [compactVolumeExpanded, setCompactVolumeExpanded] = useState(false);
 
   // Album-art color grading: extract the palette once per artwork URL and cache
@@ -2111,7 +2112,7 @@ function App() {
       const tilesH = tileRows ? tileRows * 42 + (tileRows - 1) * 10 + 14 : 0;
       const buttonsH = ccResolved.buttons.length ? 44 : 0;
       const slidersH = ccResolved.sliders.length ? ccResolved.sliders.length * 22 + (ccResolved.sliders.length - 1) * 12 + 14 : 0;
-      return 46 + tilesH + buttonsH + slidersH + (showConnections ? 0 : 218);
+      return 46 + tilesH + buttonsH + slidersH + (showConnections ? 0 : deviceBatteryHeight);
     }
     if (nectarMode === 'status') return 36;
     if (isMusicMode && isHovered) {
@@ -2879,7 +2880,7 @@ function App() {
                         <span className="cc-classic-percentage">{currentBrightness}%</span>
                       </div>
                     </div>
-                    <ZeusEstimate />
+                    <ZeusEstimate onHeightChange={setDeviceBatteryHeight} />
                     </div>
                   </motion.div>
                 )}

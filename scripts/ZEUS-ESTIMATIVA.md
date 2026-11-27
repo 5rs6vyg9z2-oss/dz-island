@@ -1,6 +1,8 @@
 # Bateria automática do Zeus Pro
 
-Abra o relógio da ilha e selecione a central de controles. O cartão Zeus Pro fica abaixo de volume e brilho.
+O motor de bateria identifica os periféricos compatíveis automaticamente. A ilha não exige um Zeus Pro: o perfil específico só aparece quando um Zeus Pro é detectado localmente pelo Bluetooth conectado ou por uma saída de áudio ativa com seu nome. Histórico salvo sozinho não ativa esse perfil. Nenhum cadastro ou identificação pessoal é necessário.
+
+Quando disponível, abra o relógio, selecione a central de controles e expanda **Opções de bateria**, abaixo de volume e brilho. Essa seção começa recolhida. Sem o headset detectado, ela desaparece e a estimativa é pausada.
 
 - **Bluetooth · Windows**: mostra o último nível informado pelo Windows, sem o símbolo de estimativa. A ilha verifica a conexão Bluetooth real, valida os dados recentes do motor de bateria e recalibra a base automaticamente.
 - **Estimativa**: quando o Bluetooth se desconecta, desconta o tempo a partir da última base válida. O símbolo `≈` distingue esse cálculo da leitura do Windows.

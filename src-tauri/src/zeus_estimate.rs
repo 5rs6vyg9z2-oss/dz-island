@@ -6,6 +6,8 @@ use crate::zeus_estimate_math::{counted_delta, remaining, used_from_percent, Blu
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Estimate {
+    #[serde(skip_deserializing)]
+    detected: bool,
     initialized: bool,
     hours: u32,
     used_seconds: u64,
@@ -28,7 +30,7 @@ pub struct Estimate {
 impl Default for Estimate {
     fn default() -> Self {
         Self {
-            initialized: false, hours: 18, used_seconds: 0, manual_pause: false,
+            detected: false, initialized: false, hours: 18, used_seconds: 0, manual_pause: false,
             last_bluetooth_percent: None, last_bluetooth_at: None, level_increased: false,
             source: "checking".into(), charging: false, running: false,
             percent: 100, remaining_seconds: 64800,
@@ -61,9 +63,16 @@ impl Clock {
             self.tick += Duration::from_secs(seconds);
         }
     }
-    fn synchronize(&mut self, reading: BluetoothObservation) {
+    fn synchronize(&mut self, reading: BluetoothObservation, detected: bool) {
         self.advance();
         self.value.charging = false;
+        self.value.detected = detected;
+        if !detected {
+            self.value.running = false;
+            self.value.source = "absent".into();
+            self.tick = Instant::now();
+            return;
+        }
         match reading {
             BluetoothObservation::Connected { percent: Some(percent @ 0..=100), charging } => {
                 if self.value.last_bluetooth_percent != Some(percent) {
@@ -125,10 +134,12 @@ pub fn start_clock() {
     std::thread::spawn(|| loop {
         // Device I/O stays outside the state lock and outside WebView IPC threads.
         let observation = crate::dock_bluetooth::zeus_bluetooth_observation();
+        let detected = matches!(observation, BluetoothObservation::Connected { .. })
+            || crate::audio_devices::zeus_present().unwrap_or(false);
         {
             let mut clock = state().lock().unwrap_or_else(|e| e.into_inner());
             let before = (clock.value.source.clone(), clock.value.last_bluetooth_percent, clock.value.running, clock.value.charging);
-            clock.synchronize(observation);
+            clock.synchronize(observation, detected);
             let after = (clock.value.source.clone(), clock.value.last_bluetooth_percent, clock.value.running, clock.value.charging);
             if before != after || clock.saved.elapsed() >= Duration::from_secs(60) {
                 if let Err(error) = clock.save() { crate::diagnostics::log(&format!("zeus sync: {error}")); }
@@ -149,6 +160,7 @@ pub fn zeus_estimate_status() -> Estimate {
 pub fn zeus_estimate_update(action: String, hours: Option<u32>) -> Result<Estimate, String> {
     let mut clock = state().lock().unwrap_or_else(|e| e.into_inner());
     clock.advance();
+    if !clock.value.detected { return Err("Zeus Pro não detectado.".into()); }
     match action.as_str() {
         "full" if clock.value.source != "bluetooth" => {
             clock.value.initialized = true; clock.value.used_seconds = 0;
@@ -179,12 +191,12 @@ mod tests {
     #[test]
     fn bluetooth_is_exact_and_usb_counts_from_that_anchor() {
         let mut c = clock();
-        c.synchronize(BluetoothObservation::Connected { percent: Some(70), charging: false });
+        c.synchronize(BluetoothObservation::Connected { percent: Some(70), charging: false }, true);
         assert_eq!(c.view().percent, 70);
         c.tick -= Duration::from_secs(30);
         c.advance();
         assert_eq!(c.view().percent, 70);
-        c.synchronize(BluetoothObservation::Disconnected);
+        c.synchronize(BluetoothObservation::Disconnected, true);
         assert!(c.value.running);
         c.tick -= Duration::from_secs(30);
         c.advance();
@@ -193,9 +205,9 @@ mod tests {
     #[test]
     fn reconnection_recalibrates_and_increase_does_not_invent_charging() {
         let mut c = clock();
-        c.synchronize(BluetoothObservation::Connected { percent: Some(70), charging: false });
-        c.synchronize(BluetoothObservation::Disconnected);
-        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false });
+        c.synchronize(BluetoothObservation::Connected { percent: Some(70), charging: false }, true);
+        c.synchronize(BluetoothObservation::Disconnected, true);
+        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false }, true);
         assert_eq!(c.view().percent, 90);
         assert!(c.value.level_increased);
         assert!(!c.value.charging);
@@ -203,11 +215,11 @@ mod tests {
     #[test]
     fn missing_reading_never_becomes_a_real_percentage() {
         let mut c = clock();
-        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false });
-        c.synchronize(BluetoothObservation::Connected { percent: None, charging: false });
+        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false }, true);
+        c.synchronize(BluetoothObservation::Connected { percent: None, charging: false }, true);
         assert_eq!(c.value.source, "bluetooth-unavailable");
         assert!(!c.value.running);
-        c.synchronize(BluetoothObservation::Unavailable);
+        c.synchronize(BluetoothObservation::Unavailable, true);
         assert_eq!(c.value.source, "checking");
         assert!(!c.value.running);
     }
@@ -215,11 +227,32 @@ mod tests {
     fn manual_pause_survives_reconnection_and_restart() {
         let mut c = clock();
         c.value.manual_pause = true;
-        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false });
-        c.synchronize(BluetoothObservation::Disconnected);
+        c.synchronize(BluetoothObservation::Connected { percent: Some(90), charging: false }, true);
+        c.synchronize(BluetoothObservation::Disconnected, true);
         assert!(!c.value.running);
         let restored: Estimate = serde_json::from_value(serde_json::to_value(&c.value).unwrap()).unwrap();
         assert!(restored.manual_pause);
         assert!(!restored.running);
+    }
+}
+
+#[cfg(test)]
+mod detection_tests {
+    use super::*;
+    #[test]
+    fn stored_history_does_not_activate_absent_headset() {
+        let mut c = Clock { value: Estimate::default(), tick: Instant::now(), saved: Instant::now() };
+        c.value.initialized = true;
+        c.synchronize(BluetoothObservation::Disconnected, false);
+        assert!(!c.view().detected);
+        assert!(!c.view().running);
+        assert_eq!(c.view().source, "absent");
+    }
+    #[test]
+    fn only_supported_names_enable_profile() {
+        assert!(crate::zeus_estimate_math::is_zeus_pro("H510-PRO Wireless headset"));
+        assert!(crate::zeus_estimate_math::is_zeus_pro("Redragon Zeus Pro"));
+        assert!(!crate::zeus_estimate_math::is_zeus_pro("Zeus H510"));
+        assert!(!crate::zeus_estimate_math::is_zeus_pro("USB Wireless Receiver"));
     }
 }
