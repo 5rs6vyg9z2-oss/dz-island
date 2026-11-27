@@ -1,5 +1,6 @@
 pub const REPO: &str = "5rs6vyg9z2-oss/dz-island";
-pub const ASSET: &str = "DZ-Island-windows-x64.zip";
+pub const ASSET: &str = "DZ-Island-portable-windows-x64.zip";
+pub const LEGACY_ASSET: &str = "DZ-Island-windows-x64.zip";
 pub const MAX_PACKAGE: usize = 150 * 1024 * 1024;
 pub fn version(raw: &str) -> Option<[u64; 3]> {
     let parts: Vec<_> = raw.strip_prefix('v').unwrap_or(raw).split('.').collect();
@@ -12,7 +13,7 @@ pub fn version(raw: &str) -> Option<[u64; 3]> {
     Some(result)
 }
 pub fn valid_package(name: &str, url: &str, digest: Option<&str>, size: usize) -> bool {
-    name == ASSET && size > 0 && size <= MAX_PACKAGE
+    matches!(name, ASSET | LEGACY_ASSET) && size > 0 && size <= MAX_PACKAGE
         && url.starts_with(&format!("https://github.com/{REPO}/releases/download/"))
         && digest.and_then(|d| d.strip_prefix("sha256:"))
             .is_some_and(|d| d.len() == 64 && d.bytes().all(|b| b.is_ascii_hexdigit()))

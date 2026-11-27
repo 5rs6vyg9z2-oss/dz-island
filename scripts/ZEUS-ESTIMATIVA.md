@@ -33,4 +33,4 @@ O tempo e a última base Bluetooth são guardados em `data/zeus-estimate.json`, 
 
 Inspiração da estimativa linear: [Zeus Pro Suite](https://github.com/dorrigro/zeus-pro-suite). A implementação da ilha é própria e não instala esse programa de terceiros.
 
-A calibração explícita `Nectar.exe --zeus-estimate-start=70` continua disponível para um nível conhecido, mas uma leitura Bluetooth válida tem prioridade. Não adicione esse argumento ao atalho de inicialização do Windows.
+A calibração explícita `DZ-Island.exe --zeus-estimate-start=70` continua disponível para um nível conhecido, mas uma leitura Bluetooth válida tem prioridade. Não adicione esse argumento ao atalho de inicialização do Windows.

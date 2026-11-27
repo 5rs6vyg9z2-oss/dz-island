@@ -58,65 +58,65 @@ export function useSettings() {
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
   const [notchTimerProgress, setNotchTimerProgress] = useState(
-    () => localStorage.getItem("nectar-notch-timer-progress") !== "false"
+    () => localStorage.getItem("dz-island-notch-timer-progress") !== "false"
   );
   const [stopwatchEnabled, setStopwatchEnabled] = useState(true);
   const [dualClockEnabled, setDualClockEnabled] = useState(
-    () => localStorage.getItem("nectar-dual-clock-enabled") === "true"
+    () => localStorage.getItem("dz-island-dual-clock-enabled") === "true"
   );
   const [dualClockZone, setDualClockZone] = useState(
-    () => localStorage.getItem("nectar-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE
+    () => localStorage.getItem("dz-island-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE
   );
   const [dualClockLabel, setDualClockLabel] = useState(
-    () => localStorage.getItem("nectar-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE
+    () => localStorage.getItem("dz-island-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE
   );
   const [musicModeEnabled, setMusicModeEnabled] = useState(true);
   const [musicCompactNotch, setMusicCompactNotch] = useState(true);
-  const [agentApi, setAgentApi] = useState(() => localStorage.getItem("nectar-agent-api") === "true");
+  const [agentApi, setAgentApi] = useState(() => localStorage.getItem("dz-island-agent-api") === "true");
   const [notchScrollVolume, setNotchScrollVolume] = useState(
-    () => localStorage.getItem("nectar-notch-scroll-volume") === "true"
+    () => localStorage.getItem("dz-island-notch-scroll-volume") === "true"
   );
   const [rememberMode, setRememberMode] = useState(
-    () => localStorage.getItem("nectar-notch-remember-mode") === "true"
+    () => localStorage.getItem("dz-island-notch-remember-mode") === "true"
   );
   const [shelfPersist, setShelfPersist] = useState(
-    () => localStorage.getItem("nectar-shelf-persist") === "true"
+    () => localStorage.getItem("dz-island-shelf-persist") === "true"
   );
   const [volumeOverlayEnabled, setVolumeOverlayEnabled] = useState(true);
   const [volumeEdgeEnabled, setVolumeEdgeEnabled] = useState(
-    () => localStorage.getItem("nectar-volume-edge-enabled") !== "false"
+    () => localStorage.getItem("dz-island-volume-edge-enabled") !== "false"
   );
   const [brightnessOverlayEnabled, setBrightnessOverlayEnabled] = useState(
-    () => localStorage.getItem("nectar-brightness-overlay-enabled") !== "false"
+    () => localStorage.getItem("dz-island-brightness-overlay-enabled") !== "false"
   );
   const [brightnessEdgeEnabled, setBrightnessEdgeEnabled] = useState(
-    () => localStorage.getItem("nectar-brightness-edge-enabled") !== "false"
+    () => localStorage.getItem("dz-island-brightness-edge-enabled") !== "false"
   );
   const [mediaAmbienceEnabled, setMediaAmbienceEnabled] = useState(true);
   const [mediaCompactGlowEnabled, setMediaCompactGlowEnabled] = useState(true);
   const [mediaArtworkThemeEnabled, setMediaArtworkThemeEnabled] = useState(
-    () => localStorage.getItem("nectar-media-artwork-theme") === "true"
+    () => localStorage.getItem("dz-island-media-artwork-theme") === "true"
   );
   const [mediaLayout, setMediaLayout] = useState<"classic" | "compact">(
-    () => (localStorage.getItem("nectar-media-layout") as "classic" | "compact") || "classic"
+    () => (localStorage.getItem("dz-island-media-layout") as "classic" | "compact") || "classic"
   );
   const [cornersEnabled, setCornersEnabled] = useState(
-    () => localStorage.getItem("nectar-corners-enabled") === "true"
+    () => localStorage.getItem("dz-island-corners-enabled") === "true"
   );
   const [showUpdateIndicator, setShowUpdateIndicator] = useState(
-    () => localStorage.getItem("nectar-show-update-indicator") !== "false"
+    () => localStorage.getItem("dz-island-show-update-indicator") !== "false"
   );
   const [timeFormat24h, setTimeFormat24h] = useState(
-    () => localStorage.getItem("nectar-time-format-24h") === "true"
+    () => localStorage.getItem("dz-island-time-format-24h") === "true"
   );
   const [legacyMode, setLegacyMode] = useState(
-    () => localStorage.getItem("nectar-legacy-mode") === "true"
+    () => localStorage.getItem("dz-island-legacy-mode") === "true"
   );
   const [ramSaver, setRamSaver] = useState(
-    () => localStorage.getItem("nectar-ram-saver") === "true"
+    () => localStorage.getItem("dz-island-ram-saver") === "true"
   );
   const [ramUltra, setRamUltra] = useState(
-    () => localStorage.getItem("nectar-ram-ultra") === "true"
+    () => localStorage.getItem("dz-island-ram-ultra") === "true"
   );
   const [tempUnitFahrenheit, setTempUnitFahrenheit] = useState(false);
   const [cityName, setCityName] = useState("");
@@ -132,121 +132,121 @@ export function useSettings() {
   const [dockEnabled, setDockEnabled] = useState(true);
   const [dockPreviewEnabled, setDockPreviewEnabled] = useState(true);
   const [dockAttentionEnabled, setDockAttentionEnabled] = useState(true);
-  const [dockConsoleWindows, setDockConsoleWindows] = useState(() => localStorage.getItem("nectar-dock-console-windows") === "true");
+  const [dockConsoleWindows, setDockConsoleWindows] = useState(() => localStorage.getItem("dz-island-dock-console-windows") === "true");
   const [dockSearchEnabled, setDockSearchEnabled] = useState(true);
   const [dockSearchProvider, setDockSearchProvider] = useState(
-    () => localStorage.getItem("nectar-dock-search-provider") || "windows"
+    () => localStorage.getItem("dz-island-dock-search-provider") || "windows"
   );
   const [dockSearchShortcut, setDockSearchShortcut] = useState(
-    () => localStorage.getItem("nectar-dock-search-shortcut") || ""
+    () => localStorage.getItem("dz-island-dock-search-shortcut") || ""
   );
   const [dockCalendarEnabled, setDockCalendarEnabled] = useState(true);
   const [dockTray, setDockTray] = useState(
-    () => localStorage.getItem("nectar-dock-tray-enabled") !== "false"
+    () => localStorage.getItem("dz-island-dock-tray-enabled") !== "false"
   );
   const [dockShowDesktop, setDockShowDesktop] = useState(
-    () => localStorage.getItem("nectar-dock-show-desktop-corner") === "true"
+    () => localStorage.getItem("dz-island-dock-show-desktop-corner") === "true"
   );
   const [panelControlCenter, setPanelControlCenter] = useState(
-    () => localStorage.getItem("nectar-panel-control-center-enabled") !== "false"
+    () => localStorage.getItem("dz-island-panel-control-center-enabled") !== "false"
   );
   const [panelOrder, setPanelOrder] = useState<PanelId[] | null>(
-    () => parsePanelOrder(localStorage.getItem("nectar-panel-order"))
+    () => parsePanelOrder(localStorage.getItem("dz-island-panel-order"))
   );
   const [ccLayout, setCcLayout] = useState<CcLayout>(
-    () => parseCcLayout(localStorage.getItem("nectar-cc-layout"))
+    () => parseCcLayout(localStorage.getItem("dz-island-cc-layout"))
   );
   const [panelStatus, setPanelStatus] = useState(
-    () => localStorage.getItem("nectar-panel-status-enabled") !== "false"
+    () => localStorage.getItem("dz-island-panel-status-enabled") !== "false"
   );
   const [panelShelf, setPanelShelf] = useState(
-    () => localStorage.getItem("nectar-panel-shelf-enabled") !== "false"
+    () => localStorage.getItem("dz-island-panel-shelf-enabled") !== "false"
   );
   const [dockTaskView, setDockTaskView] = useState(
-    () => localStorage.getItem("nectar-dock-taskview-enabled") === "true"
+    () => localStorage.getItem("dz-island-dock-taskview-enabled") === "true"
   );
   const [dockRecycle, setDockRecycle] = useState(
-    () => localStorage.getItem("nectar-dock-recycle-enabled") === "true"
+    () => localStorage.getItem("dz-island-dock-recycle-enabled") === "true"
   );
-  const [dockMenuItems, setDockMenuItems] = useState<string[]>(() => parseMenuItems(localStorage.getItem("nectar-dock-menu-items")));
-  const [dockIndicator, setDockIndicator] = useState(() => localStorage.getItem("nectar-dock-indicator") ?? "bar");
-  const [panelScrollDirection, setPanelScrollDirection] = useState(() => localStorage.getItem("nectar-notch-scroll-direction") ?? "down");
-  const [weekStart, setWeekStart] = useState(() => localStorage.getItem("nectar-week-start") ?? "auto");
-  const [dockDrives, setDockDrives] = useState<string[]>(() => parseDrives(localStorage.getItem("nectar-dock-drives")));
-  const [hiddenDockApps, setHiddenDockApps] = useState<HiddenDockApp[]>(() => parseHiddenApps(localStorage.getItem("nectar-dock-hidden-apps")));
+  const [dockMenuItems, setDockMenuItems] = useState<string[]>(() => parseMenuItems(localStorage.getItem("dz-island-dock-menu-items")));
+  const [dockIndicator, setDockIndicator] = useState(() => localStorage.getItem("dz-island-dock-indicator") ?? "bar");
+  const [panelScrollDirection, setPanelScrollDirection] = useState(() => localStorage.getItem("dz-island-notch-scroll-direction") ?? "down");
+  const [weekStart, setWeekStart] = useState(() => localStorage.getItem("dz-island-week-start") ?? "auto");
+  const [dockDrives, setDockDrives] = useState<string[]>(() => parseDrives(localStorage.getItem("dz-island-dock-drives")));
+  const [hiddenDockApps, setHiddenDockApps] = useState<HiddenDockApp[]>(() => parseHiddenApps(localStorage.getItem("dz-island-dock-hidden-apps")));
   const [dockIconOnly, setDockIconOnly] = useState(
-    () => localStorage.getItem("nectar-dock-icon-only") === "true"
+    () => localStorage.getItem("dz-island-dock-icon-only") === "true"
   );
   const [startIcon, setStartIcon] = useState(
-    () => localStorage.getItem("nectar-start-icon") || "default"
+    () => localStorage.getItem("dz-island-start-icon") || "default"
   );
   const [dockAdaptive, setDockAdaptive] = useState(
-    () => localStorage.getItem("nectar-dock-adaptive") === "true"
+    () => localStorage.getItem("dz-island-dock-adaptive") === "true"
   );
   const [dockWinNumberEnabled, setDockWinNumberEnabled] = useState(
-    () => localStorage.getItem("nectar-dock-win-number-enabled") !== "false"
+    () => localStorage.getItem("dz-island-dock-win-number-enabled") !== "false"
   );
   const [dockMixedReorder, setDockMixedReorder] = useState(
-    () => localStorage.getItem("nectar-dock-mixed-reorder") === "true"
+    () => localStorage.getItem("dz-island-dock-mixed-reorder") === "true"
   );
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("dz-island-dock-mode") || "smart";
     return raw === "auto-hide" ? "smart" : raw;
   });
   const [notchMode, setNotchMode] = useState("fixed");
   const [dockMonitorMode, setDockMonitorMode] = useState<MonitorMode>(
-    () => (localStorage.getItem("nectar-dock-monitor-mode") as MonitorMode) || "primary"
+    () => (localStorage.getItem("dz-island-dock-monitor-mode") as MonitorMode) || "primary"
   );
   const [dockMonitorId, setDockMonitorId] = useState(
-    () => localStorage.getItem("nectar-dock-monitor-id") || ""
+    () => localStorage.getItem("dz-island-dock-monitor-id") || ""
   );
   const [notchMonitorMode, setNotchMonitorMode] = useState<MonitorMode>(
-    () => (localStorage.getItem("nectar-notch-monitor-mode") as MonitorMode) || "primary"
+    () => (localStorage.getItem("dz-island-notch-monitor-mode") as MonitorMode) || "primary"
   );
   const [notchMonitorId, setNotchMonitorId] = useState(
-    () => localStorage.getItem("nectar-notch-monitor-id") || ""
+    () => localStorage.getItem("dz-island-notch-monitor-id") || ""
   );
   const [dockModeByMonitor, setDockModeByMonitor] = useState<Record<string, string>>({});
   const [notchModeByMonitor, setNotchModeByMonitor] = useState<Record<string, string>>({});
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
   const [lowBatteryThreshold, setLowBatteryThreshold] = useState(20);
-  const [hasBattery, setHasBattery] = useState(() => localStorage.getItem("nectar-has-battery") !== "false");
+  const [hasBattery, setHasBattery] = useState(() => localStorage.getItem("dz-island-has-battery") !== "false");
   const [updateStatus, setUpdateStatus] = useState<
     "idle" | "checking" | "available" | "uptodate" | "error" | "downloading" | "installing"
   >("idle");
   const [updateVersion, setUpdateVersion] = useState("");
   const [appVersion, setAppVersion] = useState("");
   const [autoUpdate, setAutoUpdate] = useState(
-    () => localStorage.getItem("nectar-auto-update") === "true"
+    () => localStorage.getItem("dz-island-auto-update") === "true"
   );
   const [prereleaseChannel, setPrereleaseChannel] = useState(
-    () => localStorage.getItem("nectar-update-channel") === "prerelease"
+    () => localStorage.getItem("dz-island-update-channel") === "prerelease"
   );
   const [scale, setScale] = useState(
-    () => parseFloat(localStorage.getItem("nectar-scale") || "1.0")
+    () => parseFloat(localStorage.getItem("dz-island-scale") || "1.0")
   );
   const [themeMode, setThemeMode] = useState(
-    () => localStorage.getItem("nectar-theme-mode") || "dark"
+    () => localStorage.getItem("dz-island-theme-mode") || "dark"
   );
   const [themeColor, setThemeColor] = useState(
-    () => localStorage.getItem("nectar-theme-color") || "#007aff"
+    () => localStorage.getItem("dz-island-theme-color") || "#007aff"
   );
   const [themeOpacity, setThemeOpacity] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-opacity");
+    const val = localStorage.getItem("dz-island-theme-opacity");
     return val !== null ? parseFloat(val) : 0.8;
   });
   const [themeSaturation, setThemeSaturation] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-saturation");
+    const val = localStorage.getItem("dz-island-theme-saturation");
     return val !== null ? parseFloat(val) : 0.5;
   });
   const [themeBrightness, setThemeBrightness] = useState(() => {
-    const val = localStorage.getItem("nectar-theme-brightness");
+    const val = localStorage.getItem("dz-island-theme-brightness");
     return val !== null ? parseFloat(val) : 0.15;
   });
-  const [themeStyle, setThemeStyle] = useState(() => localStorage.getItem("nectar-theme-style") || "solid");
-  const [themeAccent, setThemeAccent] = useState(() => localStorage.getItem("nectar-theme-accent") || "mono");
+  const [themeStyle, setThemeStyle] = useState(() => localStorage.getItem("dz-island-theme-style") || "solid");
+  const [themeAccent, setThemeAccent] = useState(() => localStorage.getItem("dz-island-theme-accent") || "mono");
   const [themeAccentColor, setThemeAccentColor] = useState(
-    () => localStorage.getItem("nectar-theme-accent-color") || DEFAULT_ACCENT_COLOR
+    () => localStorage.getItem("dz-island-theme-accent-color") || DEFAULT_ACCENT_COLOR
   );
   const [exportStatus, setExportStatus] = useState<"idle" | "exporting" | "success" | "error">("idle");
   const [importStatus, setImportStatus] = useState<"idle" | "importing" | "success" | "error">("idle");
@@ -268,102 +268,102 @@ export function useSettings() {
         if (val !== null) setter(transform(val));
       };
 
-      apply(getVal("nectar-weather-enabled"), setWeatherEnabled, readBool);
-      apply(getVal("nectar-calendar-enabled"), setCalendarEnabled, readBool);
-      apply(getVal("nectar-timer-enabled") ?? getVal("nectar-calendar-enabled"), setTimerEnabled, readBool);
-      apply(getVal("nectar-timer-sound-enabled"), setTimerSoundEnabled, readBool);
-      apply(getVal("nectar-notch-timer-progress"), setNotchTimerProgress, readBool);
-      apply(getVal("nectar-stopwatch-enabled") ?? getVal("nectar-calendar-enabled"), setStopwatchEnabled, readBool);
-      apply(getVal("nectar-dual-clock-enabled"), setDualClockEnabled, readBool);
-      apply(getVal("nectar-dual-clock-zone"), setDualClockZone, (v) => v);
-      apply(getVal("nectar-dual-clock-label"), setDualClockLabel, (v) => v);
-      apply(getVal("nectar-music-mode-enabled"), setMusicModeEnabled, readBool);
-      apply(getVal("nectar-music-compact-notch"), setMusicCompactNotch, readBool);
-      apply(getVal("nectar-notch-scroll-volume"), setNotchScrollVolume, (v) => v === "true");
-      apply(getVal("nectar-agent-api"), setAgentApi, (v) => v === "true");
-      apply(getVal("nectar-shelf-persist"), setShelfPersist, (v) => v === "true");
-      apply(getVal("nectar-notch-remember-mode"), setRememberMode, (v) => v === "true");
-      apply(getVal("nectar-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
-      apply(getVal("nectar-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
-      apply(getVal("nectar-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
-      apply(getVal("nectar-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
-      apply(getVal("nectar-media-artwork-theme"), setMediaArtworkThemeEnabled, (v) => v === "true");
-      apply(getVal("nectar-corners-enabled"), setCornersEnabled, readBool);
-      apply(getVal("nectar-time-format-24h"), setTimeFormat24h, readBool);
-      apply(getVal("nectar-legacy-mode"), setLegacyMode, readBool);
-      apply(getVal("nectar-show-update-indicator"), setShowUpdateIndicator, readBool);
-      apply(getVal("nectar-ram-saver"), setRamSaver, (v) => v === "true");
-      apply(getVal("nectar-ram-ultra"), setRamUltra, readBool);
-      apply(getVal("nectar-auto-update"), setAutoUpdate, readBool);
-      apply(getVal("nectar-update-channel"), setPrereleaseChannel, (v) => v === "prerelease");
-      apply(getVal("nectar-volume-edge-enabled"), setVolumeEdgeEnabled, readBool);
-      apply(getVal("nectar-brightness-edge-enabled"), setBrightnessEdgeEnabled, readBool);
-      apply(getVal("nectar-dock-enabled"), setDockEnabled, readBool);
-      apply(getVal("nectar-dock-preview-enabled"), setDockPreviewEnabled, readBool);
-      apply(getVal("nectar-dock-attention-enabled"), setDockAttentionEnabled, (v) => v !== "false");
-      apply(getVal("nectar-dock-console-windows"), setDockConsoleWindows, readBool);
-      apply(getVal("nectar-dock-search-enabled"), setDockSearchEnabled, readBool);
-      apply(getVal("nectar-dock-search-provider"), setDockSearchProvider, (v) => v);
-      apply(getVal("nectar-dock-search-shortcut"), setDockSearchShortcut, (v) => v);
-      apply(getVal("nectar-dock-calendar-enabled"), setDockCalendarEnabled, readBool);
-      apply(getVal("nectar-dock-tray-enabled"), setDockTray, (v) => v !== "false");
-      apply(getVal("nectar-dock-taskview-enabled"), setDockTaskView, readBool);
-      apply(getVal("nectar-dock-show-desktop-corner"), setDockShowDesktop, readBool);
-      apply(getVal("nectar-panel-control-center-enabled"), setPanelControlCenter, (v) => v !== "false");
-      apply(getVal("nectar-panel-shelf-enabled"), setPanelShelf, (v) => v !== "false");
-      apply(getVal("nectar-panel-status-enabled"), setPanelStatus, (v) => v !== "false");
-      apply(getVal("nectar-panel-order"), setPanelOrder, (v) => parsePanelOrder(v));
-      apply(getVal("nectar-cc-layout"), setCcLayout, (v) => parseCcLayout(v));
-      apply(getVal("nectar-dock-recycle-enabled"), setDockRecycle, readBool);
-      apply(getVal("nectar-week-start"), setWeekStart, (v) => v ?? "auto");
-      apply(getVal("nectar-notch-scroll-direction"), setPanelScrollDirection, (v) => v);
-      apply(getVal("nectar-dock-indicator"), setDockIndicator, (v) => v);
-      apply(getVal("nectar-dock-menu-items"), setDockMenuItems, parseMenuItems);
-      apply(getVal("nectar-dock-drives"), setDockDrives, parseDrives);
-      apply(getVal("nectar-dock-hidden-apps"), setHiddenDockApps, parseHiddenApps);
-      apply(getVal("nectar-dock-icon-only"), setDockIconOnly, readBool);
-      apply(getVal("nectar-start-icon"), setStartIcon, (v) => v);
-      apply(getVal("nectar-dock-adaptive"), setDockAdaptive, readBool);
-      apply(getVal("nectar-dock-win-number-enabled"), setDockWinNumberEnabled, readBool);
-      apply(getVal("nectar-dock-mixed-reorder"), setDockMixedReorder, readBool);
+      apply(getVal("dz-island-weather-enabled"), setWeatherEnabled, readBool);
+      apply(getVal("dz-island-calendar-enabled"), setCalendarEnabled, readBool);
+      apply(getVal("dz-island-timer-enabled") ?? getVal("dz-island-calendar-enabled"), setTimerEnabled, readBool);
+      apply(getVal("dz-island-timer-sound-enabled"), setTimerSoundEnabled, readBool);
+      apply(getVal("dz-island-notch-timer-progress"), setNotchTimerProgress, readBool);
+      apply(getVal("dz-island-stopwatch-enabled") ?? getVal("dz-island-calendar-enabled"), setStopwatchEnabled, readBool);
+      apply(getVal("dz-island-dual-clock-enabled"), setDualClockEnabled, readBool);
+      apply(getVal("dz-island-dual-clock-zone"), setDualClockZone, (v) => v);
+      apply(getVal("dz-island-dual-clock-label"), setDualClockLabel, (v) => v);
+      apply(getVal("dz-island-music-mode-enabled"), setMusicModeEnabled, readBool);
+      apply(getVal("dz-island-music-compact-notch"), setMusicCompactNotch, readBool);
+      apply(getVal("dz-island-notch-scroll-volume"), setNotchScrollVolume, (v) => v === "true");
+      apply(getVal("dz-island-agent-api"), setAgentApi, (v) => v === "true");
+      apply(getVal("dz-island-shelf-persist"), setShelfPersist, (v) => v === "true");
+      apply(getVal("dz-island-notch-remember-mode"), setRememberMode, (v) => v === "true");
+      apply(getVal("dz-island-volume-overlay-enabled"), setVolumeOverlayEnabled, readBool);
+      apply(getVal("dz-island-brightness-overlay-enabled"), setBrightnessOverlayEnabled, readBool);
+      apply(getVal("dz-island-media-ambience-enabled"), setMediaAmbienceEnabled, readBool);
+      apply(getVal("dz-island-media-compact-glow-enabled"), setMediaCompactGlowEnabled, readBool);
+      apply(getVal("dz-island-media-artwork-theme"), setMediaArtworkThemeEnabled, (v) => v === "true");
+      apply(getVal("dz-island-corners-enabled"), setCornersEnabled, readBool);
+      apply(getVal("dz-island-time-format-24h"), setTimeFormat24h, readBool);
+      apply(getVal("dz-island-legacy-mode"), setLegacyMode, readBool);
+      apply(getVal("dz-island-show-update-indicator"), setShowUpdateIndicator, readBool);
+      apply(getVal("dz-island-ram-saver"), setRamSaver, (v) => v === "true");
+      apply(getVal("dz-island-ram-ultra"), setRamUltra, readBool);
+      apply(getVal("dz-island-auto-update"), setAutoUpdate, readBool);
+      apply(getVal("dz-island-update-channel"), setPrereleaseChannel, (v) => v === "prerelease");
+      apply(getVal("dz-island-volume-edge-enabled"), setVolumeEdgeEnabled, readBool);
+      apply(getVal("dz-island-brightness-edge-enabled"), setBrightnessEdgeEnabled, readBool);
+      apply(getVal("dz-island-dock-enabled"), setDockEnabled, readBool);
+      apply(getVal("dz-island-dock-preview-enabled"), setDockPreviewEnabled, readBool);
+      apply(getVal("dz-island-dock-attention-enabled"), setDockAttentionEnabled, (v) => v !== "false");
+      apply(getVal("dz-island-dock-console-windows"), setDockConsoleWindows, readBool);
+      apply(getVal("dz-island-dock-search-enabled"), setDockSearchEnabled, readBool);
+      apply(getVal("dz-island-dock-search-provider"), setDockSearchProvider, (v) => v);
+      apply(getVal("dz-island-dock-search-shortcut"), setDockSearchShortcut, (v) => v);
+      apply(getVal("dz-island-dock-calendar-enabled"), setDockCalendarEnabled, readBool);
+      apply(getVal("dz-island-dock-tray-enabled"), setDockTray, (v) => v !== "false");
+      apply(getVal("dz-island-dock-taskview-enabled"), setDockTaskView, readBool);
+      apply(getVal("dz-island-dock-show-desktop-corner"), setDockShowDesktop, readBool);
+      apply(getVal("dz-island-panel-control-center-enabled"), setPanelControlCenter, (v) => v !== "false");
+      apply(getVal("dz-island-panel-shelf-enabled"), setPanelShelf, (v) => v !== "false");
+      apply(getVal("dz-island-panel-status-enabled"), setPanelStatus, (v) => v !== "false");
+      apply(getVal("dz-island-panel-order"), setPanelOrder, (v) => parsePanelOrder(v));
+      apply(getVal("dz-island-cc-layout"), setCcLayout, (v) => parseCcLayout(v));
+      apply(getVal("dz-island-dock-recycle-enabled"), setDockRecycle, readBool);
+      apply(getVal("dz-island-week-start"), setWeekStart, (v) => v ?? "auto");
+      apply(getVal("dz-island-notch-scroll-direction"), setPanelScrollDirection, (v) => v);
+      apply(getVal("dz-island-dock-indicator"), setDockIndicator, (v) => v);
+      apply(getVal("dz-island-dock-menu-items"), setDockMenuItems, parseMenuItems);
+      apply(getVal("dz-island-dock-drives"), setDockDrives, parseDrives);
+      apply(getVal("dz-island-dock-hidden-apps"), setHiddenDockApps, parseHiddenApps);
+      apply(getVal("dz-island-dock-icon-only"), setDockIconOnly, readBool);
+      apply(getVal("dz-island-start-icon"), setStartIcon, (v) => v);
+      apply(getVal("dz-island-dock-adaptive"), setDockAdaptive, readBool);
+      apply(getVal("dz-island-dock-win-number-enabled"), setDockWinNumberEnabled, readBool);
+      apply(getVal("dz-island-dock-mixed-reorder"), setDockMixedReorder, readBool);
 
-      apply(getVal("nectar-temp-unit"), setTempUnitFahrenheit, (v) => v === "fahrenheit");
-      apply(getVal("nectar-scale"), setScale, parseFloat);
-      apply(getVal("nectar-low-battery-threshold"), setLowBatteryThreshold, parseInt);
+      apply(getVal("dz-island-temp-unit"), setTempUnitFahrenheit, (v) => v === "fahrenheit");
+      apply(getVal("dz-island-scale"), setScale, parseFloat);
+      apply(getVal("dz-island-low-battery-threshold"), setLowBatteryThreshold, parseInt);
 
-      apply(getVal("nectar-notch-mode"), setNotchMode, (v) => (v === "auto-hide" ? "smart" : v));
-      apply(getVal("nectar-dock-mode"), setDockMode, (v) => (v === "auto-hide" ? "smart" : v));
+      apply(getVal("dz-island-notch-mode"), setNotchMode, (v) => (v === "auto-hide" ? "smart" : v));
+      apply(getVal("dz-island-dock-mode"), setDockMode, (v) => (v === "auto-hide" ? "smart" : v));
 
-      apply(getVal("nectar-dock-monitor-mode"), setDockMonitorMode, (v) => v as MonitorMode);
-      apply(getVal("nectar-dock-monitor-id"), setDockMonitorId, (v) => v);
-      apply(getVal("nectar-notch-monitor-mode"), setNotchMonitorMode, (v) => v as MonitorMode);
-      apply(getVal("nectar-notch-monitor-id"), setNotchMonitorId, (v) => v);
+      apply(getVal("dz-island-dock-monitor-mode"), setDockMonitorMode, (v) => v as MonitorMode);
+      apply(getVal("dz-island-dock-monitor-id"), setDockMonitorId, (v) => v);
+      apply(getVal("dz-island-notch-monitor-mode"), setNotchMonitorMode, (v) => v as MonitorMode);
+      apply(getVal("dz-island-notch-monitor-id"), setNotchMonitorId, (v) => v);
 
-      const dockByMonVal = getVal("nectar-dock-mode-by-monitor");
+      const dockByMonVal = getVal("dz-island-dock-mode-by-monitor");
       if (dockByMonVal) {
         try { setDockModeByMonitor(JSON.parse(dockByMonVal)); } catch {}
       }
-      const notchByMonVal = getVal("nectar-notch-mode-by-monitor");
+      const notchByMonVal = getVal("dz-island-notch-mode-by-monitor");
       if (notchByMonVal) {
         try { setNotchModeByMonitor(JSON.parse(notchByMonVal)); } catch {}
       }
 
-      const savedCity = getVal("nectar-weather-city");
+      const savedCity = getVal("dz-island-weather-city");
       if (savedCity) {
         setCityName(savedCity);
         setCityQuery(savedCity);
       }
 
-      apply(getVal("nectar-theme-mode"), setThemeMode, (v) => v);
-      apply(getVal("nectar-theme-color"), setThemeColor, (v) => v);
-      apply(getVal("nectar-theme-opacity"), setThemeOpacity, parseFloat);
-      apply(getVal("nectar-theme-saturation"), setThemeSaturation, parseFloat);
-      apply(getVal("nectar-theme-brightness"), setThemeBrightness, parseFloat);
-      apply(getVal("nectar-theme-style"), setThemeStyle, (v) => v);
-      apply(getVal("nectar-theme-accent"), setThemeAccent, (v) => v);
-      apply(getVal("nectar-theme-accent-color"), setThemeAccentColor, (v) => v);
+      apply(getVal("dz-island-theme-mode"), setThemeMode, (v) => v);
+      apply(getVal("dz-island-theme-color"), setThemeColor, (v) => v);
+      apply(getVal("dz-island-theme-opacity"), setThemeOpacity, parseFloat);
+      apply(getVal("dz-island-theme-saturation"), setThemeSaturation, parseFloat);
+      apply(getVal("dz-island-theme-brightness"), setThemeBrightness, parseFloat);
+      apply(getVal("dz-island-theme-style"), setThemeStyle, (v) => v);
+      apply(getVal("dz-island-theme-accent"), setThemeAccent, (v) => v);
+      apply(getVal("dz-island-theme-accent-color"), setThemeAccentColor, (v) => v);
 
-      const widgetsVal = getVal("nectar-status-widgets");
+      const widgetsVal = getVal("dz-island-status-widgets");
       if (widgetsVal) {
         try {
           const parsed = JSON.parse(widgetsVal);
@@ -391,7 +391,7 @@ export function useSettings() {
 
     invoke<boolean>("has_battery").then((present) => {
       setHasBattery(present);
-      localStorage.setItem("nectar-has-battery", String(present));
+      localStorage.setItem("dz-island-has-battery", String(present));
     }).catch(() => {});
 
     checkForUpdates(false);
@@ -410,85 +410,85 @@ export function useSettings() {
 
   // ── Sync settings from other windows ──
   useSettingsSync({
-    "nectar-dock-mode": setDockMode,
-    "nectar-notch-mode": setNotchMode,
-    "nectar-dock-monitor-mode": (v) => setDockMonitorMode(v as MonitorMode),
-    "nectar-dock-monitor-id": setDockMonitorId,
-    "nectar-notch-monitor-mode": (v) => setNotchMonitorMode(v as MonitorMode),
-    "nectar-notch-monitor-id": setNotchMonitorId,
-    "nectar-dock-mode-by-monitor": (v) => { try { setDockModeByMonitor(JSON.parse(v)); } catch {} },
-    "nectar-notch-mode-by-monitor": (v) => { try { setNotchModeByMonitor(JSON.parse(v)); } catch {} },
-    "nectar-dock-enabled": setDockEnabled,
-    "nectar-dock-tray-enabled": (v) => setDockTray(v !== false && v !== "false"),
-    "nectar-dock-taskview-enabled": setDockTaskView,
-    "nectar-dock-show-desktop-corner": setDockShowDesktop,
-    "nectar-panel-control-center-enabled": (v) => setPanelControlCenter(v !== false && v !== "false"),
-    "nectar-panel-shelf-enabled": (v) => setPanelShelf(v !== false && v !== "false"),
-    "nectar-panel-status-enabled": (v) => setPanelStatus(v !== false && v !== "false"),
-    "nectar-panel-order": (v) => setPanelOrder(parsePanelOrder(v === null ? null : String(v))),
-    "nectar-cc-layout": (v) => setCcLayout(parseCcLayout(v === null ? null : String(v))),
-    "nectar-dock-recycle-enabled": setDockRecycle,
-    "nectar-week-start": (v) => setWeekStart(String(v)),
-    "nectar-notch-scroll-direction": (v) => setPanelScrollDirection(String(v)),
-    "nectar-dock-indicator": (v) => setDockIndicator(String(v)),
-    "nectar-dock-menu-items": (v) => setDockMenuItems(parseMenuItems(v)),
-    "nectar-dock-drives": (v) => setDockDrives(parseDrives(v)),
-    "nectar-dock-hidden-apps": (v) => setHiddenDockApps(parseHiddenApps(v)),
-    "nectar-dock-icon-only": setDockIconOnly,
-    "nectar-start-icon": setStartIcon,
-    "nectar-dock-adaptive": setDockAdaptive,
-    "nectar-dock-win-number-enabled": setDockWinNumberEnabled,
-    "nectar-dock-preview-enabled": setDockPreviewEnabled,
-    "nectar-dock-attention-enabled": (v) => setDockAttentionEnabled(v !== false && v !== "false"),
-    "nectar-dock-console-windows": setDockConsoleWindows,
-    "nectar-dock-search-enabled": setDockSearchEnabled,
-    "nectar-dock-search-provider": (v) => setDockSearchProvider(String(v)),
-    "nectar-dock-search-shortcut": (v) => setDockSearchShortcut(String(v)),
-    "nectar-dock-calendar-enabled": setDockCalendarEnabled,
-    "nectar-dock-mixed-reorder": setDockMixedReorder,
-    "nectar-weather-enabled": setWeatherEnabled,
-    "nectar-calendar-enabled": setCalendarEnabled,
-    "nectar-timer-enabled": setTimerEnabled,
-    "nectar-timer-sound-enabled": setTimerSoundEnabled,
-    "nectar-notch-timer-progress": setNotchTimerProgress,
-    "nectar-stopwatch-enabled": setStopwatchEnabled,
-    "nectar-dual-clock-enabled": setDualClockEnabled,
-    "nectar-dual-clock-zone": (v) => setDualClockZone(String(v)),
-    "nectar-dual-clock-label": (v) => setDualClockLabel(String(v)),
-    "nectar-music-mode-enabled": setMusicModeEnabled,
-    "nectar-music-compact-notch": setMusicCompactNotch,
-    "nectar-notch-scroll-volume": setNotchScrollVolume,
-    "nectar-agent-api": setAgentApi,
-    "nectar-shelf-persist": setShelfPersist,
-    "nectar-notch-remember-mode": setRememberMode,
-    "nectar-media-ambience-enabled": setMediaAmbienceEnabled,
-    "nectar-media-compact-glow-enabled": setMediaCompactGlowEnabled,
-    "nectar-media-artwork-theme": setMediaArtworkThemeEnabled,
-    "nectar-media-layout": setMediaLayout,
-    "nectar-corners-enabled": setCornersEnabled,
-    "nectar-show-update-indicator": setShowUpdateIndicator,
-    "nectar-time-format-24h": setTimeFormat24h,
-    "nectar-legacy-mode": setLegacyMode,
-    "nectar-ram-saver": (v) => setRamSaver(v === true || v === "true"),
-    "nectar-ram-ultra": (v) => setRamUltra(v === true || v === "true"),
-    "nectar-low-battery-threshold": setLowBatteryThreshold,
-    "nectar-scale": setScale,
-    "nectar-temp-unit": (v) => setTempUnitFahrenheit(v === "fahrenheit"),
-    "nectar-auto-update": setAutoUpdate,
-    "nectar-update-channel": (v) => setPrereleaseChannel(v === "prerelease"),
-    "nectar-volume-overlay-enabled": setVolumeOverlayEnabled,
-    "nectar-volume-edge-enabled": setVolumeEdgeEnabled,
-    "nectar-brightness-overlay-enabled": setBrightnessOverlayEnabled,
-    "nectar-brightness-edge-enabled": setBrightnessEdgeEnabled,
-    "nectar-theme-mode": setThemeMode,
-    "nectar-theme-color": setThemeColor,
-    "nectar-theme-opacity": setThemeOpacity,
-    "nectar-theme-saturation": setThemeSaturation,
-    "nectar-theme-brightness": setThemeBrightness,
-    "nectar-theme-style": (v) => setThemeStyle(String(v)),
-    "nectar-theme-accent": (v) => setThemeAccent(String(v)),
-    "nectar-theme-accent-color": (v) => setThemeAccentColor(String(v)),
-    "nectar-weather-city": (v) => {
+    "dz-island-dock-mode": setDockMode,
+    "dz-island-notch-mode": setNotchMode,
+    "dz-island-dock-monitor-mode": (v) => setDockMonitorMode(v as MonitorMode),
+    "dz-island-dock-monitor-id": setDockMonitorId,
+    "dz-island-notch-monitor-mode": (v) => setNotchMonitorMode(v as MonitorMode),
+    "dz-island-notch-monitor-id": setNotchMonitorId,
+    "dz-island-dock-mode-by-monitor": (v) => { try { setDockModeByMonitor(JSON.parse(v)); } catch {} },
+    "dz-island-notch-mode-by-monitor": (v) => { try { setNotchModeByMonitor(JSON.parse(v)); } catch {} },
+    "dz-island-dock-enabled": setDockEnabled,
+    "dz-island-dock-tray-enabled": (v) => setDockTray(v !== false && v !== "false"),
+    "dz-island-dock-taskview-enabled": setDockTaskView,
+    "dz-island-dock-show-desktop-corner": setDockShowDesktop,
+    "dz-island-panel-control-center-enabled": (v) => setPanelControlCenter(v !== false && v !== "false"),
+    "dz-island-panel-shelf-enabled": (v) => setPanelShelf(v !== false && v !== "false"),
+    "dz-island-panel-status-enabled": (v) => setPanelStatus(v !== false && v !== "false"),
+    "dz-island-panel-order": (v) => setPanelOrder(parsePanelOrder(v === null ? null : String(v))),
+    "dz-island-cc-layout": (v) => setCcLayout(parseCcLayout(v === null ? null : String(v))),
+    "dz-island-dock-recycle-enabled": setDockRecycle,
+    "dz-island-week-start": (v) => setWeekStart(String(v)),
+    "dz-island-notch-scroll-direction": (v) => setPanelScrollDirection(String(v)),
+    "dz-island-dock-indicator": (v) => setDockIndicator(String(v)),
+    "dz-island-dock-menu-items": (v) => setDockMenuItems(parseMenuItems(v)),
+    "dz-island-dock-drives": (v) => setDockDrives(parseDrives(v)),
+    "dz-island-dock-hidden-apps": (v) => setHiddenDockApps(parseHiddenApps(v)),
+    "dz-island-dock-icon-only": setDockIconOnly,
+    "dz-island-start-icon": setStartIcon,
+    "dz-island-dock-adaptive": setDockAdaptive,
+    "dz-island-dock-win-number-enabled": setDockWinNumberEnabled,
+    "dz-island-dock-preview-enabled": setDockPreviewEnabled,
+    "dz-island-dock-attention-enabled": (v) => setDockAttentionEnabled(v !== false && v !== "false"),
+    "dz-island-dock-console-windows": setDockConsoleWindows,
+    "dz-island-dock-search-enabled": setDockSearchEnabled,
+    "dz-island-dock-search-provider": (v) => setDockSearchProvider(String(v)),
+    "dz-island-dock-search-shortcut": (v) => setDockSearchShortcut(String(v)),
+    "dz-island-dock-calendar-enabled": setDockCalendarEnabled,
+    "dz-island-dock-mixed-reorder": setDockMixedReorder,
+    "dz-island-weather-enabled": setWeatherEnabled,
+    "dz-island-calendar-enabled": setCalendarEnabled,
+    "dz-island-timer-enabled": setTimerEnabled,
+    "dz-island-timer-sound-enabled": setTimerSoundEnabled,
+    "dz-island-notch-timer-progress": setNotchTimerProgress,
+    "dz-island-stopwatch-enabled": setStopwatchEnabled,
+    "dz-island-dual-clock-enabled": setDualClockEnabled,
+    "dz-island-dual-clock-zone": (v) => setDualClockZone(String(v)),
+    "dz-island-dual-clock-label": (v) => setDualClockLabel(String(v)),
+    "dz-island-music-mode-enabled": setMusicModeEnabled,
+    "dz-island-music-compact-notch": setMusicCompactNotch,
+    "dz-island-notch-scroll-volume": setNotchScrollVolume,
+    "dz-island-agent-api": setAgentApi,
+    "dz-island-shelf-persist": setShelfPersist,
+    "dz-island-notch-remember-mode": setRememberMode,
+    "dz-island-media-ambience-enabled": setMediaAmbienceEnabled,
+    "dz-island-media-compact-glow-enabled": setMediaCompactGlowEnabled,
+    "dz-island-media-artwork-theme": setMediaArtworkThemeEnabled,
+    "dz-island-media-layout": setMediaLayout,
+    "dz-island-corners-enabled": setCornersEnabled,
+    "dz-island-show-update-indicator": setShowUpdateIndicator,
+    "dz-island-time-format-24h": setTimeFormat24h,
+    "dz-island-legacy-mode": setLegacyMode,
+    "dz-island-ram-saver": (v) => setRamSaver(v === true || v === "true"),
+    "dz-island-ram-ultra": (v) => setRamUltra(v === true || v === "true"),
+    "dz-island-low-battery-threshold": setLowBatteryThreshold,
+    "dz-island-scale": setScale,
+    "dz-island-temp-unit": (v) => setTempUnitFahrenheit(v === "fahrenheit"),
+    "dz-island-auto-update": setAutoUpdate,
+    "dz-island-update-channel": (v) => setPrereleaseChannel(v === "prerelease"),
+    "dz-island-volume-overlay-enabled": setVolumeOverlayEnabled,
+    "dz-island-volume-edge-enabled": setVolumeEdgeEnabled,
+    "dz-island-brightness-overlay-enabled": setBrightnessOverlayEnabled,
+    "dz-island-brightness-edge-enabled": setBrightnessEdgeEnabled,
+    "dz-island-theme-mode": setThemeMode,
+    "dz-island-theme-color": setThemeColor,
+    "dz-island-theme-opacity": setThemeOpacity,
+    "dz-island-theme-saturation": setThemeSaturation,
+    "dz-island-theme-brightness": setThemeBrightness,
+    "dz-island-theme-style": (v) => setThemeStyle(String(v)),
+    "dz-island-theme-accent": (v) => setThemeAccent(String(v)),
+    "dz-island-theme-accent-color": (v) => setThemeAccentColor(String(v)),
+    "dz-island-weather-city": (v) => {
       setCityName(v || "");
       setCityQuery(v || "");
     },
@@ -497,7 +497,7 @@ export function useSettings() {
   // ── Listen for system accent changes (adaptive theme) ──
   useEffect(() => {
     const unlisten = listen<string>("system-accent-changed", (event) => {
-      const mode = localStorage.getItem("nectar-theme-mode") || "dark";
+      const mode = localStorage.getItem("dz-island-theme-mode") || "dark";
       if (mode === "adaptive") {
         try {
           const hsl = hexToHsl(event.payload);
@@ -612,451 +612,451 @@ export function useSettings() {
   const toggleWeather = () => {
     const next = !weatherEnabled;
     setWeatherEnabled(next);
-    saveSetting("nectar-weather-enabled", String(next));
+    saveSetting("dz-island-weather-enabled", String(next));
   };
 
   const toggleCalendar = () => {
     const next = !calendarEnabled;
     setCalendarEnabled(next);
-    saveSetting("nectar-calendar-enabled", String(next));
+    saveSetting("dz-island-calendar-enabled", String(next));
   };
 
   const toggleTimerEnabled = () => {
     const next = !timerEnabled;
     setTimerEnabled(next);
-    saveSetting("nectar-timer-enabled", String(next));
+    saveSetting("dz-island-timer-enabled", String(next));
   };
 
   const toggleTimerSound = () => {
     const next = !timerSoundEnabled;
     setTimerSoundEnabled(next);
-    saveSetting("nectar-timer-sound-enabled", String(next));
+    saveSetting("dz-island-timer-sound-enabled", String(next));
   };
 
   const toggleNotchTimerProgress = () => {
     const next = !notchTimerProgress;
     setNotchTimerProgress(next);
-    saveSetting("nectar-notch-timer-progress", String(next));
+    saveSetting("dz-island-notch-timer-progress", String(next));
   };
 
   const toggleStopwatchEnabled = () => {
     const next = !stopwatchEnabled;
     setStopwatchEnabled(next);
-    saveSetting("nectar-stopwatch-enabled", String(next));
+    saveSetting("dz-island-stopwatch-enabled", String(next));
   };
 
   const toggleDualClock = () => {
     const next = !dualClockEnabled;
     setDualClockEnabled(next);
-    saveSetting("nectar-dual-clock-enabled", String(next));
+    saveSetting("dz-island-dual-clock-enabled", String(next));
   };
 
   const selectDualClockZone = ({ label, zone }: { label: string; zone: string }) => {
     setDualClockZone(zone);
     setDualClockLabel(label);
-    saveSetting("nectar-dual-clock-zone", zone);
-    saveSetting("nectar-dual-clock-label", label);
+    saveSetting("dz-island-dual-clock-zone", zone);
+    saveSetting("dz-island-dual-clock-label", label);
   };
 
   const toggleMusicMode = () => {
     const next = !musicModeEnabled;
     setMusicModeEnabled(next);
-    saveSetting("nectar-music-mode-enabled", String(next));
+    saveSetting("dz-island-music-mode-enabled", String(next));
   };
 
   const toggleMusicCompactNotch = () => {
     const next = !musicCompactNotch;
     setMusicCompactNotch(next);
-    saveSetting("nectar-music-compact-notch", String(next));
+    saveSetting("dz-island-music-compact-notch", String(next));
   };
 
   const toggleAgentApi = () => {
     const next = !agentApi;
     setAgentApi(next);
-    saveSetting("nectar-agent-api", String(next));
+    saveSetting("dz-island-agent-api", String(next));
   };
 
   const toggleNotchScrollVolume = () => {
     const next = !notchScrollVolume;
     setNotchScrollVolume(next);
-    saveSetting("nectar-notch-scroll-volume", String(next));
+    saveSetting("dz-island-notch-scroll-volume", String(next));
   };
 
   const toggleRememberMode = () => {
     const next = !rememberMode;
     setRememberMode(next);
-    saveSetting("nectar-notch-remember-mode", String(next));
+    saveSetting("dz-island-notch-remember-mode", String(next));
   };
 
   const toggleShelfPersist = () => {
     const next = !shelfPersist;
     setShelfPersist(next);
-    saveSetting("nectar-shelf-persist", String(next));
+    saveSetting("dz-island-shelf-persist", String(next));
   };
 
   const toggleMediaLayout = (layout: "classic" | "compact") => {
     setMediaLayout(layout);
-    saveSetting("nectar-media-layout", layout);
+    saveSetting("dz-island-media-layout", layout);
   };
 
   const toggleVolumeOverlay = () => {
     const next = !volumeOverlayEnabled;
     setVolumeOverlayEnabled(next);
-    saveSetting("nectar-volume-overlay-enabled", String(next));
+    saveSetting("dz-island-volume-overlay-enabled", String(next));
   };
 
   const toggleVolumeEdge = () => {
     const next = !volumeEdgeEnabled;
     setVolumeEdgeEnabled(next);
-    saveSetting("nectar-volume-edge-enabled", String(next));
+    saveSetting("dz-island-volume-edge-enabled", String(next));
   };
 
   const toggleBrightnessOverlay = () => {
     const next = !brightnessOverlayEnabled;
     setBrightnessOverlayEnabled(next);
-    saveSetting("nectar-brightness-overlay-enabled", String(next));
+    saveSetting("dz-island-brightness-overlay-enabled", String(next));
   };
 
   const toggleBrightnessEdge = () => {
     const next = !brightnessEdgeEnabled;
     setBrightnessEdgeEnabled(next);
-    saveSetting("nectar-brightness-edge-enabled", String(next));
+    saveSetting("dz-island-brightness-edge-enabled", String(next));
   };
 
   const toggleAmbience = () => {
     const next = !mediaAmbienceEnabled;
     setMediaAmbienceEnabled(next);
-    saveSetting("nectar-media-ambience-enabled", String(next));
+    saveSetting("dz-island-media-ambience-enabled", String(next));
   };
 
   const toggleCompactGlow = () => {
     const next = !mediaCompactGlowEnabled;
     setMediaCompactGlowEnabled(next);
-    saveSetting("nectar-media-compact-glow-enabled", String(next));
+    saveSetting("dz-island-media-compact-glow-enabled", String(next));
   };
 
   const toggleArtworkTheme = () => {
     const next = !mediaArtworkThemeEnabled;
     setMediaArtworkThemeEnabled(next);
-    saveSetting("nectar-media-artwork-theme", String(next));
+    saveSetting("dz-island-media-artwork-theme", String(next));
   };
 
   const toggleCorners = () => {
     const next = !cornersEnabled;
     setCornersEnabled(next);
-    saveSetting("nectar-corners-enabled", String(next));
+    saveSetting("dz-island-corners-enabled", String(next));
   };
 
   const toggleUpdateIndicator = () => {
     const next = !showUpdateIndicator;
     setShowUpdateIndicator(next);
-    saveSetting("nectar-show-update-indicator", String(next));
+    saveSetting("dz-island-show-update-indicator", String(next));
   };
 
   const toggleTimeFormat24h = () => {
     const next = !timeFormat24h;
     setTimeFormat24h(next);
-    saveSetting("nectar-time-format-24h", String(next));
+    saveSetting("dz-island-time-format-24h", String(next));
   };
 
   const toggleLegacyMode = () => {
     const next = !legacyMode;
     setLegacyMode(next);
-    saveSetting("nectar-legacy-mode", String(next));
+    saveSetting("dz-island-legacy-mode", String(next));
   };
 
   const toggleRamSaver = () => {
     const next = !ramSaver;
     setRamSaver(next);
-    saveSetting("nectar-ram-saver", String(next));
+    saveSetting("dz-island-ram-saver", String(next));
   };
 
   const toggleRamUltra = () => {
     const next = !ramUltra;
     setRamUltra(next);
-    saveSetting("nectar-ram-ultra", String(next));
+    saveSetting("dz-island-ram-ultra", String(next));
   };
 
   const toggleTempUnit = () => {
     const next = !tempUnitFahrenheit;
     setTempUnitFahrenheit(next);
-    saveSetting("nectar-temp-unit", next ? "fahrenheit" : "celsius");
+    saveSetting("dz-island-temp-unit", next ? "fahrenheit" : "celsius");
   };
 
   const toggleDock = () => {
     const next = !dockEnabled;
     setDockEnabled(next);
-    saveSetting("nectar-dock-enabled", String(next));
+    saveSetting("dz-island-dock-enabled", String(next));
   };
 
   const toggleDockPreview = () => {
     const next = !dockPreviewEnabled;
     setDockPreviewEnabled(next);
-    saveSetting("nectar-dock-preview-enabled", String(next));
+    saveSetting("dz-island-dock-preview-enabled", String(next));
   };
 
   const toggleDockConsoleWindows = () => {
     const next = !dockConsoleWindows;
     setDockConsoleWindows(next);
-    saveSetting("nectar-dock-console-windows", String(next));
+    saveSetting("dz-island-dock-console-windows", String(next));
   };
 
   const toggleDockAttention = () => {
     const next = !dockAttentionEnabled;
     setDockAttentionEnabled(next);
-    saveSetting("nectar-dock-attention-enabled", String(next));
+    saveSetting("dz-island-dock-attention-enabled", String(next));
   };
 
   const handleDockSearchProviderChange = (provider: string) => {
     setDockSearchProvider(provider);
-    saveSetting("nectar-dock-search-provider", provider);
+    saveSetting("dz-island-dock-search-provider", provider);
   };
 
   const handleDockSearchShortcutChange = (shortcut: string) => {
     setDockSearchShortcut(shortcut);
-    saveSetting("nectar-dock-search-shortcut", shortcut);
+    saveSetting("dz-island-dock-search-shortcut", shortcut);
   };
 
   const toggleDockSearch = () => {
     const next = !dockSearchEnabled;
     setDockSearchEnabled(next);
-    saveSetting("nectar-dock-search-enabled", String(next));
+    saveSetting("dz-island-dock-search-enabled", String(next));
   };
 
   const toggleDockTray = () => {
     const next = !dockTray;
     setDockTray(next);
-    saveSetting("nectar-dock-tray-enabled", String(next));
+    saveSetting("dz-island-dock-tray-enabled", String(next));
   };
 
   const toggleDockShowDesktop = () => {
     const next = !dockShowDesktop;
     setDockShowDesktop(next);
-    saveSetting("nectar-dock-show-desktop-corner", String(next));
+    saveSetting("dz-island-dock-show-desktop-corner", String(next));
   };
 
   const togglePanelControlCenter = () => {
     const next = !panelControlCenter;
     setPanelControlCenter(next);
-    saveSetting("nectar-panel-control-center-enabled", String(next));
+    saveSetting("dz-island-panel-control-center-enabled", String(next));
   };
 
   const reorderPanels = (order: PanelId[]) => {
     setPanelOrder(order);
-    saveSetting("nectar-panel-order", JSON.stringify(order));
+    saveSetting("dz-island-panel-order", JSON.stringify(order));
   };
 
   const changeCcLayout = (next: CcLayout) => {
     setCcLayout(next);
-    saveSetting("nectar-cc-layout", JSON.stringify(next));
+    saveSetting("dz-island-cc-layout", JSON.stringify(next));
   };
 
   const resetCcLayout = () => {
     setCcLayout({});
-    localStorage.removeItem("nectar-cc-layout");
-    invoke("save_setting", { key: "nectar-cc-layout", value: null }).catch(() => {});
+    localStorage.removeItem("dz-island-cc-layout");
+    invoke("save_setting", { key: "dz-island-cc-layout", value: null }).catch(() => {});
   };
 
   const resetPanelOrder = () => {
     setPanelOrder(null);
-    localStorage.removeItem("nectar-panel-order");
-    invoke("save_setting", { key: "nectar-panel-order", value: null }).catch(() => {});
+    localStorage.removeItem("dz-island-panel-order");
+    invoke("save_setting", { key: "dz-island-panel-order", value: null }).catch(() => {});
   };
 
   const togglePanelStatus = () => {
     const next = !panelStatus;
     setPanelStatus(next);
-    saveSetting("nectar-panel-status-enabled", String(next));
+    saveSetting("dz-island-panel-status-enabled", String(next));
   };
 
   const togglePanelShelf = () => {
     const next = !panelShelf;
     setPanelShelf(next);
-    saveSetting("nectar-panel-shelf-enabled", String(next));
+    saveSetting("dz-island-panel-shelf-enabled", String(next));
   };
 
   const toggleDockTaskView = () => {
     const next = !dockTaskView;
     setDockTaskView(next);
-    saveSetting("nectar-dock-taskview-enabled", String(next));
+    saveSetting("dz-island-dock-taskview-enabled", String(next));
   };
 
   const toggleDockRecycle = () => {
     const next = !dockRecycle;
     setDockRecycle(next);
-    saveSetting("nectar-dock-recycle-enabled", String(next));
+    saveSetting("dz-island-dock-recycle-enabled", String(next));
   };
 
   const toggleDockDrive = (letter: string) => {
     const next = dockDrives.includes(letter) ? dockDrives.filter((d) => d !== letter) : [...dockDrives, letter].sort();
     setDockDrives(next);
-    saveSetting("nectar-dock-drives", JSON.stringify(next));
+    saveSetting("dz-island-dock-drives", JSON.stringify(next));
   };
 
   const toggleDockMenuItem = (id: string) => {
     const next = dockMenuItems.includes(id) ? dockMenuItems.filter((x) => x !== id) : DOCK_MENU_IDS.filter((x) => x === id || dockMenuItems.includes(x));
     setDockMenuItems(next);
-    saveSetting("nectar-dock-menu-items", JSON.stringify(next));
+    saveSetting("dz-island-dock-menu-items", JSON.stringify(next));
   };
 
   const changeDockIndicator = (value: string) => {
     setDockIndicator(value);
-    saveSetting("nectar-dock-indicator", value);
+    saveSetting("dz-island-dock-indicator", value);
   };
 
   const changePanelScrollDirection = (value: string) => {
     setPanelScrollDirection(value);
-    saveSetting("nectar-notch-scroll-direction", value);
+    saveSetting("dz-island-notch-scroll-direction", value);
   };
 
   const changeWeekStart = (value: string) => {
     setWeekStart(value);
-    saveSetting("nectar-week-start", value);
+    saveSetting("dz-island-week-start", value);
   };
 
   const restoreHiddenDockApp = (id: string) => {
     const next = hiddenDockApps.filter((h) => h.id !== id);
     setHiddenDockApps(next);
-    saveSetting("nectar-dock-hidden-apps", JSON.stringify(next));
+    saveSetting("dz-island-dock-hidden-apps", JSON.stringify(next));
   };
 
   const toggleDockCalendar = () => {
     const next = !dockCalendarEnabled;
     setDockCalendarEnabled(next);
-    saveSetting("nectar-dock-calendar-enabled", String(next));
+    saveSetting("dz-island-dock-calendar-enabled", String(next));
   };
 
   const toggleDockMixedReorder = () => {
     const next = !dockMixedReorder;
     setDockMixedReorder(next);
-    saveSetting("nectar-dock-mixed-reorder", String(next));
+    saveSetting("dz-island-dock-mixed-reorder", String(next));
   };
 
   const toggleDockIconOnly = () => {
     const next = !dockIconOnly;
     setDockIconOnly(next);
-    saveSetting("nectar-dock-icon-only", String(next));
+    saveSetting("dz-island-dock-icon-only", String(next));
   };
 
   const handleStartIconChange = (icon: string) => {
     setStartIcon(icon);
-    saveSetting("nectar-start-icon", icon);
+    saveSetting("dz-island-start-icon", icon);
   };
 
   const toggleDockAdaptive = () => {
     const next = !dockAdaptive;
     setDockAdaptive(next);
-    saveSetting("nectar-dock-adaptive", String(next));
+    saveSetting("dz-island-dock-adaptive", String(next));
   };
 
   const toggleDockWinNumber = () => {
     const next = !dockWinNumberEnabled;
     setDockWinNumberEnabled(next);
-    saveSetting("nectar-dock-win-number-enabled", String(next));
+    saveSetting("dz-island-dock-win-number-enabled", String(next));
   };
 
   const toggleAutoUpdate = () => {
     const next = !autoUpdate;
     setAutoUpdate(next);
-    saveSetting("nectar-auto-update", String(next));
+    saveSetting("dz-island-auto-update", String(next));
   };
 
   const togglePrereleaseChannel = async () => {
     const next = !prereleaseChannel;
     const value = next ? "prerelease" : "stable";
     setPrereleaseChannel(next);
-    localStorage.setItem("nectar-update-channel", value);
-    await invoke("save_setting", { key: "nectar-update-channel", value }).catch(console.error);
+    localStorage.setItem("dz-island-update-channel", value);
+    await invoke("save_setting", { key: "dz-island-update-channel", value }).catch(console.error);
     checkForUpdates();
   };
 
   // ── Value setters ──
   const setDockModeValue = (newMode: string) => {
     setDockMode(newMode);
-    saveSetting("nectar-dock-mode", newMode);
+    saveSetting("dz-island-dock-mode", newMode);
   };
 
   const setNotchModeValue = (newMode: string) => {
     setNotchMode(newMode);
-    saveSetting("nectar-notch-mode", newMode);
+    saveSetting("dz-island-notch-mode", newMode);
   };
 
   const setDockMonitorModeValue = (mode: MonitorMode) => {
     setDockMonitorMode(mode);
-    saveSetting("nectar-dock-monitor-mode", mode);
+    saveSetting("dz-island-dock-monitor-mode", mode);
   };
 
   const setDockMonitorIdValue = (id: string) => {
     setDockMonitorId(id);
-    saveSetting("nectar-dock-monitor-id", id);
+    saveSetting("dz-island-dock-monitor-id", id);
   };
 
   const setNotchMonitorModeValue = (mode: MonitorMode) => {
     setNotchMonitorMode(mode);
-    saveSetting("nectar-notch-monitor-mode", mode);
+    saveSetting("dz-island-notch-monitor-mode", mode);
   };
 
   const setNotchMonitorIdValue = (id: string) => {
     setNotchMonitorId(id);
-    saveSetting("nectar-notch-monitor-id", id);
+    saveSetting("dz-island-notch-monitor-id", id);
   };
 
   const setDockModeForMonitor = (monitorId: string, mode: string | null) => {
     setDockModeByMonitor((prev) => {
       const next = { ...prev };
       if (mode === null) delete next[monitorId]; else next[monitorId] = mode;
-      saveSetting("nectar-dock-mode-by-monitor", JSON.stringify(next));
+      saveSetting("dz-island-dock-mode-by-monitor", JSON.stringify(next));
       return next;
     });
   };
 
   const replaceDockModesByMonitor = (next: Record<string, string>) => {
     setDockModeByMonitor(next);
-    saveSetting("nectar-dock-mode-by-monitor", JSON.stringify(next));
+    saveSetting("dz-island-dock-mode-by-monitor", JSON.stringify(next));
   };
 
   const replaceNotchModesByMonitor = (next: Record<string, string>) => {
     setNotchModeByMonitor(next);
-    saveSetting("nectar-notch-mode-by-monitor", JSON.stringify(next));
+    saveSetting("dz-island-notch-mode-by-monitor", JSON.stringify(next));
   };
 
   const setNotchModeForMonitor = (monitorId: string, mode: string | null) => {
     setNotchModeByMonitor((prev) => {
       const next = { ...prev };
       if (mode === null) delete next[monitorId]; else next[monitorId] = mode;
-      saveSetting("nectar-notch-mode-by-monitor", JSON.stringify(next));
+      saveSetting("dz-island-notch-mode-by-monitor", JSON.stringify(next));
       return next;
     });
   };
 
   const handleThresholdChange = (val: number) => {
     setLowBatteryThreshold(val);
-    saveSetting("nectar-low-battery-threshold", val.toString());
+    saveSetting("dz-island-low-battery-threshold", val.toString());
   };
 
   const handleScaleChange = (val: number) => {
     setScale(val);
-    saveSetting("nectar-scale", val.toString());
+    saveSetting("dz-island-scale", val.toString());
   };
 
   const handleWidgetsChange = (config: WidgetConfig) => {
     setStatusWidgets(config);
-    saveSetting("nectar-status-widgets", JSON.stringify(config));
+    saveSetting("dz-island-status-widgets", JSON.stringify(config));
   };
 
   // ── Theme handlers ──
   const handleThemeModeChange = async (mode: string) => {
     setThemeMode(mode);
-    saveSetting("nectar-theme-mode", mode);
+    saveSetting("dz-island-theme-mode", mode);
 
     if (mode === "adaptive") {
       try {
         const accentHex = await invoke<string>("get_system_accent_color");
         const hsl = hexToHsl(accentHex);
         setThemeSaturation(hsl.s / 100);
-        saveSetting("nectar-theme-saturation", String(hsl.s / 100));
+        saveSetting("dz-island-theme-saturation", String(hsl.s / 100));
         setThemeBrightness(hsl.l / 100);
-        saveSetting("nectar-theme-brightness", String(hsl.l / 100));
+        saveSetting("dz-island-theme-brightness", String(hsl.l / 100));
       } catch (e) {
         console.error("Failed to parse adaptive accent HSL:", e);
       }
@@ -1065,14 +1065,14 @@ export function useSettings() {
 
   const handleThemeColorChange = (color: string) => {
     setThemeColor(color);
-    saveSetting("nectar-theme-color", color);
+    saveSetting("dz-island-theme-color", color);
 
     try {
       const hsl = hexToHsl(color);
       setThemeSaturation(hsl.s / 100);
-      saveSetting("nectar-theme-saturation", String(hsl.s / 100));
+      saveSetting("dz-island-theme-saturation", String(hsl.s / 100));
       setThemeBrightness(hsl.l / 100);
-      saveSetting("nectar-theme-brightness", String(hsl.l / 100));
+      saveSetting("dz-island-theme-brightness", String(hsl.l / 100));
     } catch (e) {
       console.error("Failed to parse custom color HSL:", e);
     }
@@ -1080,38 +1080,38 @@ export function useSettings() {
 
   const handleOpacityChange = (value: number) => {
     setThemeOpacity(value);
-    saveSetting("nectar-theme-opacity", String(value));
+    saveSetting("dz-island-theme-opacity", String(value));
   };
 
   const handleSaturationChange = (value: number) => {
     setThemeSaturation(value);
-    saveSetting("nectar-theme-saturation", String(value));
+    saveSetting("dz-island-theme-saturation", String(value));
   };
 
   const handleBrightnessChange = (value: number) => {
     setThemeBrightness(value);
-    saveSetting("nectar-theme-brightness", String(value));
+    saveSetting("dz-island-theme-brightness", String(value));
   };
 
   const handleThemeStyleChange = (style: string) => {
     setThemeStyle(style);
-    saveSetting("nectar-theme-style", style);
+    saveSetting("dz-island-theme-style", style);
     // Each style is tuned for an opacity; the slider can still change it afterwards.
     const opacity = STYLE_OPACITY[style];
     if (opacity !== undefined) {
       setThemeOpacity(opacity);
-      saveSetting("nectar-theme-opacity", String(opacity));
+      saveSetting("dz-island-theme-opacity", String(opacity));
     }
   };
 
   const handleAccentChange = (accent: string) => {
     setThemeAccent(accent);
-    saveSetting("nectar-theme-accent", accent);
+    saveSetting("dz-island-theme-accent", accent);
   };
 
   const handleAccentColorChange = (color: string) => {
     setThemeAccentColor(color);
-    saveSetting("nectar-theme-accent-color", color);
+    saveSetting("dz-island-theme-accent-color", color);
   };
 
   const applyThemePreset = (preset: ThemePreset) => {
@@ -1121,12 +1121,12 @@ export function useSettings() {
     setThemeBrightness(preset.brightness);
     setThemeAccent("custom");
     setThemeAccentColor(preset.accent);
-    saveSetting("nectar-theme-mode", "custom");
-    saveSetting("nectar-theme-color", preset.color);
-    saveSetting("nectar-theme-saturation", String(preset.saturation));
-    saveSetting("nectar-theme-brightness", String(preset.brightness));
-    saveSetting("nectar-theme-accent", "custom");
-    saveSetting("nectar-theme-accent-color", preset.accent);
+    saveSetting("dz-island-theme-mode", "custom");
+    saveSetting("dz-island-theme-color", preset.color);
+    saveSetting("dz-island-theme-saturation", String(preset.saturation));
+    saveSetting("dz-island-theme-brightness", String(preset.brightness));
+    saveSetting("dz-island-theme-accent", "custom");
+    saveSetting("dz-island-theme-accent-color", preset.accent);
   };
 
   // ── City search ──
@@ -1140,12 +1140,12 @@ export function useSettings() {
     setCityQuery(city.name);
     setShowCityDropdown(false);
     setCitySearchResults([]);
-    localStorage.setItem("nectar-weather-city", city.name);
-    localStorage.setItem("nectar-weather-lat", city.latitude.toString());
-    localStorage.setItem("nectar-weather-lon", city.longitude.toString());
-    await invoke("save_setting", { key: "nectar-weather-lat", value: city.latitude.toString() }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-lon", value: city.longitude.toString() }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-city", value: city.name }).catch(() => {});
+    localStorage.setItem("dz-island-weather-city", city.name);
+    localStorage.setItem("dz-island-weather-lat", city.latitude.toString());
+    localStorage.setItem("dz-island-weather-lon", city.longitude.toString());
+    await invoke("save_setting", { key: "dz-island-weather-lat", value: city.latitude.toString() }).catch(() => {});
+    await invoke("save_setting", { key: "dz-island-weather-lon", value: city.longitude.toString() }).catch(() => {});
+    await invoke("save_setting", { key: "dz-island-weather-city", value: city.name }).catch(() => {});
     emit("weather-refresh", { lat: city.latitude, lon: city.longitude, city: city.name });
   };
 
@@ -1154,12 +1154,12 @@ export function useSettings() {
     setCityQuery("");
     setShowCityDropdown(false);
     setCitySearchResults([]);
-    localStorage.removeItem("nectar-weather-city");
-    localStorage.removeItem("nectar-weather-lat");
-    localStorage.removeItem("nectar-weather-lon");
-    await invoke("save_setting", { key: "nectar-weather-lat", value: null }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-lon", value: null }).catch(() => {});
-    await invoke("save_setting", { key: "nectar-weather-city", value: null }).catch(() => {});
+    localStorage.removeItem("dz-island-weather-city");
+    localStorage.removeItem("dz-island-weather-lat");
+    localStorage.removeItem("dz-island-weather-lon");
+    await invoke("save_setting", { key: "dz-island-weather-lat", value: null }).catch(() => {});
+    await invoke("save_setting", { key: "dz-island-weather-lon", value: null }).catch(() => {});
+    await invoke("save_setting", { key: "dz-island-weather-city", value: null }).catch(() => {});
     emit("weather-refresh", true);
   };
 
@@ -1211,14 +1211,14 @@ export function useSettings() {
     try {
       await invoke("reset_settings");
       localStorage.clear();
-      await invoke("restart_nectar");
+      await invoke("restart_dz_island");
     } catch (e) {
       console.error("Reset failed:", e);
       setResetStatus("idle");
     }
   };
 
-  const handleUninstallNectar = async () => {
+  const handleUninstallDzIsland = async () => {
     if (uninstallStatus === "idle" || uninstallStatus === "error") {
       setUninstallStatus("confirm");
       setTimeout(() => setUninstallStatus((s) => (s === "confirm" ? "idle" : s)), 4000);
@@ -1228,7 +1228,7 @@ export function useSettings() {
 
     setUninstallStatus("uninstalling");
     try {
-      await invoke("uninstall_nectar");
+      await invoke("uninstall_dz_island");
     } catch (e) {
       console.error("Uninstall failed:", e);
       setUninstallError(typeof e === "string" ? e : String((e as Error)?.message ?? e));
@@ -1442,10 +1442,10 @@ export function useSettings() {
     handleResetSettings,
     uninstallStatus,
     uninstallError,
-    handleUninstallNectar,
+    handleUninstallDzIsland,
 
     // Utilities
-    restartNectar: () => invoke("restart_nectar"),
-    quitNectar: () => invoke("quit_nectar"),
+    restartDzIsland: () => invoke("restart_dz_island"),
+    quitDzIsland: () => invoke("quit_dz_island"),
   };
 }

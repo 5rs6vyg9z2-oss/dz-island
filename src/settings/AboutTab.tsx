@@ -13,7 +13,7 @@ interface AboutTabProps {
   handleResetSettings: () => void;
   uninstallStatus: string;
   uninstallError?: string;
-  handleUninstallNectar: () => void;
+  handleUninstallDzIsland: () => void;
 }
 
 export function AboutTab({
@@ -26,7 +26,7 @@ export function AboutTab({
   handleResetSettings,
   uninstallStatus,
   uninstallError,
-  handleUninstallNectar,
+  handleUninstallDzIsland,
 }: AboutTabProps) {
   const t = useT();
 
@@ -68,7 +68,7 @@ export function AboutTab({
   return (
     <div className="about-tab-container">
       <div className="about-header">
-        <img src="/nectar.png" className="about-logo" alt="Serginho, mascote do DZ Island" />
+        <img src="/serginho.png" className="about-logo" alt="Serginho, mascote do DZ Island" />
         <h1 className="about-title">DZ Island</h1>
         <p className="about-version">{t("about.version", { version: appVersion || "—" })}</p>
       </div>
@@ -102,13 +102,10 @@ export function AboutTab({
           action
           divider={false}
           danger={uninstallStatus === "confirm" || uninstallStatus === "error"}
-          onClick={handleUninstallNectar}
+          onClick={handleUninstallDzIsland}
         />
       </div>
 
-      <div className="about-footer">
-        <p>{t("about.footer")}</p>
-      </div>
     </div>
   );
 }

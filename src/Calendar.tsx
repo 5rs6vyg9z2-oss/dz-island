@@ -1,3 +1,4 @@
+import "./migrateSettings";
 import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -21,8 +22,8 @@ const VIEWS: { id: View; labelKey: string }[] = [
   { id: "agenda", labelKey: "calendar.view.agenda" },
 ];
 
-const VIEW_KEY = "nectar-calendar-window-view";
-const HIDDEN_KEY = "nectar-calendar-hidden";
+const VIEW_KEY = "dz-island-calendar-window-view";
+const HIDDEN_KEY = "dz-island-calendar-hidden";
 const appWindow = getCurrentWebviewWindow();
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -66,7 +67,7 @@ function readHidden(): Set<string> {
 }
 
 function colorStyle(e: CalEvent): React.CSSProperties {
-  return { ["--c" as string]: e.color ?? "var(--nectar-text, #fff)" };
+  return { ["--c" as string]: e.color ?? "var(--dz-island-text, #fff)" };
 }
 
 function CalendarWindow() {
@@ -79,7 +80,7 @@ function CalendarWindow() {
   const [hidden, setHidden] = useState<Set<string>>(readHidden);
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const hour12 = localStorage.getItem("nectar-time-format-24h") !== "true";
+  const hour12 = localStorage.getItem("dz-island-time-format-24h") !== "true";
 
   useEffect(() => initTheme(), []);
 
@@ -176,7 +177,7 @@ function CalendarWindow() {
           <ul className="cw-sources">
             {state.calendars.map((c) => {
               const off = hidden.has(c.name);
-              const color = c.color ?? "var(--nectar-text, #fff)";
+              const color = c.color ?? "var(--dz-island-text, #fff)";
               return (
                 <li key={c.name}>
                   <button onClick={() => toggleCalendar(c.name)} className={off ? "off" : ""}>

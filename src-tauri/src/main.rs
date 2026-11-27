@@ -87,8 +87,8 @@ fn main() {
         use windows::Win32::System::Threading::{CreateMutexW, CreateEventW, OpenEventW, SetEvent, SYNCHRONIZATION_ACCESS_RIGHTS};
         use windows::Win32::Foundation::{GetLastError, CloseHandle};
 
-        let mutex_name: Vec<u16> = "NectarSingleInstance".encode_utf16().chain(std::iter::once(0)).collect();
-        let event_name: Vec<u16> = "NectarOpenSettings".encode_utf16().chain(std::iter::once(0)).collect();
+        let mutex_name: Vec<u16> = "DzIslandSingleInstance".encode_utf16().chain(std::iter::once(0)).collect();
+        let event_name: Vec<u16> = "DzIslandOpenSettings".encode_utf16().chain(std::iter::once(0)).collect();
 
         let h_mutex = CreateMutexW(None, true, windows::core::PCWSTR(mutex_name.as_ptr())).ok();
         let err = GetLastError();
@@ -205,9 +205,9 @@ fn main() {
             focus_app_windows,
             close_window,
             end_task,
-            quit_nectar,
-            restart_nectar,
-            uninstall_nectar,
+            quit_dz_island,
+            restart_dz_island,
+            uninstall_dz_island,
             get_diagnostics,
             open_log_folder,
             set_hitbox_logging,
@@ -287,8 +287,8 @@ fn main() {
             // Crash-recovery: if a previous session was force-killed while the native
             // taskbar was hidden, restore it now. Runs before the frontend re-hides it
             // (init_dock fires after a delay), so the flag must be removed first.
-            if std::env::var_os("NECTAR_RESTARTING").is_some() {
-                std::env::remove_var("NECTAR_RESTARTING");
+            if std::env::var_os("DZ_ISLAND_RESTARTING").is_some() {
+                std::env::remove_var("DZ_ISLAND_RESTARTING");
                 RELAUNCHED.store(true, Ordering::Relaxed);
             } else if taskbar_marker_exists() {
                 RELAUNCHED.store(true, Ordering::Relaxed);
@@ -417,7 +417,7 @@ fn main() {
                             }
                             if let Some(w) = ah.get_webview_window("settings") { let _ = w.destroy(); }
                             if let Some(w) = ah.get_webview_window("calendar") { let _ = w.destroy(); }
-                            std::env::set_var("NECTAR_RESTARTING", "1");
+                            std::env::set_var("DZ_ISLAND_RESTARTING", "1");
                             close_single_instance_handles();
 
                             ah.restart();

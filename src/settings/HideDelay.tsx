@@ -20,14 +20,14 @@ const DELAYS = [
 export function HideDelay() {
   const t = useT();
   const [value, setValue] = useState(() => {
-    const saved = localStorage.getItem("nectar-dock-hide-delay");
+    const saved = localStorage.getItem("dz-island-dock-hide-delay");
     return saved && DELAYS.some((d) => d.value === saved) ? saved : "800";
   });
 
   const change = (next: string) => {
     setValue(next);
-    localStorage.setItem("nectar-dock-hide-delay", next);
-    invoke("save_setting", { key: "nectar-dock-hide-delay", value: next }).catch(() => { });
+    localStorage.setItem("dz-island-dock-hide-delay", next);
+    invoke("save_setting", { key: "dz-island-dock-hide-delay", value: next }).catch(() => { });
   };
 
   return (

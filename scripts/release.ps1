@@ -68,11 +68,11 @@ Write-Host "`nRelease notes:`n$notes`n"
 Invoke-Step "Installing frontend dependencies" { bun install }
 Invoke-Step "Building DZ Island" { bun run tauri build --no-bundle }
 
-$exe = Join-Path $root "src-tauri/target/release/nectar.exe"
+$exe = Join-Path $root "src-tauri/target/release/dz-island.exe"
 if (-not (Test-Path $exe)) { throw "Expected build output not found: $exe" }
 
 Write-Host "`n==> Packaging portable build" -ForegroundColor Cyan
-$portable = "nectar-$Version-portable-windows-x64.zip"
+$portable = "dz-island-$Version-portable-windows-x64.zip"
 Compress-Archive -Path $exe -DestinationPath (Join-Path $out $portable)
 
 Write-Host "`n==> Packaging installer payload" -ForegroundColor Cyan
@@ -86,8 +86,8 @@ try {
 } finally {
     Pop-Location
 }
-$installerName = "Nectar-Setup-$Version.exe"
-Copy-Item (Join-Path $root "installer-app/src-tauri/target/release/nectar-installer.exe") (Join-Path $out $installerName)
+$installerName = "DZ-Island-Setup-$Version.exe"
+Copy-Item (Join-Path $root "installer-app/src-tauri/target/release/dz-island-installer.exe") (Join-Path $out $installerName)
 
 [IO.File]::WriteAllText((Join-Path $out "notes.md"), $notes, (New-Object Text.UTF8Encoding $false))
 

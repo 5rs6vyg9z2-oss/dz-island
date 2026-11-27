@@ -42,7 +42,7 @@ fn system_language() -> String {
 }
 
 fn language(app: &AppHandle) -> String {
-    let preference = crate::utils::get_setting_str(app, "nectar-language").unwrap_or_else(|| "system".into());
+    let preference = crate::utils::get_setting_str(app, "dz-island-language").unwrap_or_else(|| "system".into());
     let wanted = if preference == "system" { system_language() } else { preference };
     if catalog().contains_key(wanted.as_str()) { wanted } else { "en".into() }
 }

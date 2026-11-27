@@ -130,7 +130,7 @@ async function fetchWeatherForCoords(
   };
 }
 
-const IP_LOCATION_KEY = "nectar-weather-ip-location";
+const IP_LOCATION_KEY = "dz-island-weather-ip-location";
 
 function rememberIpLocation(location: ResolvedLocation): ResolvedLocation {
   try {
@@ -156,11 +156,11 @@ async function resolveLocation(): Promise<ResolvedLocation | null> {
       any
     >;
     const savedLat =
-      settings["nectar-weather-lat"] || localStorage.getItem("nectar-weather-lat");
+      settings["dz-island-weather-lat"] || localStorage.getItem("dz-island-weather-lat");
     const savedLon =
-      settings["nectar-weather-lon"] || localStorage.getItem("nectar-weather-lon");
+      settings["dz-island-weather-lon"] || localStorage.getItem("dz-island-weather-lon");
     const savedCity =
-      settings["nectar-weather-city"] || localStorage.getItem("nectar-weather-city");
+      settings["dz-island-weather-city"] || localStorage.getItem("dz-island-weather-city");
 
     if (savedLat && savedLon) {
       return {
@@ -229,13 +229,13 @@ async function persistWeather(
 ): Promise<void> {
   if (temp !== null) {
     invoke("save_setting", {
-      key: "nectar-weather-cached-temp",
+      key: "dz-island-weather-cached-temp",
       value: temp,
     }).catch(() => {});
   }
   if (condition) {
     invoke("save_setting", {
-      key: "nectar-weather-cached-condition",
+      key: "dz-island-weather-cached-condition",
       value: condition,
     }).catch(() => {});
   }
@@ -243,20 +243,20 @@ async function persistWeather(
 
 export function useWeather(enabled: boolean) {
   const [temperature, setTemperature] = useState<number | null>(() => {
-    const cached = localStorage.getItem("nectar-weather-cached-temp");
+    const cached = localStorage.getItem("dz-island-weather-cached-temp");
     return cached !== null ? Number(cached) : null;
   });
   const [weatherCondition, setWeatherCondition] = useState<string>(
-    () => localStorage.getItem("nectar-weather-cached-condition") || "",
+    () => localStorage.getItem("dz-island-weather-cached-condition") || "",
   );
   const [weatherIcon, setWeatherIcon] = useState<ComponentType<LucideProps>>(
     () => Thermometer,
   );
   const [cityName, setCityName] = useState<string>(
-    () => localStorage.getItem("nectar-weather-city") || "",
+    () => localStorage.getItem("dz-island-weather-city") || "",
   );
   const [tempUnit, setTempUnit] = useState<string>(
-    () => localStorage.getItem("nectar-temp-unit") || "celsius",
+    () => localStorage.getItem("dz-island-temp-unit") || "celsius",
   );
 
   const tempUnitRef = useRef(tempUnit);
@@ -287,7 +287,7 @@ export function useWeather(enabled: boolean) {
         // Update city name if resolved from IP geolocation
         if (location.city) {
           setCityName(location.city);
-          localStorage.setItem("nectar-weather-city", location.city);
+          localStorage.setItem("dz-island-weather-city", location.city);
         }
       } catch (e) {
         console.warn("Weather fetch failed:", e);
@@ -307,26 +307,26 @@ export function useWeather(enabled: boolean) {
     invoke("load_settings")
       .then((settings: any) => {
         const cachedTemp =
-          settings["nectar-weather-cached-temp"] ??
-          localStorage.getItem("nectar-weather-cached-temp");
+          settings["dz-island-weather-cached-temp"] ??
+          localStorage.getItem("dz-island-weather-cached-temp");
         if (cachedTemp !== undefined && cachedTemp !== null) {
           setTemperature(Number(cachedTemp));
         }
         const cachedCond =
-          settings["nectar-weather-cached-condition"] ??
-          localStorage.getItem("nectar-weather-cached-condition");
+          settings["dz-island-weather-cached-condition"] ??
+          localStorage.getItem("dz-island-weather-cached-condition");
         if (cachedCond) {
           setWeatherCondition(String(cachedCond));
           setWeatherIcon(() => getWeatherIcon(String(cachedCond)));
         }
         const savedUnit =
-          settings["nectar-temp-unit"] ?? localStorage.getItem("nectar-temp-unit");
+          settings["dz-island-temp-unit"] ?? localStorage.getItem("dz-island-temp-unit");
         if (savedUnit) {
           setTempUnit(String(savedUnit));
         }
         const savedCity =
-          settings["nectar-weather-city"] ??
-          localStorage.getItem("nectar-weather-city");
+          settings["dz-island-weather-city"] ??
+          localStorage.getItem("dz-island-weather-city");
         if (savedCity) {
           setCityName(String(savedCity));
         }
@@ -340,7 +340,7 @@ export function useWeather(enabled: boolean) {
       "settings-changed",
       (event) => {
         const { key, value } = event.payload;
-        if (key === "nectar-temp-unit") {
+        if (key === "dz-island-temp-unit") {
           setTempUnit(String(value));
         }
       },
@@ -349,7 +349,7 @@ export function useWeather(enabled: boolean) {
       "settings-external-changed",
       (event) => {
         const { key, value } = event.payload;
-        if (key === "nectar-temp-unit") {
+        if (key === "dz-island-temp-unit") {
           setTempUnit(String(value));
         }
       },
@@ -392,10 +392,10 @@ export function useWeather(enabled: boolean) {
       "settings-changed",
       (event) => {
         const { key, value } = event.payload;
-        if (key === "nectar-weather-city") {
+        if (key === "dz-island-weather-city") {
           setCityName(String(value || ""));
         }
-        if (key === "nectar-weather-city" || key === "nectar-weather-lat" || key === "nectar-weather-lon") {
+        if (key === "dz-island-weather-city" || key === "dz-island-weather-lat" || key === "dz-island-weather-lon") {
           clearTimeout(timer);
           timer = setTimeout(() => doFetch(false), 250);
         }

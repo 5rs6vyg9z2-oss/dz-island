@@ -8,7 +8,7 @@ type Props = {
   children: ReactNode;
 };
 
-const KEY = "nectar-settings-section-";
+const KEY = "dz-island-settings-section-";
 
 export function SettingSection({ id, title, defaultOpen = false, children }: Props) {
   const [open, setOpen] = useState(() => {
@@ -22,8 +22,8 @@ export function SettingSection({ id, title, defaultOpen = false, children }: Pro
 
   useEffect(() => {
     const reveal = () => setOpen(true);
-    window.addEventListener("nectar-settings-reveal", reveal);
-    return () => window.removeEventListener("nectar-settings-reveal", reveal);
+    window.addEventListener("dz-island-settings-reveal", reveal);
+    return () => window.removeEventListener("dz-island-settings-reveal", reveal);
   }, []);
 
   const toggle = () => {

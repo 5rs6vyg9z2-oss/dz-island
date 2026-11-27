@@ -239,7 +239,7 @@ export function NotchTab({
         )}
 
         {notchMode !== "fixed" && <NotchEdgeDelay />}
-        {notchMode !== "fixed" && <EdgeArea settingKey="nectar-notch-edge-area" />}
+        {notchMode !== "fixed" && <EdgeArea settingKey="dz-island-notch-edge-area" />}
 
         <SettingRow icon={MonitorCheck} label={t("common.showOn")} desc={t("notch.showOn.desc")}>
           <Dropdown

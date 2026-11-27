@@ -531,6 +531,21 @@ fn settings_cache() -> &'static std::sync::Mutex<std::collections::HashMap<Strin
     crate::state::SETTINGS_CACHE.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
 }
 
+/// Read existing preferences under their current keys. Explicit new keys win.
+pub fn normalize_settings(
+    mut settings: std::collections::HashMap<String, serde_json::Value>,
+) -> std::collections::HashMap<String, serde_json::Value> {
+    let legacy_keys: Vec<_> = settings.keys()
+        .filter_map(|key| key.strip_prefix("nectar-").map(|suffix| (key.clone(), format!("dz-island-{suffix}"))))
+        .collect();
+    for (old, new) in legacy_keys {
+        if let Some(value) = settings.remove(&old) {
+            settings.entry(new).or_insert(value);
+        }
+    }
+    settings
+}
+
 /// Load settings.json into the in-memory cache. Call once at startup.
 pub fn init_settings_cache(app: &tauri::AppHandle) {
     use tauri::Manager;
@@ -538,7 +553,7 @@ pub fn init_settings_cache(app: &tauri::AppHandle) {
         if let Ok(content) = std::fs::read_to_string(path) {
             if let Ok(settings) = serde_json::from_str::<std::collections::HashMap<String, serde_json::Value>>(&content) {
                 if let Ok(mut cache) = settings_cache().lock() {
-                    *cache = settings;
+                    *cache = normalize_settings(settings);
                 }
             }
         }
@@ -552,8 +567,8 @@ pub fn replace_settings_cache(new_settings: std::collections::HashMap<String, se
     }
 }
 
-pub fn get_nectar_scale(_app: &tauri::AppHandle) -> f64 {
-    get_setting_str(_app, "nectar-scale")
+pub fn get_dz_island_scale(_app: &tauri::AppHandle) -> f64 {
+    get_setting_str(_app, "dz-island-scale")
         .and_then(|s| s.parse::<f64>().ok())
         .unwrap_or(1.0)
 }
@@ -1007,7 +1022,7 @@ mod tests {
         assert!(!out.contains('%'), "got {out}");
 
         // Unknown variables stay verbatim
-        assert_eq!(expand_env_vars("%NECTAR_NOT_A_REAL_VAR%\\x"), "%NECTAR_NOT_A_REAL_VAR%\\x");
+        assert_eq!(expand_env_vars("%DZ_ISLAND_NOT_A_REAL_VAR%\\x"), "%DZ_ISLAND_NOT_A_REAL_VAR%\\x");
 
         // Unclosed percent is left alone
         assert_eq!(expand_env_vars("50% done"), "50% done");
@@ -1049,7 +1064,7 @@ mod tests {
 
         // Already-qualified paths and nonsense are not resolved
         assert_eq!(resolve_executable_path("C:\\Windows\\notepad.exe"), None);
-        assert_eq!(resolve_executable_path("nectar-definitely-not-installed"), None);
+        assert_eq!(resolve_executable_path("dz-island-definitely-not-installed"), None);
         assert_eq!(resolve_executable_path(""), None);
     }
 }

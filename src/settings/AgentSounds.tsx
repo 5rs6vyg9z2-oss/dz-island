@@ -14,7 +14,7 @@ const ROWS: { state: SoundState; icon: typeof Bell }[] = [
 
 export function AgentSounds() {
   const t = useT();
-  const [enabled, setEnabled] = useState(() => localStorage.getItem("nectar-agent-sounds") !== "false");
+  const [enabled, setEnabled] = useState(() => localStorage.getItem("dz-island-agent-sounds") !== "false");
   const [custom, setCustom] = useState<string[]>([]);
   const [stateOn, setStateOn] = useState<Record<SoundState, boolean>>(() => ({ needs_input: stateSoundOn("needs_input"), done: stateSoundOn("done"), error: stateSoundOn("error") }));
   const toggleState = (state: SoundState) => {
@@ -34,8 +34,8 @@ export function AgentSounds() {
   const toggle = () => {
     const next = !enabled;
     setEnabled(next);
-    localStorage.setItem("nectar-agent-sounds", String(next));
-    invoke("save_setting", { key: "nectar-agent-sounds", value: String(next) }).catch(() => { });
+    localStorage.setItem("dz-island-agent-sounds", String(next));
+    invoke("save_setting", { key: "dz-island-agent-sounds", value: String(next) }).catch(() => { });
   };
 
   return (

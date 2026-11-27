@@ -33,6 +33,7 @@ dist-ssr
 
 
 # Local toolchain and runnable portable copy
+/.dz-island-local/
 /.nectar-local/
 /Portatil/
 

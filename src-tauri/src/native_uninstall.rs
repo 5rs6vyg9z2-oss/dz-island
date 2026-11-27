@@ -19,7 +19,7 @@ use crate::uninstall_registry::{
 };
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-const TITLE: &str = "Nectar";
+const TITLE: &str = "DZ Island";
 
 pub fn requested() -> bool {
     let by_arg = std::env::args().skip(1).any(|a| a == "--uninstall");
@@ -76,12 +76,12 @@ fn run_hidden(program: &str, args: &[&str]) -> Option<String> {
         .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
 }
 
-fn stop_running_nectar() {
+fn stop_running_dz_island() {
     let not_self = format!("PID ne {}", std::process::id());
-    let filters = ["/FI", "IMAGENAME eq nectar.exe", "/FI", not_self.as_str()];
+    let filters = ["/FI", "IMAGENAME eq dz-island.exe", "/FI", not_self.as_str()];
 
     let still_running = || {
-        run_hidden("tasklist", &filters).is_some_and(|out| out.to_lowercase().contains("nectar.exe"))
+        run_hidden("tasklist", &filters).is_some_and(|out| out.to_lowercase().contains("dz-island.exe"))
     };
 
     let _ = run_hidden("taskkill", &filters);
@@ -101,7 +101,7 @@ fn stop_running_nectar() {
 
 fn restore_taskbar_if_left_hidden() {
     let Ok(appdata) = std::env::var("APPDATA") else { return };
-    let flag: PathBuf = Path::new(&appdata).join("com.kua8.nectar").join("taskbar_hidden.flag");
+    let flag: PathBuf = Path::new(&appdata).join("local.nectar.portable").join("taskbar_hidden.flag");
     if flag.exists() {
         crate::utils::set_taskbar_visibility(true, true);
         let _ = std::fs::remove_file(&flag);
@@ -110,9 +110,9 @@ fn restore_taskbar_if_left_hidden() {
 
 fn remove_shortcuts(all_users: bool) {
     let mut lnks = Vec::new();
-    if let Some(d) = start_menu_programs_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
-    if let Some(d) = legacy_start_menu_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
-    if let Some(d) = desktop_dir(all_users) { lnks.push(d.join("Nectar.lnk")); }
+    if let Some(d) = start_menu_programs_dir(all_users) { lnks.push(d.join("DZ Island.lnk")); }
+    if let Some(d) = legacy_start_menu_dir(all_users) { lnks.push(d.join("DZ Island.lnk")); }
+    if let Some(d) = desktop_dir(all_users) { lnks.push(d.join("DZ Island.lnk")); }
     for lnk in lnks {
         let _ = std::fs::remove_file(lnk);
     }
@@ -123,28 +123,28 @@ fn remove_registry(all_users: bool) {
         let root = if all_users { HKEY_LOCAL_MACHINE } else { HKEY_CURRENT_USER };
         let subkey_w = wide(UNINSTALL_SUBKEY);
         let _ = RegDeleteTreeW(root, PCWSTR(subkey_w.as_ptr()));
-        let install_key = wide(r"Software\kua8\nectar");
+        let install_key = wide(r"Software\DZ Island");
         let _ = RegDeleteTreeW(root, PCWSTR(install_key.as_ptr()));
 
         let run_key = wide(r"Software\Microsoft\Windows\CurrentVersion\Run");
         let approved_key = wide(r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run");
-        let value = wide("nectar");
+        let value = wide("dz-island");
         let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, PCWSTR(run_key.as_ptr()), PCWSTR(value.as_ptr()));
         let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, PCWSTR(approved_key.as_ptr()), PCWSTR(value.as_ptr()));
     }
 }
 
-// Files Nectar itself puts in the install folder (the payload is just nectar.exe)
-const APP_FILES: &[&str] = &["nectar.exe", "uninstall.exe", ".install-scope"];
+// Files DZ Island itself puts in the install folder (the payload is just dz-island.exe)
+const APP_FILES: &[&str] = &["dz-island.exe", "uninstall.exe", ".install-scope"];
 
-// True when the folder belongs to Nectar alone and can be removed as a whole
+// True when the folder belongs to DZ Island alone and can be removed as a whole
 fn is_dedicated_install_dir(dir: &Path) -> bool {
     let Some(name) = dir.file_name().map(|n| n.to_string_lossy().to_lowercase()) else {
         return false;
     };
 
-    // Folder name must identify a Nectar install
-    if !name.contains("nectar") {
+    // Folder name must identify a DZ Island install
+    if !name.contains("dz-island") && !name.contains("dz island") {
         return false;
     }
 
@@ -173,8 +173,8 @@ fn remove_dir_command(install_dir: &Path, run_once: &str) -> String {
            if (Test-Path -LiteralPath '{dir}') {{ Start-Sleep -Milliseconds 500 }} \
          }}; \
          if (Test-Path -LiteralPath '{dir}') {{ \
-           Add-Content (Join-Path $env:TEMP 'nectar-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
-           New-ItemProperty -Path '{run_once}' -Name 'NectarCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
+           Add-Content (Join-Path $env:TEMP 'dz-island-uninstall.log') (\"Could not remove {dir}: \" + ($failed | Out-String)); \
+           New-ItemProperty -Path '{run_once}' -Name 'DzIslandCleanup' -Value 'cmd /c rd /s /q \"{dir}\"' -Force -ErrorAction SilentlyContinue | Out-Null \
          }}",
         pid = std::process::id(),
     )
@@ -197,8 +197,8 @@ fn remove_app_files_command(install_dir: &Path, run_once: &str) -> String {
            if ((& $left).Count) {{ Start-Sleep -Milliseconds 500 }} \
          }}; \
          if ((& $left).Count) {{ \
-           Add-Content (Join-Path $env:TEMP 'nectar-uninstall.log') (\"Could not remove Nectar files from {dir}: \" + ($failed | Out-String)); \
-           New-ItemProperty -Path '{run_once}' -Name 'NectarCleanup' -Value 'cmd /c del /f /q {del_args}' -Force -ErrorAction SilentlyContinue | Out-Null \
+           Add-Content (Join-Path $env:TEMP 'dz-island-uninstall.log') (\"Could not remove DZ Island files from {dir}: \" + ($failed | Out-String)); \
+           New-ItemProperty -Path '{run_once}' -Name 'DzIslandCleanup' -Value 'cmd /c del /f /q {del_args}' -Force -ErrorAction SilentlyContinue | Out-Null \
          }}",
         pid = std::process::id(),
     )
@@ -212,20 +212,20 @@ pub fn run() {
 
     if all_users && !is_elevated() {
         if !relaunch_elevated(&exe) {
-            message("Nectar was installed for all users, so uninstalling it needs administrator permission.", MB_OK | MB_ICONINFORMATION);
+            message("DZ Island was installed for all users, so uninstalling it needs administrator permission.", MB_OK | MB_ICONINFORMATION);
         }
         return;
     }
 
     if message(
-        "Uninstall Nectar?\n\nThis removes the app and its shortcuts. Your settings are kept in case you reinstall.",
+        "Uninstall DZ Island?\n\nThis removes the app and its shortcuts. Your settings are kept in case you reinstall.",
         MB_YESNO | MB_ICONQUESTION,
     ) != IDYES
     {
         return;
     }
 
-    stop_running_nectar();
+    stop_running_dz_island();
     restore_taskbar_if_left_hidden();
     remove_shortcuts(all_users);
     remove_registry(all_users);
@@ -239,7 +239,7 @@ pub fn run() {
     let ps_command = if dedicated {
         remove_dir_command(&install_dir, run_once)
     } else {
-        // Shared folder (e.g. D:\Apps): remove only Nectar's own files, never the folder
+        // Shared folder (e.g. D:\Apps): remove only DZ Island's own files, never the folder
         remove_app_files_command(&install_dir, run_once)
     };
     let spawn = |flags: u32| {
@@ -253,14 +253,14 @@ pub fn run() {
 
     if spawned.is_err() {
         let text = if dedicated {
-            format!("Nectar was unregistered, but its folder couldn't be removed automatically. You can delete it yourself:\n\n{}", install_dir.display())
+            format!("DZ Island was unregistered, but its folder couldn't be removed automatically. You can delete it yourself:\n\n{}", install_dir.display())
         } else {
-            format!("Nectar was unregistered, but its files couldn't be removed automatically. You can delete {} yourself from:\n\n{}", APP_FILES.join(", "), install_dir.display())
+            format!("DZ Island was unregistered, but its files couldn't be removed automatically. You can delete {} yourself from:\n\n{}", APP_FILES.join(", "), install_dir.display())
         };
         message(&text, MB_OK | MB_ICONINFORMATION);
         return;
     }
-    message("Nectar has been uninstalled.", MB_OK | MB_ICONINFORMATION);
+    message("DZ Island has been uninstalled.", MB_OK | MB_ICONINFORMATION);
 }
 
 #[cfg(test)]
@@ -268,9 +268,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn dedicated_dir_needs_nectar_in_its_name() {
-        assert!(is_dedicated_install_dir(Path::new(r"C:\Users\u\AppData\Local\Programs\Nectar")));
-        assert!(is_dedicated_install_dir(Path::new(r"D:\Apps\nectar-beta")));
+    fn dedicated_dir_needs_dz_island_in_its_name() {
+        assert!(is_dedicated_install_dir(Path::new(r"C:\Users\u\AppData\Local\Programs\DZ Island")));
+        assert!(is_dedicated_install_dir(Path::new(r"D:\Apps\dz-island-beta")));
         assert!(!is_dedicated_install_dir(Path::new(r"D:\Apps")));
     }
 
@@ -282,7 +282,7 @@ mod tests {
     #[test]
     fn shared_folder_cleanup_only_targets_app_files() {
         let cmd = remove_app_files_command(Path::new(r"D:\Apps"), r"HKCU:\RunOnce");
-        assert!(cmd.contains(r"'D:\Apps\nectar.exe'"));
+        assert!(cmd.contains(r"'D:\Apps\dz-island.exe'"));
         assert!(cmd.contains(r"'D:\Apps\uninstall.exe'"));
         assert!(!cmd.contains("-Recurse"));
         assert!(!cmd.contains("rd /s"));

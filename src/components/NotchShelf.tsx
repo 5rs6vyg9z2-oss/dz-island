@@ -16,7 +16,7 @@ export type ShelfItem = {
   preview?: string | null;
 };
 
-const STORAGE_KEY = "nectar-shelf-items";
+const STORAGE_KEY = "dz-island-shelf-items";
 const MAX_ITEMS = 10;
 
 const baseName = (path: string) => path.split(/[\\/]/).filter(Boolean).pop() ?? path;

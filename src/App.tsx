@@ -380,18 +380,18 @@ function App() {
   const [dualDayShift, setDualDayShift] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("nectar-scale") || "1.0"));
-  const [timeFormat24h, setTimeFormat24h] = useState(() => localStorage.getItem("nectar-time-format-24h") === "true");
+  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("dz-island-scale") || "1.0"));
+  const [timeFormat24h, setTimeFormat24h] = useState(() => localStorage.getItem("dz-island-time-format-24h") === "true");
 
 
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
   const [batterySecondsLeft, setBatterySecondsLeft] = useState<number | null>(null);
   const [widgetTip, setWidgetTip] = useState<string | null>(null);
-  const [hasBattery, setHasBattery] = useState(() => localStorage.getItem("nectar-has-battery") !== "false");
+  const [hasBattery, setHasBattery] = useState(() => localStorage.getItem("dz-island-has-battery") !== "false");
   const [showPowerPulse, setShowPowerPulse] = useState(false);
   const [showLowBatteryPulse, setShowLowBatteryPulse] = useState(false);
-  const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("nectar-low-battery-threshold") || "20"));
+  const [lowBatteryThreshold, setLowBatteryThreshold] = useState(() => parseInt(localStorage.getItem("dz-island-low-battery-threshold") || "20"));
   const prevChargingRef = useRef<boolean | null>(null);
   const powerPulseTimeoutRef = useRef<any>(null);
   const lowBatteryPulseShownRef = useRef<boolean>(false);
@@ -407,7 +407,7 @@ function App() {
   }, []);
 
   const [notchMode, setNotchMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-notch-mode") || "fixed";
+    const raw = localStorage.getItem("dz-island-notch-mode") || "fixed";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
@@ -463,7 +463,7 @@ function App() {
   const wifiEnabled = wifiStatus?.enabled ?? false;
   const wifiConnected = wifiStatus?.connected ?? false;
   const [bluetoothEnabled, setBluetoothEnabled] = useState(true);
-  const [settingsLegacyMode, setSettingsLegacyMode] = useState(() => localStorage.getItem("nectar-legacy-mode") === "true");
+  const [settingsLegacyMode, setSettingsLegacyMode] = useState(() => localStorage.getItem("dz-island-legacy-mode") === "true");
   const [ccView, setCcView] = useState<'main' | 'wifi' | 'bluetooth' | 'audio'>('main');
   const showConnections = !settingsLegacyMode && ccView !== 'main';
   const [lanStatus, setLanStatus] = useState<{ present: boolean; connected: boolean; name: string } | null>(null);
@@ -475,7 +475,7 @@ function App() {
   const [cpuUsage, setCpuUsage] = useState(0);
   const [ramUsage, setRamUsage] = useState(0);
   const [diskSpace, setDiskSpace] = useState(0);
-  const [netWidgetMode, setNetWidgetMode] = useState(() => localStorage.getItem("nectar-net-widget-mode") === "status" ? "status" : "speed");
+  const [netWidgetMode, setNetWidgetMode] = useState(() => localStorage.getItem("dz-island-net-widget-mode") === "status" ? "status" : "speed");
   const [netUpSpeed, setNetUpSpeed] = useState(0);
   const [netDownSpeed, setNetDownSpeed] = useState(0);
   const [statusWidgets, setStatusWidgets] = useState<WidgetConfig>({ left: ["weather"], right: ["battery"] });
@@ -488,7 +488,7 @@ function App() {
 
   // Update state
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [showUpdateIndicator, setShowUpdateIndicator] = useState(() => localStorage.getItem("nectar-show-update-indicator") !== "false");
+  const [showUpdateIndicator, setShowUpdateIndicator] = useState(() => localStorage.getItem("dz-island-show-update-indicator") !== "false");
   const [showUpdatePulse, setShowUpdatePulse] = useState(false);
 
   useEffect(() => {
@@ -532,12 +532,12 @@ function App() {
   const [startupAnimating, setStartupAnimating] = useState(false);
 
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("dz-island-dock-mode") || "smart";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
   const [dndActive, setDndActive] = useState(false);
-  const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("nectar-dock-enabled") !== "false");
+  const [dockEnabled, setDockEnabled] = useState(() => localStorage.getItem("dz-island-dock-enabled") !== "false");
   const [isNotchHovered, setIsNotchHovered] = useState(false);
   const [agentActivity, setAgentActivity] = useState<AgentActivity | null>(null);
   const windowLabelRef = useRef("");
@@ -548,13 +548,13 @@ function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hotkeyHidden, setHotkeyHidden] = useState(false);
   const [interactionState, setInteractionState] = useState<'active' | 'grace' | 'none'>('none');
-  const nectarRef = useRef<HTMLDivElement>(null);
+  const dzIslandRef = useRef<HTMLDivElement>(null);
   const dockEnabledInitial = useRef(true);
   const dockModeInitial = useRef(true);
   const notchModeInitial = useRef(true);
 
-  const [nectarMode, setNectarMode] = useState<'music' | 'calendar' | 'command-center' | 'status' | 'shelf' | 'agent'>('status');
-  const modeBeforeAgentAlert = useRef<typeof nectarMode | null>(null);
+  const [dzIslandMode, setDzIslandMode] = useState<'music' | 'calendar' | 'command-center' | 'status' | 'shelf' | 'agent'>('status');
+  const modeBeforeAgentAlert = useRef<typeof dzIslandMode | null>(null);
   const [tourActive, setTourActive] = useState(false);
 
   const isAnyInteraction = isHovered || isNotchHovered || isEdgeHovered;
@@ -591,9 +591,9 @@ function App() {
   useEffect(() => {
     let lastSent = "";
     const updateRect = () => {
-      if (nectarRef.current && isNotchWindow) {
+      if (dzIslandRef.current && isNotchWindow) {
         const clock = document.querySelector('.time-flip-container')?.getBoundingClientRect();
-        const rect = !isHovered && !tourActive ? clock : nectarRef.current.getBoundingClientRect();
+        const rect = !isHovered && !tourActive ? clock : dzIslandRef.current.getBoundingClientRect();
         if (!rect) {
           invoke('update_notch_rect', { rect: { x: 0, y: 0, width: 0, height: 0 } }).catch(() => {});
           lastSent = '';
@@ -621,7 +621,7 @@ function App() {
     updateRect();
     window.addEventListener('resize', updateRect);
     const observer = new ResizeObserver(updateRect);
-    if (nectarRef.current) observer.observe(nectarRef.current);
+    if (dzIslandRef.current) observer.observe(dzIslandRef.current);
     const companion = document.querySelector('.codex-companion');
     if (companion) observer.observe(companion);
 
@@ -705,49 +705,49 @@ function App() {
   }, [windowLabel]);
 
   // Settings state
-  const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("nectar-weather-enabled") !== "false");
-  const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("nectar-calendar-enabled") !== "false");
+  const [settingsWeatherEnabled, setSettingsWeatherEnabled] = useState(() => localStorage.getItem("dz-island-weather-enabled") !== "false");
+  const [settingsCalendarEnabled, setSettingsCalendarEnabled] = useState(() => localStorage.getItem("dz-island-calendar-enabled") !== "false");
   const [settingsTimerEnabled, setSettingsTimerEnabled] = useState(
-    () => (localStorage.getItem("nectar-timer-enabled") ?? localStorage.getItem("nectar-calendar-enabled")) !== "false",
+    () => (localStorage.getItem("dz-island-timer-enabled") ?? localStorage.getItem("dz-island-calendar-enabled")) !== "false",
   );
   const [settingsTimerSoundEnabled, setSettingsTimerSoundEnabled] = useState(
-    () => localStorage.getItem("nectar-timer-sound-enabled") !== "false",
+    () => localStorage.getItem("dz-island-timer-sound-enabled") !== "false",
   );
   const [settingsTimerProgressEnabled, setSettingsTimerProgressEnabled] = useState(
-    () => localStorage.getItem("nectar-notch-timer-progress") !== "false",
+    () => localStorage.getItem("dz-island-notch-timer-progress") !== "false",
   );
   const [settingsStopwatchEnabled, setSettingsStopwatchEnabled] = useState(
-    () => (localStorage.getItem("nectar-stopwatch-enabled") ?? localStorage.getItem("nectar-calendar-enabled")) !== "false",
+    () => (localStorage.getItem("dz-island-stopwatch-enabled") ?? localStorage.getItem("dz-island-calendar-enabled")) !== "false",
   );
   const showClockColumn = settingsTimerEnabled || settingsStopwatchEnabled;
-  const [settingsDualClockEnabled, setSettingsDualClockEnabled] = useState(() => localStorage.getItem("nectar-dual-clock-enabled") === "true");
-  const [dualClockZone, setDualClockZone] = useState(() => localStorage.getItem("nectar-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE);
-  const [dualClockLabel, setDualClockLabel] = useState(() => localStorage.getItem("nectar-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE);
+  const [settingsDualClockEnabled, setSettingsDualClockEnabled] = useState(() => localStorage.getItem("dz-island-dual-clock-enabled") === "true");
+  const [dualClockZone, setDualClockZone] = useState(() => localStorage.getItem("dz-island-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE);
+  const [dualClockLabel, setDualClockLabel] = useState(() => localStorage.getItem("dz-island-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE);
   const productivityEnabled = settingsCalendarEnabled || showClockColumn;
-  const [settingsMusicModeEnabled, setSettingsMusicModeEnabled] = useState(() => localStorage.getItem("nectar-music-mode-enabled") !== "false");
-  const [settingsMusicCompactNotch, setSettingsMusicCompactNotch] = useState(() => localStorage.getItem("nectar-music-compact-notch") !== "false");
-  const [settingsScrollVolume, setSettingsScrollVolume] = useState(() => localStorage.getItem("nectar-notch-scroll-volume") === "true");
-  const [reversePanelScroll, setReversePanelScroll] = useState(() => localStorage.getItem("nectar-notch-scroll-direction") === "up");
-  const [settingsShelfPersist, setSettingsShelfPersist] = useState(() => localStorage.getItem("nectar-shelf-persist") === "true");
-  const [settingsRememberMode, setSettingsRememberMode] = useState(() => localStorage.getItem("nectar-notch-remember-mode") === "true");
-  const [panelControlCenter, setPanelControlCenter] = useState(() => localStorage.getItem("nectar-panel-control-center-enabled") !== "false");
-  const [panelShelf, setPanelShelf] = useState(() => localStorage.getItem("nectar-panel-shelf-enabled") !== "false");
-  const [panelStatus, setPanelStatus] = useState(() => localStorage.getItem("nectar-panel-status-enabled") !== "false");
-  const [panelOrder, setPanelOrder] = useState(() => parsePanelOrder(localStorage.getItem("nectar-panel-order")));
-  const [ccLayout, setCcLayout] = useState(() => parseCcLayout(localStorage.getItem("nectar-cc-layout")));
+  const [settingsMusicModeEnabled, setSettingsMusicModeEnabled] = useState(() => localStorage.getItem("dz-island-music-mode-enabled") !== "false");
+  const [settingsMusicCompactNotch, setSettingsMusicCompactNotch] = useState(() => localStorage.getItem("dz-island-music-compact-notch") !== "false");
+  const [settingsScrollVolume, setSettingsScrollVolume] = useState(() => localStorage.getItem("dz-island-notch-scroll-volume") === "true");
+  const [reversePanelScroll, setReversePanelScroll] = useState(() => localStorage.getItem("dz-island-notch-scroll-direction") === "up");
+  const [settingsShelfPersist, setSettingsShelfPersist] = useState(() => localStorage.getItem("dz-island-shelf-persist") === "true");
+  const [settingsRememberMode, setSettingsRememberMode] = useState(() => localStorage.getItem("dz-island-notch-remember-mode") === "true");
+  const [panelControlCenter, setPanelControlCenter] = useState(() => localStorage.getItem("dz-island-panel-control-center-enabled") !== "false");
+  const [panelShelf, setPanelShelf] = useState(() => localStorage.getItem("dz-island-panel-shelf-enabled") !== "false");
+  const [panelStatus, setPanelStatus] = useState(() => localStorage.getItem("dz-island-panel-status-enabled") !== "false");
+  const [panelOrder, setPanelOrder] = useState(() => parsePanelOrder(localStorage.getItem("dz-island-panel-order")));
+  const [ccLayout, setCcLayout] = useState(() => parseCcLayout(localStorage.getItem("dz-island-cc-layout")));
   const ccResolved = resolveCcLayout(ccLayout);
   const ccStyle = (kind: CcKind, id: string) => {
     const index = ccResolved[kind].indexOf(id);
     return index < 0 ? { display: 'none' as const } : { order: index };
   };
   const rememberedModeRef = useRef<"command-center" | "calendar" | null>(null);
-  const [settingsVisualizerEnabled, setSettingsVisualizerEnabled] = useState(() => localStorage.getItem("nectar-visualizer-enabled") !== "false");
-  const [settingsAlbumArtEnabled, setSettingsAlbumArtEnabled] = useState(() => localStorage.getItem("nectar-media-album-art-enabled") !== "false");
-  const [settingsAmbienceEnabled, setSettingsAmbienceEnabled] = useState(() => localStorage.getItem("nectar-media-ambience-enabled") !== "false");
-  const [settingsCompactGlowEnabled, setSettingsCompactGlowEnabled] = useState(() => localStorage.getItem("nectar-media-compact-glow-enabled") !== "false");
-  const [settingsArtworkTheme, setSettingsArtworkTheme] = useState(() => localStorage.getItem("nectar-media-artwork-theme") === "true");
-  const [settingsCornersEnabled, setSettingsCornersEnabled] = useState(() => localStorage.getItem("nectar-corners-enabled") === "true");
-  const [mediaLayout, setMediaLayout] = useState<'classic' | 'compact'>(() => (localStorage.getItem("nectar-media-layout") as 'classic' | 'compact') || 'classic');
+  const [settingsVisualizerEnabled, setSettingsVisualizerEnabled] = useState(() => localStorage.getItem("dz-island-visualizer-enabled") !== "false");
+  const [settingsAlbumArtEnabled, setSettingsAlbumArtEnabled] = useState(() => localStorage.getItem("dz-island-media-album-art-enabled") !== "false");
+  const [settingsAmbienceEnabled, setSettingsAmbienceEnabled] = useState(() => localStorage.getItem("dz-island-media-ambience-enabled") !== "false");
+  const [settingsCompactGlowEnabled, setSettingsCompactGlowEnabled] = useState(() => localStorage.getItem("dz-island-media-compact-glow-enabled") !== "false");
+  const [settingsArtworkTheme, setSettingsArtworkTheme] = useState(() => localStorage.getItem("dz-island-media-artwork-theme") === "true");
+  const [settingsCornersEnabled, setSettingsCornersEnabled] = useState(() => localStorage.getItem("dz-island-corners-enabled") === "true");
+  const [mediaLayout, setMediaLayout] = useState<'classic' | 'compact'>(() => (localStorage.getItem("dz-island-media-layout") as 'classic' | 'compact') || 'classic');
   const [deviceBatteryHeight, setDeviceBatteryHeight] = useState(0);
   const [compactVolumeExpanded, setCompactVolumeExpanded] = useState(false);
 
@@ -801,48 +801,48 @@ function App() {
         return fallback;
       };
 
-      setSettingsWeatherEnabled(getVal("nectar-weather-enabled", "true") !== "false");
-      setSettingsCalendarEnabled(getVal("nectar-calendar-enabled", "true") !== "false");
-      setSettingsTimerEnabled((getVal("nectar-timer-enabled") ?? getVal("nectar-calendar-enabled", "true")) !== "false");
-      setSettingsTimerSoundEnabled(getVal("nectar-timer-sound-enabled", "true") !== "false");
-      setSettingsStopwatchEnabled((getVal("nectar-stopwatch-enabled") ?? getVal("nectar-calendar-enabled", "true")) !== "false");
-      setSettingsDualClockEnabled(getVal("nectar-dual-clock-enabled", "false") === "true");
-      setDualClockZone(getVal("nectar-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE);
-      setDualClockLabel(getVal("nectar-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE);
-      setSettingsMusicModeEnabled(getVal("nectar-music-mode-enabled", "true") !== "false");
-      setSettingsMusicCompactNotch(getVal("nectar-music-compact-notch", "true") !== "false");
-      const viz = getVal("nectar-media-visualizer-enabled") ?? getVal("nectar-visualizer-enabled", "true");
+      setSettingsWeatherEnabled(getVal("dz-island-weather-enabled", "true") !== "false");
+      setSettingsCalendarEnabled(getVal("dz-island-calendar-enabled", "true") !== "false");
+      setSettingsTimerEnabled((getVal("dz-island-timer-enabled") ?? getVal("dz-island-calendar-enabled", "true")) !== "false");
+      setSettingsTimerSoundEnabled(getVal("dz-island-timer-sound-enabled", "true") !== "false");
+      setSettingsStopwatchEnabled((getVal("dz-island-stopwatch-enabled") ?? getVal("dz-island-calendar-enabled", "true")) !== "false");
+      setSettingsDualClockEnabled(getVal("dz-island-dual-clock-enabled", "false") === "true");
+      setDualClockZone(getVal("dz-island-dual-clock-zone") || DEFAULT_DUAL_CLOCK_ZONE);
+      setDualClockLabel(getVal("dz-island-dual-clock-label") || DEFAULT_DUAL_CLOCK_ZONE);
+      setSettingsMusicModeEnabled(getVal("dz-island-music-mode-enabled", "true") !== "false");
+      setSettingsMusicCompactNotch(getVal("dz-island-music-compact-notch", "true") !== "false");
+      const viz = getVal("dz-island-media-visualizer-enabled") ?? getVal("dz-island-visualizer-enabled", "true");
       setSettingsVisualizerEnabled(viz !== "false");
-      setSettingsAlbumArtEnabled(getVal("nectar-media-album-art-enabled", "true") !== "false");
-      setSettingsAmbienceEnabled(getVal("nectar-media-ambience-enabled", "true") !== "false");
-      setSettingsCompactGlowEnabled(getVal("nectar-media-compact-glow-enabled", "true") !== "false");
-      setSettingsArtworkTheme(getVal("nectar-media-artwork-theme", "false") === "true");
-      setSettingsCornersEnabled(getVal("nectar-corners-enabled", "false") === "true");
-      setTimeFormat24h(getVal("nectar-time-format-24h") === "true");
-      setSettingsLegacyMode(getVal("nectar-legacy-mode") === "true");
-      setReversePanelScroll(getVal("nectar-notch-scroll-direction") === "up");
-      const scrollVolume = getVal("nectar-notch-scroll-volume") === "true";
-      localStorage.setItem("nectar-notch-scroll-volume", String(scrollVolume));
+      setSettingsAlbumArtEnabled(getVal("dz-island-media-album-art-enabled", "true") !== "false");
+      setSettingsAmbienceEnabled(getVal("dz-island-media-ambience-enabled", "true") !== "false");
+      setSettingsCompactGlowEnabled(getVal("dz-island-media-compact-glow-enabled", "true") !== "false");
+      setSettingsArtworkTheme(getVal("dz-island-media-artwork-theme", "false") === "true");
+      setSettingsCornersEnabled(getVal("dz-island-corners-enabled", "false") === "true");
+      setTimeFormat24h(getVal("dz-island-time-format-24h") === "true");
+      setSettingsLegacyMode(getVal("dz-island-legacy-mode") === "true");
+      setReversePanelScroll(getVal("dz-island-notch-scroll-direction") === "up");
+      const scrollVolume = getVal("dz-island-notch-scroll-volume") === "true";
+      localStorage.setItem("dz-island-notch-scroll-volume", String(scrollVolume));
       setSettingsScrollVolume(scrollVolume);
 
-      const thresholdStr = getVal("nectar-low-battery-threshold", "20");
+      const thresholdStr = getVal("dz-island-low-battery-threshold", "20");
       if (thresholdStr) setLowBatteryThreshold(parseInt(thresholdStr as string));
 
       refreshNotchMode();
       refreshDockMode();
 
       if (windowLabel === 'main') {
-        const firstRun = localStorage.getItem("nectar-first-run") === null;
+        const firstRun = localStorage.getItem("dz-island-first-run") === null;
         if (firstRun) {
           invoke<boolean>("get_autostart").then(enabled => {
             if (!enabled) invoke("set_autostart", { enabled: true }).catch(() => { });
           }).catch(() => { });
-          localStorage.setItem("nectar-first-run", "done");
+          localStorage.setItem("dz-island-first-run", "done");
         }
-        const rawDockMode = getVal("nectar-dock-mode", "smart") as string;
+        const rawDockMode = getVal("dz-island-dock-mode", "smart") as string;
         const dockMode = rawDockMode === "auto-hide" ? "smart" : rawDockMode;
         const syncWindows = async () => {
-          const dockEnabled = getVal("nectar-dock-enabled", "true") === "true";
+          const dockEnabled = getVal("dz-island-dock-enabled", "true") === "true";
           const resolvedNotchMode = await invoke<string>('get_notch_mode_for_window').catch(() => "fixed");
           await Promise.all([
             dockEnabled ? invoke("init_dock", { mode: dockMode }) : Promise.resolve(),
@@ -851,7 +851,7 @@ function App() {
           await invoke("sync_appbar");
         };
 
-        const dockEnabled = getVal("nectar-dock-enabled", "true") === "true";
+        const dockEnabled = getVal("dz-island-dock-enabled", "true") === "true";
         const runDockInit = () => {
           // 1. Snappy initial sync
           setTimeout(syncWindows, 400);
@@ -884,12 +884,12 @@ function App() {
         runDockInitAfterSplash();
       }
 
-      const scaleVal = getVal("nectar-scale");
+      const scaleVal = getVal("dz-island-scale");
       if (scaleVal !== null) setScale(parseFloat(scaleVal));
 
-      setNetWidgetMode(getVal("nectar-net-widget-mode") === "status" ? "status" : "speed");
+      setNetWidgetMode(getVal("dz-island-net-widget-mode") === "status" ? "status" : "speed");
 
-      const widgetsVal = getVal("nectar-status-widgets");
+      const widgetsVal = getVal("dz-island-status-widgets");
       if (widgetsVal) {
         try {
           const parsed = JSON.parse(widgetsVal);
@@ -954,47 +954,47 @@ function App() {
   // Settings sync — consolidated dispatch for all settings events
   useSettingsSync(
     {
-      "nectar-weather-enabled": setSettingsWeatherEnabled,
-      "nectar-calendar-enabled": setSettingsCalendarEnabled,
-      "nectar-timer-enabled": setSettingsTimerEnabled,
-      "nectar-timer-sound-enabled": setSettingsTimerSoundEnabled,
-      "nectar-notch-timer-progress": setSettingsTimerProgressEnabled,
-      "nectar-stopwatch-enabled": setSettingsStopwatchEnabled,
-      "nectar-dual-clock-enabled": setSettingsDualClockEnabled,
-      "nectar-dual-clock-zone": (value) => setDualClockZone(String(value)),
-      "nectar-dual-clock-label": (value) => setDualClockLabel(String(value)),
-      "nectar-music-mode-enabled": setSettingsMusicModeEnabled,
-      "nectar-music-compact-notch": setSettingsMusicCompactNotch,
-      "nectar-notch-scroll-volume": setSettingsScrollVolume,
-      "nectar-notch-scroll-direction": (v) => setReversePanelScroll(v === "up"),
-      "nectar-shelf-persist": setSettingsShelfPersist,
-      "nectar-notch-remember-mode": setSettingsRememberMode,
-      "nectar-panel-control-center-enabled": (v) => setPanelControlCenter(v !== false && v !== "false"),
-      "nectar-panel-shelf-enabled": (v) => setPanelShelf(v !== false && v !== "false"),
-      "nectar-panel-status-enabled": (v) => setPanelStatus(v !== false && v !== "false"),
-      "nectar-panel-order": (v) => setPanelOrder(parsePanelOrder(v === null ? null : String(v))),
-      "nectar-cc-layout": (v) => setCcLayout(parseCcLayout(v === null ? null : String(v))),
-      "nectar-media-visualizer-enabled": setSettingsVisualizerEnabled,
-      "nectar-visualizer-enabled": setSettingsVisualizerEnabled,
-      "nectar-media-album-art-enabled": setSettingsAlbumArtEnabled,
-      "nectar-media-ambience-enabled": setSettingsAmbienceEnabled,
-      "nectar-media-compact-glow-enabled": setSettingsCompactGlowEnabled,
-      "nectar-media-artwork-theme": setSettingsArtworkTheme,
-      "nectar-media-layout": setMediaLayout,
-      "nectar-corners-enabled": setSettingsCornersEnabled,
-      "nectar-scale": setScale,
-      "nectar-low-battery-threshold": setLowBatteryThreshold,
-      "nectar-dock-enabled": setDockEnabled,
-      "nectar-dock-mode": refreshDockMode,
-      "nectar-dock-mode-by-monitor": refreshDockMode,
-      "nectar-dock-monitor-mode": refreshDockMode,
-      "nectar-dock-monitor-id": refreshDockMode,
-      "nectar-notch-mode": refreshNotchMode,
-      "nectar-notch-mode-by-monitor": refreshNotchMode,
-      "nectar-notch-monitor-mode": refreshNotchMode,
-      "nectar-notch-monitor-id": refreshNotchMode,
-      "nectar-net-widget-mode": (value) => setNetWidgetMode(value === "status" ? "status" : "speed"),
-      "nectar-status-widgets": (value) => {
+      "dz-island-weather-enabled": setSettingsWeatherEnabled,
+      "dz-island-calendar-enabled": setSettingsCalendarEnabled,
+      "dz-island-timer-enabled": setSettingsTimerEnabled,
+      "dz-island-timer-sound-enabled": setSettingsTimerSoundEnabled,
+      "dz-island-notch-timer-progress": setSettingsTimerProgressEnabled,
+      "dz-island-stopwatch-enabled": setSettingsStopwatchEnabled,
+      "dz-island-dual-clock-enabled": setSettingsDualClockEnabled,
+      "dz-island-dual-clock-zone": (value) => setDualClockZone(String(value)),
+      "dz-island-dual-clock-label": (value) => setDualClockLabel(String(value)),
+      "dz-island-music-mode-enabled": setSettingsMusicModeEnabled,
+      "dz-island-music-compact-notch": setSettingsMusicCompactNotch,
+      "dz-island-notch-scroll-volume": setSettingsScrollVolume,
+      "dz-island-notch-scroll-direction": (v) => setReversePanelScroll(v === "up"),
+      "dz-island-shelf-persist": setSettingsShelfPersist,
+      "dz-island-notch-remember-mode": setSettingsRememberMode,
+      "dz-island-panel-control-center-enabled": (v) => setPanelControlCenter(v !== false && v !== "false"),
+      "dz-island-panel-shelf-enabled": (v) => setPanelShelf(v !== false && v !== "false"),
+      "dz-island-panel-status-enabled": (v) => setPanelStatus(v !== false && v !== "false"),
+      "dz-island-panel-order": (v) => setPanelOrder(parsePanelOrder(v === null ? null : String(v))),
+      "dz-island-cc-layout": (v) => setCcLayout(parseCcLayout(v === null ? null : String(v))),
+      "dz-island-media-visualizer-enabled": setSettingsVisualizerEnabled,
+      "dz-island-visualizer-enabled": setSettingsVisualizerEnabled,
+      "dz-island-media-album-art-enabled": setSettingsAlbumArtEnabled,
+      "dz-island-media-ambience-enabled": setSettingsAmbienceEnabled,
+      "dz-island-media-compact-glow-enabled": setSettingsCompactGlowEnabled,
+      "dz-island-media-artwork-theme": setSettingsArtworkTheme,
+      "dz-island-media-layout": setMediaLayout,
+      "dz-island-corners-enabled": setSettingsCornersEnabled,
+      "dz-island-scale": setScale,
+      "dz-island-low-battery-threshold": setLowBatteryThreshold,
+      "dz-island-dock-enabled": setDockEnabled,
+      "dz-island-dock-mode": refreshDockMode,
+      "dz-island-dock-mode-by-monitor": refreshDockMode,
+      "dz-island-dock-monitor-mode": refreshDockMode,
+      "dz-island-dock-monitor-id": refreshDockMode,
+      "dz-island-notch-mode": refreshNotchMode,
+      "dz-island-notch-mode-by-monitor": refreshNotchMode,
+      "dz-island-notch-monitor-mode": refreshNotchMode,
+      "dz-island-notch-monitor-id": refreshNotchMode,
+      "dz-island-net-widget-mode": (value) => setNetWidgetMode(value === "status" ? "status" : "speed"),
+      "dz-island-status-widgets": (value) => {
         try {
           const parsed = JSON.parse(value);
           if (parsed && Array.isArray(parsed.left) && Array.isArray(parsed.right)) {
@@ -1002,9 +1002,9 @@ function App() {
           }
         } catch {}
       },
-      "nectar-show-update-indicator": (value) => setShowUpdateIndicator(String(value) === "true"),
-      "nectar-time-format-24h": setTimeFormat24h,
-      "nectar-legacy-mode": setSettingsLegacyMode,
+      "dz-island-show-update-indicator": (value) => setShowUpdateIndicator(String(value) === "true"),
+      "dz-island-time-format-24h": setTimeFormat24h,
+      "dz-island-legacy-mode": setSettingsLegacyMode,
     },
     [windowLabel]
   );
@@ -1014,7 +1014,7 @@ function App() {
     if (windowLabel !== 'main') return;
     if (dockEnabledInitial.current) { dockEnabledInitial.current = false; return; }
     if (dockEnabled) {
-      invoke("init_dock", { mode: localStorage.getItem("nectar-dock-mode") || "smart" });
+      invoke("init_dock", { mode: localStorage.getItem("dz-island-dock-mode") || "smart" });
     } else {
       invoke("toggle_dock", { enable: false });
     }
@@ -1039,8 +1039,8 @@ function App() {
   const [tourStep, setTourStep] = useState(0);
   const tourAutoStartedRef = useRef(false);
 
-  const nectarModeRef = useRef(nectarMode);
-  nectarModeRef.current = nectarMode;
+  const dzIslandModeRef = useRef(dzIslandMode);
+  dzIslandModeRef.current = dzIslandMode;
   const tourLiveRef = useRef({ volume: 0.5, brightness: 50, wifi: false, bluetooth: true, notchMode: 'smart', dockMode: 'smart' });
   tourLiveRef.current = { volume, brightness: currentBrightness, wifi: wifiEnabled, bluetooth: bluetoothEnabled, notchMode, dockMode };
   const tourSnapshotRef = useRef<{ mode: 'music' | 'calendar' | 'command-center' | 'status'; volume: number; brightness: number; wifi: boolean; bluetooth: boolean; notchMode: string; dockMode: string } | null>(null);
@@ -1064,7 +1064,7 @@ function App() {
   tourSignalRef.current = tourSignal;
 
   const startTour = useCallback(() => {
-    const current = nectarModeRef.current;
+    const current = dzIslandModeRef.current;
     const live = tourLiveRef.current;
     tourSnapshotRef.current = {
       mode: current === 'music' || current === 'calendar' || current === 'command-center' ? current : 'status',
@@ -1074,7 +1074,7 @@ function App() {
     setTourDone(new Set());
     setTourStep(0);
     setIsHovered(true);
-    setNectarMode('status');
+    setDzIslandMode('status');
     setTourActive(true);
   }, []);
 
@@ -1104,22 +1104,22 @@ function App() {
       }
       if (live.dockMode !== snap.dockMode) {
         setDockMode(snap.dockMode);
-        localStorage.setItem("nectar-dock-mode", snap.dockMode);
-        invoke("save_setting", { key: "nectar-dock-mode", value: snap.dockMode }).catch(() => {});
+        localStorage.setItem("dz-island-dock-mode", snap.dockMode);
+        invoke("save_setting", { key: "dz-island-dock-mode", value: snap.dockMode }).catch(() => {});
         invoke("change_dock_mode", { mode: snap.dockMode }).catch(() => {});
       }
     }
-    setNectarMode(snap?.mode ?? 'status');
+    setDzIslandMode(snap?.mode ?? 'status');
     setCcView('main');
     setTourActive(false);
-    localStorage.setItem("nectar-tour-seen", "1");
-    invoke("save_setting", { key: "nectar-tour-seen", value: "1" }).catch(console.error);
+    localStorage.setItem("dz-island-tour-seen", "1");
+    invoke("save_setting", { key: "dz-island-tour-seen", value: "1" }).catch(console.error);
   }, []);
 
   useEffect(() => {
     if (windowLabel !== 'main' || settingsLegacyMode || !isReady || !isExpanded || tourAutoStartedRef.current) return;
     tourAutoStartedRef.current = true;
-    if (localStorage.getItem("nectar-tour-seen") === "1") return;
+    if (localStorage.getItem("dz-island-tour-seen") === "1") return;
     const timer = setTimeout(startTour, 1500);
     return () => clearTimeout(timer);
   }, [windowLabel, settingsLegacyMode, isReady, isExpanded, startTour]);
@@ -1159,8 +1159,8 @@ function App() {
   }, [windowLabel, startTour]);
 
   useEffect(() => {
-    if (ccView !== 'main' && (!isHovered || nectarMode !== 'command-center')) setCcView('main');
-  }, [ccView, isHovered, nectarMode]);
+    if (ccView !== 'main' && (!isHovered || dzIslandMode !== 'command-center')) setCcView('main');
+  }, [ccView, isHovered, dzIslandMode]);
   const caldav = useCaldav();
 
   // Window height is now kept constant to prevent rendering layout lag and sharp corners
@@ -1176,7 +1176,7 @@ function App() {
     modes.splice(Math.max(0, modes.indexOf('command-center') + 1), 0, 'agent');
     const noStatusWidgets = !panelStatus || statusWidgets.left.length + statusWidgets.right.length === 0;
     return modes.filter(m => {
-      if (m === 'status' && noStatusWidgets && nectarMode !== 'status') return false;
+      if (m === 'status' && noStatusWidgets && dzIslandMode !== 'status') return false;
       if (m === 'music' && (!settingsMusicModeEnabled || !mediaInfo.has_media)) return false;
       if (m === 'calendar' && !productivityEnabled) return false;
       if (m === 'shelf' && (!isNotchWindow || settingsLegacyMode || !panelShelf)) return false;
@@ -1206,13 +1206,13 @@ function App() {
 
     const availableModes = availableNotchModes();
 
-    const currentIndex = availableModes.indexOf(nectarMode);
+    const currentIndex = availableModes.indexOf(dzIslandMode);
     if (currentIndex === -1) return;
 
     const nextIndex = (currentIndex + direction + availableModes.length) % availableModes.length;
     const nextMode = availableModes[nextIndex];
     manualMusicRef.current = nextMode === 'music';
-    setNectarMode(nextMode);
+    setDzIslandMode(nextMode);
     tourSignal('panel');
   };
 
@@ -1321,50 +1321,50 @@ function App() {
     }
 
     if (settingsMusicModeEnabled && settingsMusicCompactNotch && mediaInfo.has_media && isPlaying
-        && nectarMode === 'status' && !isHovered && (isNewTrackWhilePlaying || justStartedPlaying)) {
+        && dzIslandMode === 'status' && !isHovered && (isNewTrackWhilePlaying || justStartedPlaying)) {
       manualMusicRef.current = false;
-      setNectarMode('music');
+      setDzIslandMode('music');
     }
 
     lastTrackRef.current = mediaInfo.title;
     lastPlayingRef.current = isPlaying;
-  }, [mediaInfo.has_media, isPlaying, mediaInfo.title, settingsMusicModeEnabled, settingsMusicCompactNotch, isHovered, nectarMode, notchMode, triggerEventPeek]);
+  }, [mediaInfo.has_media, isPlaying, mediaInfo.title, settingsMusicModeEnabled, settingsMusicCompactNotch, isHovered, dzIslandMode, notchMode, triggerEventPeek]);
 
   // Auto-switch back from music if music stops for 5 seconds
   // Skip if user manually scrolled to music mode
   useEffect(() => {
     let timer: any;
-    if (!isPlaying && nectarMode === 'music' && !manualMusicRef.current) {
+    if (!isPlaying && dzIslandMode === 'music' && !manualMusicRef.current) {
       timer = setTimeout(() => {
-        setNectarMode('status');
+        setDzIslandMode('status');
       }, 5000);
     }
     return () => clearTimeout(timer);
-  }, [isPlaying, nectarMode]);
+  }, [isPlaying, dzIslandMode]);
 
   useEffect(() => {
-    if (!productivityEnabled && nectarMode === 'calendar') {
-      setNectarMode('status');
+    if (!productivityEnabled && dzIslandMode === 'calendar') {
+      setDzIslandMode('status');
     }
-  }, [productivityEnabled, nectarMode]);
+  }, [productivityEnabled, dzIslandMode]);
 
   useEffect(() => {
-    if (!settingsMusicModeEnabled && nectarMode === 'music') {
-      setNectarMode('status');
+    if (!settingsMusicModeEnabled && dzIslandMode === 'music') {
+      setDzIslandMode('status');
     }
-  }, [settingsMusicModeEnabled, nectarMode]);
+  }, [settingsMusicModeEnabled, dzIslandMode]);
 
   useEffect(() => {
-    if (!settingsMusicCompactNotch && nectarMode === 'music' && !isHovered) {
-      setNectarMode('status');
+    if (!settingsMusicCompactNotch && dzIslandMode === 'music' && !isHovered) {
+      setDzIslandMode('status');
     }
-  }, [settingsMusicCompactNotch, nectarMode, isHovered]);
+  }, [settingsMusicCompactNotch, dzIslandMode, isHovered]);
 
   useEffect(() => {
-    if (settingsMusicModeEnabled && settingsMusicCompactNotch && mediaInfo.has_media && isPlaying && nectarMode === 'status' && !isHovered) {
-      setNectarMode('music');
+    if (settingsMusicModeEnabled && settingsMusicCompactNotch && mediaInfo.has_media && isPlaying && dzIslandMode === 'status' && !isHovered) {
+      setDzIslandMode('music');
     }
-  }, [settingsMusicModeEnabled, settingsMusicCompactNotch, mediaInfo.has_media, isPlaying, nectarMode, isHovered]);
+  }, [settingsMusicModeEnabled, settingsMusicCompactNotch, mediaInfo.has_media, isPlaying, dzIslandMode, isHovered]);
 
   // Update time
   useEffect(() => {
@@ -1388,7 +1388,7 @@ function App() {
 
     // Toggle compact timer view every 5 seconds if running
     let timerToggleInterval: any;
-    if ((isTimerRunning || stopwatch.running) && nectarMode !== 'calendar') {
+    if ((isTimerRunning || stopwatch.running) && dzIslandMode !== 'calendar') {
       timerToggleInterval = setVisibleInterval(() => {
         setIsCompactTimerVisible(prev => !prev);
       }, 5000);
@@ -1400,7 +1400,7 @@ function App() {
       clearInterval(interval);
       if (timerToggleInterval) clearInterval(timerToggleInterval);
     };
-  }, [isTimerRunning, stopwatch.running, nectarMode, timeFormat24h, settingsDualClockEnabled, dualClockZone]);
+  }, [isTimerRunning, stopwatch.running, dzIslandMode, timeFormat24h, settingsDualClockEnabled, dualClockZone]);
 
   // Battery API
   useEffect(() => {
@@ -1410,10 +1410,10 @@ function App() {
       try {
         if (import.meta.env.DEV) {
           const saved = (await invoke("load_settings").catch(() => ({}))) as Record<string, unknown>;
-          const fake = String(saved["nectar-debug-battery"] ?? "");
+          const fake = String(saved["dz-island-debug-battery"] ?? "");
           if (fake) {
             const [level, charging] = fake.split(",");
-            (window as any).__nectarFakeBattery = true;
+            (window as any).__dzIslandFakeBattery = true;
             setBatteryLevel(Number(level) || 0);
             setIsCharging(charging === "true");
             setHasBattery(true);
@@ -1490,20 +1490,20 @@ function App() {
 
   // Keep Wi-Fi fresh while the command center is open (keyboard toggle, Windows quick settings).
   useEffect(() => {
-    if (nectarMode !== 'command-center') return;
+    if (dzIslandMode !== 'command-center') return;
     void refreshWifiStatus();
     const interval = setVisibleInterval(() => void refreshWifiStatus(), 5000);
     return () => clearInterval(interval);
-  }, [nectarMode, refreshWifiStatus]);
+  }, [dzIslandMode, refreshWifiStatus]);
 
   // Load bluetooth/volume/brightness state on mount
   useEffect(() => {
     invoke<boolean>("get_bluetooth_state").then(setBluetoothEnabled).catch(() => { });
     invoke<boolean>("get_battery_saver_state").then(setBatterySaverEnabled).catch(() => { });
     invoke<boolean>("has_battery").then((present) => {
-      if ((window as any).__nectarFakeBattery) return;
+      if ((window as any).__dzIslandFakeBattery) return;
       setHasBattery(present);
-      localStorage.setItem("nectar-has-battery", String(present));
+      localStorage.setItem("dz-island-has-battery", String(present));
     }).catch(() => { });
     invoke<{ volume: number; is_muted: boolean }>("get_volume_state")
       .then((state) => { setVolume(state.volume); setIsMuted(state.is_muted); })
@@ -1826,8 +1826,8 @@ function App() {
     const nextMode = dockMode === "fixed" ? "smart" : dockMode === "smart" ? "peek" : "fixed";
     setDockMode(nextMode);
     tourSignalRef.current('mode');
-    localStorage.setItem("nectar-dock-mode", nextMode);
-    invoke("save_setting", { key: "nectar-dock-mode", value: nextMode }).catch(console.error);
+    localStorage.setItem("dz-island-dock-mode", nextMode);
+    invoke("save_setting", { key: "dz-island-dock-mode", value: nextMode }).catch(console.error);
     try {
       await invoke("change_dock_mode", { mode: nextMode });
     } catch (err) {
@@ -1865,7 +1865,7 @@ function App() {
     }
     if (!productivityEnabled) return;
 
-    setNectarMode(prev => {
+    setDzIslandMode(prev => {
       if (prev === 'calendar') {
         // Return to music mode if media is present and playing and music mode is enabled, otherwise status
         return (settingsMusicModeEnabled && mediaInfo.has_media && isPlaying) ? 'music' : 'status';
@@ -1880,7 +1880,7 @@ function App() {
       clearTimeout(shelfCollapseTimer.current);
       setIsHovered(true);
       const remembered = settingsRememberMode ? rememberedModeRef.current : null;
-      setNectarMode(agentActivity?.ask ? 'agent' : remembered ?? availableNotchModes()[0] ?? 'status');
+      setDzIslandMode(agentActivity?.ask ? 'agent' : remembered ?? availableNotchModes()[0] ?? 'status');
       return;
     }
     if (isTimerFinished) {
@@ -1888,11 +1888,11 @@ function App() {
       return;
     }
     const modes = availableNotchModes();
-    const index = modes.indexOf(nectarMode);
+    const index = modes.indexOf(dzIslandMode);
     if (index === -1 || modes.length < 2) return;
     const next = modes[(index + 1) % modes.length];
     manualMusicRef.current = next === 'music';
-    setNectarMode(next);
+    setDzIslandMode(next);
   };
 
   const conditionLabel = (condition: string) => {
@@ -1991,7 +1991,7 @@ function App() {
   const collapseAfterShelfDrag = () => {
     setIsHovered(false);
     setIsNotchHovered(false);
-    setNectarMode(mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status');
+    setDzIslandMode(mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status');
   };
   const shelfDrag = useRef({ active: false, until: 0 });
   const shelfCollapseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -2010,25 +2010,25 @@ function App() {
       if (!isHovered) return;
       setIsHovered(true);
       setIsNotchHovered(true);
-      setNectarMode('shelf');
+      setDzIslandMode('shelf');
     },
     onDragLeave: collapseAfterShelfDrag,
-    onDrop: () => { if (isHovered) setNectarMode('shelf'); },
+    onDrop: () => { if (isHovered) setDzIslandMode('shelf'); },
   });
 
   useEffect(() => {
-    if ((nectarMode === 'command-center' && !panelControlCenter) || (nectarMode === 'shelf' && !panelShelf)) {
-      setNectarMode('status');
+    if ((dzIslandMode === 'command-center' && !panelControlCenter) || (dzIslandMode === 'shelf' && !panelShelf)) {
+      setDzIslandMode('status');
     }
-  }, [nectarMode, panelControlCenter, panelShelf]);
+  }, [dzIslandMode, panelControlCenter, panelShelf]);
 
   useEffect(() => {
     if (windowLabel !== 'main') return;
     const alert = !!agentActivity && (agentActivity.ask || ['needs_input', 'error', 'done'].includes(agentActivity.state));
     if (alert) {
       invoke('agent_alert_visibility', { visible: true }).catch(() => {});
-      if (modeBeforeAgentAlert.current === null) modeBeforeAgentAlert.current = nectarMode;
-      setNectarMode('agent');
+      if (modeBeforeAgentAlert.current === null) modeBeforeAgentAlert.current = dzIslandMode;
+      setDzIslandMode('agent');
       setIsHovered(true);
       triggerEventPeek(6000);
     } else if (modeBeforeAgentAlert.current !== null) {
@@ -2036,12 +2036,12 @@ function App() {
       const previous = modeBeforeAgentAlert.current;
       modeBeforeAgentAlert.current = null;
       setIsHovered(false);
-      setNectarMode(previous === 'agent' ? 'status' : previous);
+      setDzIslandMode(previous === 'agent' ? 'status' : previous);
     }
-  }, [agentActivity, windowLabel, nectarMode, isHovered]);
+  }, [agentActivity, windowLabel, dzIslandMode, isHovered]);
 
   // Music mode shows any time we have media info (playing or paused) and music mode setting is enabled
-  const isMusicMode = mediaInfo.has_media && nectarMode === 'music' && settingsMusicModeEnabled;
+  const isMusicMode = mediaInfo.has_media && dzIslandMode === 'music' && settingsMusicModeEnabled;
 
   // Second clock beside the time
   const showDualClock = settingsDualClockEnabled && !settingsLegacyMode && dualTime !== "";
@@ -2057,20 +2057,20 @@ function App() {
   );
 
   // Calculate width dynamically based on enabled features
-  const agentWings = windowLabel !== 'main' && !!agentActivity && isNotchWindow && !isHovered && (nectarMode === 'status' || isMusicMode);
+  const agentWings = windowLabel !== 'main' && !!agentActivity && isNotchWindow && !isHovered && (dzIslandMode === 'status' || isMusicMode);
 
   const getDynamicWidth = () => {
     const widgetsRowWidth = isHovered && statusWidgets.left.length + statusWidgets.right.length > 0
       ? Math.min(200 + Math.max(statusWidgets.left.length, statusWidgets.right.length) * 2 * 65, 530) + dualClockExtra
       : 0;
-    if (nectarMode === 'agent') return isHovered ? 380 : 140;
-    if (nectarMode === 'shelf') return Math.max(300, Math.min(120 + shelf.items.length * 70, 460), widgetsRowWidth);
+    if (dzIslandMode === 'agent') return isHovered ? 380 : 140;
+    if (dzIslandMode === 'shelf') return Math.max(300, Math.min(120 + shelf.items.length * 70, 460), widgetsRowWidth);
     if (isCalendarMode) return Math.max(settingsCalendarEnabled && showClockColumn ? 480 : settingsCalendarEnabled ? 310 : 270, 140 + dualClockExtra, widgetsRowWidth);
-    if (nectarMode === 'command-center' && isHovered) {
+    if (dzIslandMode === 'command-center' && isHovered) {
       const totalWidgets = Math.max(statusWidgets.left.length, statusWidgets.right.length) * 2;
       return Math.max(390, Math.min(200 + totalWidgets * 65, 530)) + dualClockExtra;
     }
-    if (nectarMode === 'status' && isHovered) {
+    if (dzIslandMode === 'status' && isHovered) {
       const totalWidgets = Math.max(statusWidgets.left.length, statusWidgets.right.length) * 2;
       return Math.min(200 + totalWidgets * 65, 530) + dualClockExtra;
     }
@@ -2094,7 +2094,7 @@ function App() {
     if (!isExpanded || isHidden) {
       return isImpacted ? 28.9 : 44.2;
     }
-    if (nectarMode === 'agent') {
+    if (dzIslandMode === 'agent') {
       if (!isHovered) return 36;
       const ask = agentActivity?.ask;
       const qs = ask?.questions;
@@ -2104,9 +2104,9 @@ function App() {
       const base = ask ? 194 : text ? 170 : 170;
       return Math.min(300, base + Math.max(0, lines - 2) * 16);
     }
-    if (nectarMode === 'shelf') return shelf.items.length === 0 ? 96 : 176;
-    if (nectarMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
-    if (nectarMode === 'command-center') {
+    if (dzIslandMode === 'shelf') return shelf.items.length === 0 ? 96 : 176;
+    if (dzIslandMode === 'calendar') return settingsCalendarEnabled ? (caldav.connected ? 350 : 310) : 262;
+    if (dzIslandMode === 'command-center') {
       if (!isHovered) return 36;
       const tileRows = Math.ceil(ccResolved.tiles.length / 2);
       const tilesH = tileRows ? tileRows * 42 + (tileRows - 1) * 10 + 14 : 0;
@@ -2114,7 +2114,7 @@ function App() {
       const slidersH = ccResolved.sliders.length ? ccResolved.sliders.length * 22 + (ccResolved.sliders.length - 1) * 12 + 14 : 0;
       return 46 + tilesH + buttonsH + slidersH + (showConnections ? 0 : deviceBatteryHeight);
     }
-    if (nectarMode === 'status') return 36;
+    if (dzIslandMode === 'status') return 36;
     if (isMusicMode && isHovered) {
       const hasProgressBar = (mediaInfo.duration_ms ?? 0) > 0;
       let h = mediaLayout === 'compact' ? (hasProgressBar ? 132 : 116) : 120;
@@ -2126,18 +2126,18 @@ function App() {
     return 36;
   };
 
-  const isCalendarMode = nectarMode === 'calendar';
+  const isCalendarMode = dzIslandMode === 'calendar';
   // Calendar, command center and shelf are big, dense panels; glass styles thicken the fill for them
-  const isPanelOpen = isHovered && (isCalendarMode || nectarMode === 'command-center' || nectarMode === 'shelf' || nectarMode === 'agent');
+  const isPanelOpen = isHovered && (isCalendarMode || dzIslandMode === 'command-center' || dzIslandMode === 'shelf' || dzIslandMode === 'agent');
 
   useEffect(() => {
     if (tourActive || !isNotchWindow) return;
     // The expanded controls can now exceed the native 420px canvas.
-    invoke('set_window_height', { height: nectarMode === 'command-center' && isHovered ? 660 : 420 }).catch(() => {});
-  }, [nectarMode, isHovered, tourActive, isNotchWindow]);
+    invoke('set_window_height', { height: dzIslandMode === 'command-center' && isHovered ? 660 : 420 }).catch(() => {});
+  }, [dzIslandMode, isHovered, tourActive, isNotchWindow]);
 
   // Album tints the whole notch, collapsed pill included. The expanded state
-  // reads --nectar-bg-expanded and the muted/border vars live on :root, so all
+  // reads --dz-island-bg-expanded and the muted/border vars live on :root, so all
   // of them have to be overridden or the panel loses the tint when hovered.
   const withAlpha = (color: string, alpha: number | string) => {
     const m = /^rgb\((.+)\)$/.exec(color.trim());
@@ -2146,11 +2146,11 @@ function App() {
   const musicTint =
     isMusicMode && settingsArtworkTheme && musicTheme.background
       ? ({
-          "--nectar-bg": withAlpha(musicTheme.background, "var(--nectar-opacity, 0.8)"),
-          "--nectar-bg-expanded": withAlpha(musicTheme.background, "var(--nectar-opacity-expanded, 0.92)"),
-          "--nectar-text": musicTheme.text,
-          "--nectar-text-muted": withAlpha(musicTheme.text, 0.65),
-          "--nectar-border": withAlpha(musicTheme.text, 0.12),
+          "--dz-island-bg": withAlpha(musicTheme.background, "var(--dz-island-opacity, 0.8)"),
+          "--dz-island-bg-expanded": withAlpha(musicTheme.background, "var(--dz-island-opacity-expanded, 0.92)"),
+          "--dz-island-text": musicTheme.text,
+          "--dz-island-text-muted": withAlpha(musicTheme.text, 0.65),
+          "--dz-island-border": withAlpha(musicTheme.text, 0.12),
           "--music-accent": musicTheme.accent,
         } as React.CSSProperties)
       : undefined;
@@ -2160,7 +2160,7 @@ function App() {
     if (mediaLayout === 'compact') {
       setCompactVolumeExpanded(false);
     }
-  }, [isHovered, mediaLayout, nectarMode]);
+  }, [isHovered, mediaLayout, dzIslandMode]);
 
 
 
@@ -2189,8 +2189,8 @@ function App() {
 
       <div style={{ zoom: scale, width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
         <motion.div
-          ref={nectarRef}
-          className={`nectar ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isPanelOpen ? 'panel-open' : ''} ${agentActivity?.ask ? 'has-agent-question' : ''}`}
+          ref={dzIslandRef}
+          className={`dz-island ${isHovered ? 'expanded' : ''} ${isImpacted ? 'is-impacted' : ''} ${isPanelOpen ? 'panel-open' : ''} ${agentActivity?.ask ? 'has-agent-question' : ''}`}
           onMouseEnter={() => setIsNotchHovered(true)}
         onMouseLeave={() => setIsNotchHovered(false)}
         onWheel={handleWheel}
@@ -2214,19 +2214,19 @@ function App() {
           // Only clicking the clock opens the island; pointer proximity does not.
         }}
         onHoverEnd={() => {
-          if (nectarMode === 'agent' && hasAgentAlert) return;
+          if (dzIslandMode === 'agent' && hasAgentAlert) return;
           if (tourActive) return;
-          if (nectarMode === 'shelf' && shelfHoldsOpen()) {
+          if (dzIslandMode === 'shelf' && shelfHoldsOpen()) {
             deferShelfCollapse();
             return;
           }
           setIsHovered(false);
-          if (nectarMode === 'command-center' || nectarMode === 'calendar') rememberedModeRef.current = nectarMode;
+          if (dzIslandMode === 'command-center' || dzIslandMode === 'calendar') rememberedModeRef.current = dzIslandMode;
           const targetMode = mediaInfo.has_media && isPlaying && settingsMusicCompactNotch ? 'music' : 'status';
-          if (nectarMode === 'music') {
-            setNectarMode(targetMode);
-          } else if (nectarMode === 'command-center' || nectarMode === 'calendar' || nectarMode === 'status' || nectarMode === 'shelf' || nectarMode === 'agent') {
-            setNectarMode(targetMode);
+          if (dzIslandMode === 'music') {
+            setDzIslandMode(targetMode);
+          } else if (dzIslandMode === 'command-center' || dzIslandMode === 'calendar' || dzIslandMode === 'status' || dzIslandMode === 'shelf' || dzIslandMode === 'agent') {
+            setDzIslandMode(targetMode);
           }
         }}
         style={{ originY: 0, ...musicTint }}
@@ -2247,7 +2247,7 @@ function App() {
         <AnimatePresence mode="wait">
           {isExpanded && (
             <motion.div
-              key="nectar-content"
+              key="dz-island-content"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -2286,7 +2286,7 @@ function App() {
                         onNextPanel={cycleNotchMode}
                         onLayoutChange={(layout) => {
                           setMediaLayout(layout);
-                          localStorage.setItem("nectar-media-layout", layout);
+                          localStorage.setItem("dz-island-media-layout", layout);
                           window.dispatchEvent(new CustomEvent("settings-changed", { detail: { key: "media-layout", value: layout } }));
                         }}
                       />
@@ -2300,7 +2300,7 @@ function App() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setMediaLayout('compact');
-                            localStorage.setItem("nectar-media-layout", "compact");
+                            localStorage.setItem("dz-island-media-layout", "compact");
                             window.dispatchEvent(new CustomEvent("settings-changed", { detail: { key: "media-layout", value: "compact" } }));
                           }}
                           style={{ cursor: 'pointer' }}
@@ -2681,7 +2681,7 @@ function App() {
 
               {/* Command Center Panel */}
               <AnimatePresence>
-                {nectarMode === 'command-center' && (
+                {dzIslandMode === 'command-center' && (
                   <motion.div
                     className="command-center-content-minimal"
                     onClick={e => e.stopPropagation()}
@@ -2821,7 +2821,7 @@ function App() {
                         className="cc-circular-btn"
                         style={ccStyle("buttons", "restart")}
                         {...tip(t("general.restart"))}
-                        onClick={(e) => { e.stopPropagation(); invoke("restart_nectar"); }}
+                        onClick={(e) => { e.stopPropagation(); invoke("restart_dz_island"); }}
                       >
                         <ReloadIcon />
                       </button>
@@ -2887,7 +2887,7 @@ function App() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {nectarMode === 'shelf' && (
+                {dzIslandMode === 'shelf' && (
                   <motion.div
                     key="shelf"
                     initial={{ opacity: 0 }}
@@ -2931,7 +2931,7 @@ function App() {
                       onClose={closeTour}
                       onAction={(id) => {
                         closeTour();
-                        if (id === 'control-center') setNectarMode('command-center');
+                        if (id === 'control-center') setDzIslandMode('command-center');
                         else openSettingsWindow();
                       }}
                     />
@@ -2940,7 +2940,7 @@ function App() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {nectarMode === 'agent' && isHovered && (
+                {dzIslandMode === 'agent' && isHovered && (
                   <motion.div
                     key="agent-panel"
                     className="agent-panel"

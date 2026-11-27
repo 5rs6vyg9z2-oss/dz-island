@@ -124,9 +124,9 @@ pub fn start_battery_engine() {
     };
     let Ok(data) = crate::utils::portable_data_dir() else { return };
     let _ = std::fs::remove_file(data.join("battery-snapshot.json"));
-    let argument = format!("--nectar-parent={}", std::process::id());
+    let argument = format!("--dz-island-parent={}", std::process::id());
     std::thread::spawn(move || {
-        // Retry briefly if the old engine is still shutting down during a Nectar restart.
+        // Retry briefly if the old engine is still shutting down during a DZ Island restart.
         for _ in 0..3 {
             let started = Instant::now();
             let status = std::process::Command::new(&exe)
@@ -178,7 +178,7 @@ pub fn open_battery_menu() -> Result<(), String> {
     use windows::Win32::Foundation::{LPARAM, WPARAM};
     use windows::Win32::UI::WindowsAndMessaging::{AllowSetForegroundWindow, FindWindowW, GetWindowThreadProcessId, PostMessageW, WM_APP};
     let result = unsafe {
-        FindWindowW(w!("NectarBatteryEngineWnd"), PCWSTR::null())
+        FindWindowW(w!("DzIslandBatteryEngineWnd"), PCWSTR::null())
             .and_then(|window| {
                 let mut pid = 0;
                 GetWindowThreadProcessId(window, Some(&mut pid));

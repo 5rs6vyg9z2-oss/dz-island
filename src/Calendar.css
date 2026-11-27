@@ -3,10 +3,10 @@
   --cw-bar: rgba(255, 255, 255, 0.02);
   --cw-bar-line: rgba(255, 255, 255, 0.05);
   --cw-title: rgba(255, 255, 255, 0.7);
-  --cw-text: var(--nectar-text, #f5f5f5);
-  --cw-muted: var(--nectar-text-muted, #999999);
+  --cw-text: var(--dz-island-text, #f5f5f5);
+  --cw-muted: var(--dz-island-text-muted, #999999);
   --cw-line: rgba(255, 255, 255, 0.08);
-  --cw-inverse: var(--nectar-bg-expanded, #000);
+  --cw-inverse: var(--dz-island-bg-expanded, #000);
 }
 
 .light-mode {
@@ -281,8 +281,8 @@ button {
 .cw-segment button.active {
   opacity: 1;
   font-weight: 700;
-  background: var(--nectar-highlight, var(--cw-text));
-  color: var(--nectar-on-highlight, var(--cw-inverse));
+  background: var(--dz-island-highlight, var(--cw-text));
+  color: var(--dz-island-on-highlight, var(--cw-inverse));
 }
 
 .cw-nav {
@@ -445,13 +445,13 @@ button {
 }
 
 .cw-cell.today::before {
-  background: color-mix(in srgb, var(--nectar-highlight, #0a84ff) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nectar-highlight, #0a84ff) 45%, transparent);
+  background: color-mix(in srgb, var(--dz-island-highlight, #0a84ff) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dz-island-highlight, #0a84ff) 45%, transparent);
 }
 
 .cw-cell.selected.today::before {
-  background: color-mix(in srgb, var(--nectar-highlight, #0a84ff) 22%, transparent);
-  box-shadow: inset 0 0 0 1.5px var(--nectar-highlight, #0a84ff);
+  background: color-mix(in srgb, var(--dz-island-highlight, #0a84ff) 22%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--dz-island-highlight, #0a84ff);
 }
 
 .cw-cell.selected::before {
@@ -479,8 +479,8 @@ button {
 }
 
 .cw-daynum.today {
-  background: var(--nectar-highlight, var(--cw-text));
-  color: var(--nectar-on-highlight, var(--cw-inverse));
+  background: var(--dz-island-highlight, var(--cw-text));
+  color: var(--dz-island-on-highlight, var(--cw-inverse));
   font-weight: 700;
 }
 

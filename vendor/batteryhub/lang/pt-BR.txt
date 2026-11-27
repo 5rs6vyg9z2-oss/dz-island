@@ -204,4 +204,4 @@ BatteryHub could not reopen. Please start it manually or repair the installation
 BatteryHub is up to date. = O BatteryHub está atualizado.
 BatteryHub update = Atualização do BatteryHub
 BatteryHub will close briefly while the update is installed. = O BatteryHub será fechado brevemente enquanto a atualização é instalada.
-Show only in Nectar = Mostrar apenas no Nectar
+Show only in DZ Island = Mostrar apenas no DZ Island

@@ -88,17 +88,17 @@ const fileOf = (p: string) =>
 // AUMIDs identify one app. Two PWAs in the same browser must never match on the shared exe name.
 const isIdentifier = (p: string) => !p.includes('/') && !p.includes('\\');
 
-const isNectarWindow = (app: { name: string; path: string }) =>
-  app.path.toLowerCase().includes('nectar.exe') || app.name.toLowerCase() === 'nectar';
+const isDzIslandWindow = (app: { name: string; path: string }) =>
+  app.path.toLowerCase().includes('dz-island.exe') || ['dz island', 'dz-island'].includes(app.name.toLowerCase());
 
-const NECTAR_MENU_IDS = ["calendar", "settings", "taskmgr", "restart", "clearicons", "quit"];
+const DZ_ISLAND_MENU_IDS = ["calendar", "settings", "taskmgr", "restart", "clearicons", "quit"];
 
 function parseMenuItems(val: unknown): string[] {
   try {
     const parsed = typeof val === "string" ? JSON.parse(val) : val;
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => NECTAR_MENU_IDS.includes(id)) : NECTAR_MENU_IDS;
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => DZ_ISLAND_MENU_IDS.includes(id)) : DZ_ISLAND_MENU_IDS;
   } catch {
-    return NECTAR_MENU_IDS;
+    return DZ_ISLAND_MENU_IDS;
   }
 }
 
@@ -140,16 +140,16 @@ function hasOpaqueCorners(img: HTMLImageElement): boolean {
   }
 }
 
-function DockAppIcon({ src, alt, nectar }: { src: string | undefined; alt: string; nectar: boolean }) {
+function DockAppIcon({ src, alt, isIslandApp }: { src: string | undefined; alt: string; isIslandApp: boolean }) {
   const [solid, setSolid] = useState(() => (src ? solidIconCache.get(src) ?? false : false));
   return (
     <img
       src={src}
       alt={alt}
-      className={nectar ? 'nectar-icon-img' : solid ? 'solid-icon' : ''}
+      className={isIslandApp ? 'dz-island-icon-img' : solid ? 'solid-icon' : ''}
       draggable={false}
       onLoad={(e) => {
-        if (nectar || !src) return;
+        if (isIslandApp || !src) return;
         if (!solidIconCache.has(src)) solidIconCache.set(src, hasOpaqueCorners(e.currentTarget));
         setSolid(solidIconCache.get(src) ?? false);
       }}
@@ -161,7 +161,7 @@ function DockAppIcon({ src, alt, nectar }: { src: string | undefined; alt: strin
 function resolveStartIcon(startIcon: string): string {
   if (startIcon === "windows") return "/windows.svg";
   if (startIcon.startsWith("custom:")) return startIcon.slice("custom:".length);
-  return "/nectar.png";
+  return "/serginho.png";
 }
 
 // Stable module-level constants so object references never change between renders,
@@ -557,32 +557,32 @@ const Dock = memo(function Dock() {
   const iconsRef = useRef<Record<string, string>>({});
   const [, setIconsTick] = useState(0);
   const [dockMode, setDockMode] = useState(() => {
-    const raw = localStorage.getItem("nectar-dock-mode") || "smart";
+    const raw = localStorage.getItem("dz-island-dock-mode") || "smart";
     if (raw === "auto-hide") return "smart";
     return raw;
   });
-  const [dockPreviewConfigured, setDockPreviewEnabled] = useState(() => localStorage.getItem("nectar-dock-preview-enabled") !== "false");
+  const [dockPreviewConfigured, setDockPreviewEnabled] = useState(() => localStorage.getItem("dz-island-dock-preview-enabled") !== "false");
   const dockPreviewEnabled = dockPreviewConfigured && !isSecondaryDock;
-  const [previewDelay, setPreviewDelay] = useState(() => { const v = localStorage.getItem("nectar-dock-preview-delay"); return v === null ? 300 : Number(v) || 0; });
-  const [hideDelay, setHideDelay] = useState(() => Number(localStorage.getItem("nectar-dock-hide-delay")) || 800);
-  const [dockAttentionEnabled, setDockAttentionEnabled] = useState(() => localStorage.getItem("nectar-dock-attention-enabled") !== "false");
+  const [previewDelay, setPreviewDelay] = useState(() => { const v = localStorage.getItem("dz-island-dock-preview-delay"); return v === null ? 300 : Number(v) || 0; });
+  const [hideDelay, setHideDelay] = useState(() => Number(localStorage.getItem("dz-island-dock-hide-delay")) || 800);
+  const [dockAttentionEnabled, setDockAttentionEnabled] = useState(() => localStorage.getItem("dz-island-dock-attention-enabled") !== "false");
   const [attentionWindows, setAttentionWindows] = useState<Set<number>>(() => new Set());
-  const [dockSearchEnabled, setDockSearchEnabled] = useState(() => localStorage.getItem("nectar-dock-search-enabled") !== "false");
-  const [dockCalendarEnabled, setDockCalendarEnabled] = useState(() => localStorage.getItem("nectar-dock-calendar-enabled") !== "false");
-  const [legacyMode, setLegacyMode] = useState(() => localStorage.getItem("nectar-legacy-mode") === "true");
-  const [dockTray, setDockTray] = useState(() => localStorage.getItem("nectar-dock-tray-enabled") !== "false");
-  const [dockTaskView, setDockTaskView] = useState(() => localStorage.getItem("nectar-dock-taskview-enabled") === "true");
-  const [dockShowDesktop, setDockShowDesktop] = useState(() => localStorage.getItem("nectar-dock-show-desktop-corner") === "true");
-  const [dockRecycle, setDockRecycle] = useState(() => localStorage.getItem("nectar-dock-recycle-enabled") === "true");
-  const [dockDrives, setDockDrives] = useState<string[]>(() => parseDrives(localStorage.getItem("nectar-dock-drives")));
-  const [hiddenApps, setHiddenApps] = useState<HiddenApp[]>(() => parseHiddenApps(localStorage.getItem("nectar-dock-hidden-apps")));
-  const [menuItems, setMenuItems] = useState<string[]>(() => parseMenuItems(localStorage.getItem("nectar-dock-menu-items")));
-  const [dockIconOnly, setDockIconOnly] = useState(() => localStorage.getItem("nectar-dock-icon-only") === "true");
-  const [windowIndicator, setWindowIndicator] = useState(() => localStorage.getItem("nectar-dock-indicator") ?? "bar");
-  const [dockAdaptive, setDockAdaptive] = useState(() => localStorage.getItem("nectar-dock-adaptive") === "true");
-  const [startIcon, setStartIcon] = useState(() => localStorage.getItem("nectar-start-icon") || "default");
+  const [dockSearchEnabled, setDockSearchEnabled] = useState(() => localStorage.getItem("dz-island-dock-search-enabled") !== "false");
+  const [dockCalendarEnabled, setDockCalendarEnabled] = useState(() => localStorage.getItem("dz-island-dock-calendar-enabled") !== "false");
+  const [legacyMode, setLegacyMode] = useState(() => localStorage.getItem("dz-island-legacy-mode") === "true");
+  const [dockTray, setDockTray] = useState(() => localStorage.getItem("dz-island-dock-tray-enabled") !== "false");
+  const [dockTaskView, setDockTaskView] = useState(() => localStorage.getItem("dz-island-dock-taskview-enabled") === "true");
+  const [dockShowDesktop, setDockShowDesktop] = useState(() => localStorage.getItem("dz-island-dock-show-desktop-corner") === "true");
+  const [dockRecycle, setDockRecycle] = useState(() => localStorage.getItem("dz-island-dock-recycle-enabled") === "true");
+  const [dockDrives, setDockDrives] = useState<string[]>(() => parseDrives(localStorage.getItem("dz-island-dock-drives")));
+  const [hiddenApps, setHiddenApps] = useState<HiddenApp[]>(() => parseHiddenApps(localStorage.getItem("dz-island-dock-hidden-apps")));
+  const [menuItems, setMenuItems] = useState<string[]>(() => parseMenuItems(localStorage.getItem("dz-island-dock-menu-items")));
+  const [dockIconOnly, setDockIconOnly] = useState(() => localStorage.getItem("dz-island-dock-icon-only") === "true");
+  const [windowIndicator, setWindowIndicator] = useState(() => localStorage.getItem("dz-island-dock-indicator") ?? "bar");
+  const [dockAdaptive, setDockAdaptive] = useState(() => localStorage.getItem("dz-island-dock-adaptive") === "true");
+  const [startIcon, setStartIcon] = useState(() => localStorage.getItem("dz-island-start-icon") || "default");
   const [isMaximized, setIsMaximized] = useState(false);
-  const [dockMixedReorder, setDockMixedReorder] = useState(() => localStorage.getItem("nectar-dock-mixed-reorder") === "true");
+  const [dockMixedReorder, setDockMixedReorder] = useState(() => localStorage.getItem("dz-island-dock-mixed-reorder") === "true");
   const [mixedOrder, setMixedOrder] = useState<string[]>([]);
   const [previewData, setPreviewData] = useState<{ id: string, previews: { hwnd: number, title: string, image: string, ratio: number }[] } | null>(null);
   const [isDockHovered, setIsDockHovered] = useState(false);
@@ -594,7 +594,7 @@ const Dock = memo(function Dock() {
   const [renameApp, setRenameApp] = useState<AppInfo | null>(null);
   const [dockNames, setDockNames] = useState<Record<string, string>>(() => {
     try {
-      const parsed = JSON.parse(localStorage.getItem("nectar-dock-names") ?? "{}");
+      const parsed = JSON.parse(localStorage.getItem("dz-island-dock-names") ?? "{}");
       return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
     } catch {
       return {};
@@ -610,8 +610,8 @@ const Dock = memo(function Dock() {
     else delete next[key];
     setDockNames(next);
     const value = JSON.stringify(next);
-    localStorage.setItem("nectar-dock-names", value);
-    invoke("save_setting", { key: "nectar-dock-names", value }).catch(console.error);
+    localStorage.setItem("dz-island-dock-names", value);
+    invoke("save_setting", { key: "dz-island-dock-names", value }).catch(console.error);
     setRenameApp(null);
     invoke('set_menu_open', { open: false, rect: null }).catch(() => {});
   };
@@ -633,7 +633,7 @@ const Dock = memo(function Dock() {
   const toastTimerRef = useRef<any>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const [popupBottom, setPopupBottom] = useState(56);
-  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("nectar-scale") || "1.0"));
+  const [scale, setScale] = useState(() => parseFloat(localStorage.getItem("dz-island-scale") || "1.0"));
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const pinnedItemsRef = useRef<AppInfo[]>([]);
   const handleAppClickRef = useRef<(app: AppInfo) => void>(() => {});
@@ -772,42 +772,42 @@ const Dock = memo(function Dock() {
 
       refreshDockMode();
 
-      setHideDelay(Number(getVal("nectar-dock-hide-delay", "800")) || 800);
-      setPreviewDelay(Number(getVal("nectar-dock-preview-delay", "300")) || 0);
+      setHideDelay(Number(getVal("dz-island-dock-hide-delay", "800")) || 800);
+      setPreviewDelay(Number(getVal("dz-island-dock-preview-delay", "300")) || 0);
 
-      const preview = getVal("nectar-dock-preview-enabled", "true");
+      const preview = getVal("dz-island-dock-preview-enabled", "true");
       setDockPreviewEnabled(preview === "true");
-      setDockAttentionEnabled(getVal("nectar-dock-attention-enabled", "true") !== "false");
+      setDockAttentionEnabled(getVal("dz-island-dock-attention-enabled", "true") !== "false");
 
-      const searchEnabled = getVal("nectar-dock-search-enabled", "true");
+      const searchEnabled = getVal("dz-island-dock-search-enabled", "true");
       setDockSearchEnabled(searchEnabled === "true");
 
-      const calendarEnabled = getVal("nectar-dock-calendar-enabled", "true");
+      const calendarEnabled = getVal("dz-island-dock-calendar-enabled", "true");
       setDockCalendarEnabled(calendarEnabled === "true");
 
-      setLegacyMode(getVal("nectar-legacy-mode", "false") === "true");
-      setDockTray(getVal("nectar-dock-tray-enabled", "true") !== "false");
-      setDockTaskView(getVal("nectar-dock-taskview-enabled", "false") === "true");
-      setDockShowDesktop(getVal("nectar-dock-show-desktop-corner", "false") === "true");
-      setDockRecycle(getVal("nectar-dock-recycle-enabled", "false") === "true");
-      setDockDrives(parseDrives(getVal("nectar-dock-drives", "[]")));
-      setHiddenApps(parseHiddenApps(getVal("nectar-dock-hidden-apps", "[]")));
-      setMenuItems(parseMenuItems(getVal("nectar-dock-menu-items")));
+      setLegacyMode(getVal("dz-island-legacy-mode", "false") === "true");
+      setDockTray(getVal("dz-island-dock-tray-enabled", "true") !== "false");
+      setDockTaskView(getVal("dz-island-dock-taskview-enabled", "false") === "true");
+      setDockShowDesktop(getVal("dz-island-dock-show-desktop-corner", "false") === "true");
+      setDockRecycle(getVal("dz-island-dock-recycle-enabled", "false") === "true");
+      setDockDrives(parseDrives(getVal("dz-island-dock-drives", "[]")));
+      setHiddenApps(parseHiddenApps(getVal("dz-island-dock-hidden-apps", "[]")));
+      setMenuItems(parseMenuItems(getVal("dz-island-dock-menu-items")));
 
-      const iconOnly = getVal("nectar-dock-icon-only", "false");
+      const iconOnly = getVal("dz-island-dock-icon-only", "false");
       setDockIconOnly(iconOnly === "true");
-      setWindowIndicator(getVal("nectar-dock-indicator", "bar") ?? "bar");
+      setWindowIndicator(getVal("dz-island-dock-indicator", "bar") ?? "bar");
 
-      const adaptive = getVal("nectar-dock-adaptive", "false");
+      const adaptive = getVal("dz-island-dock-adaptive", "false");
       setDockAdaptive(adaptive === "true");
 
-      const startIconVal = getVal("nectar-start-icon", "default") || "default";
+      const startIconVal = getVal("dz-island-start-icon", "default") || "default";
       setStartIcon(startIconVal);
 
-      const mixedReorder = getVal("nectar-dock-mixed-reorder", "false");
+      const mixedReorder = getVal("dz-island-dock-mixed-reorder", "false");
       setDockMixedReorder(mixedReorder === "true");
 
-      const scaleVal = getVal("nectar-scale");
+      const scaleVal = getVal("dz-island-scale");
       if (scaleVal !== null) setScale(parseFloat(scaleVal));
 
       const pinned = await invoke<AppInfo[]>('load_pinned_apps');
@@ -868,30 +868,30 @@ const Dock = memo(function Dock() {
 
   useSettingsSync(
     {
-      "nectar-dock-mode": refreshDockMode,
-      "nectar-dock-mode-by-monitor": refreshDockMode,
-      "nectar-dock-monitor-mode": refreshDockMode,
-      "nectar-dock-monitor-id": refreshDockMode,
-      "nectar-dock-hide-delay": (v) => setHideDelay(Number(v) || 800),
-      "nectar-dock-preview-delay": (v) => setPreviewDelay(Number(v) || 0),
-      "nectar-dock-preview-enabled": setDockPreviewEnabled,
-      "nectar-dock-attention-enabled": (v) => setDockAttentionEnabled(v !== false && v !== "false"),
-      "nectar-dock-search-enabled": setDockSearchEnabled,
-      "nectar-dock-calendar-enabled": setDockCalendarEnabled,
-      "nectar-legacy-mode": setLegacyMode,
-      "nectar-dock-tray-enabled": (v) => setDockTray(v !== false && v !== "false"),
-      "nectar-dock-taskview-enabled": setDockTaskView,
-      "nectar-dock-show-desktop-corner": setDockShowDesktop,
-      "nectar-dock-recycle-enabled": setDockRecycle,
-      "nectar-dock-drives": (v) => setDockDrives(parseDrives(v)),
-      "nectar-dock-hidden-apps": (v) => setHiddenApps(parseHiddenApps(v)),
-      "nectar-dock-menu-items": (v) => setMenuItems(parseMenuItems(v)),
-      "nectar-dock-icon-only": setDockIconOnly,
-      "nectar-dock-indicator": (v) => setWindowIndicator(String(v)),
-      "nectar-dock-adaptive": setDockAdaptive,
-      "nectar-start-icon": setStartIcon,
-      "nectar-dock-mixed-reorder": setDockMixedReorder,
-      "nectar-scale": setScale,
+      "dz-island-dock-mode": refreshDockMode,
+      "dz-island-dock-mode-by-monitor": refreshDockMode,
+      "dz-island-dock-monitor-mode": refreshDockMode,
+      "dz-island-dock-monitor-id": refreshDockMode,
+      "dz-island-dock-hide-delay": (v) => setHideDelay(Number(v) || 800),
+      "dz-island-dock-preview-delay": (v) => setPreviewDelay(Number(v) || 0),
+      "dz-island-dock-preview-enabled": setDockPreviewEnabled,
+      "dz-island-dock-attention-enabled": (v) => setDockAttentionEnabled(v !== false && v !== "false"),
+      "dz-island-dock-search-enabled": setDockSearchEnabled,
+      "dz-island-dock-calendar-enabled": setDockCalendarEnabled,
+      "dz-island-legacy-mode": setLegacyMode,
+      "dz-island-dock-tray-enabled": (v) => setDockTray(v !== false && v !== "false"),
+      "dz-island-dock-taskview-enabled": setDockTaskView,
+      "dz-island-dock-show-desktop-corner": setDockShowDesktop,
+      "dz-island-dock-recycle-enabled": setDockRecycle,
+      "dz-island-dock-drives": (v) => setDockDrives(parseDrives(v)),
+      "dz-island-dock-hidden-apps": (v) => setHiddenApps(parseHiddenApps(v)),
+      "dz-island-dock-menu-items": (v) => setMenuItems(parseMenuItems(v)),
+      "dz-island-dock-icon-only": setDockIconOnly,
+      "dz-island-dock-indicator": (v) => setWindowIndicator(String(v)),
+      "dz-island-dock-adaptive": setDockAdaptive,
+      "dz-island-start-icon": setStartIcon,
+      "dz-island-dock-mixed-reorder": setDockMixedReorder,
+      "dz-island-scale": setScale,
     }
   );
 
@@ -1251,13 +1251,13 @@ const Dock = memo(function Dock() {
     return [...pinned, ...unpinned];
   }, [pinnedApps, activeApps, activeOrder, hiddenApps]);
 
-  const nectarOptionsMenu = () => {
+  const dzIslandOptionsMenu = () => {
     const on = (id: string) => menuItems.includes(id);
     const hasTop = ["calendar", "settings", "taskmgr", "restart", "clearicons"].some(on);
     return (
       <div
         className="menu-item has-submenu"
-        onMouseEnter={() => setActiveSubmenu('nectar')}
+        onMouseEnter={() => setActiveSubmenu('dz-island')}
         onMouseLeave={() => setActiveSubmenu(null)}
       >
         {t("dockmenu.options")}
@@ -1267,10 +1267,10 @@ const Dock = memo(function Dock() {
           {on("calendar") && <div className="menu-item" onClick={() => { invoke('open_calendar_window'); closeMenu(); }}>{t("dockmenu.openCalendar")}</div>}
           {on("settings") && <div className="menu-item" onClick={() => { invoke('open_settings_window'); closeMenu(); }}>{t("dockmenu.openSettings")}</div>}
           {on("taskmgr") && <div className="menu-item" onClick={() => { invoke('open_app', { appName: 'taskmgr' }); closeMenu(); }}>{t("dockmenu.taskManager")}</div>}
-          {on("restart") && <div className="menu-item" onClick={() => invoke('restart_nectar')}>{t("general.restart")}</div>}
+          {on("restart") && <div className="menu-item" onClick={() => invoke('restart_dz_island')}>{t("general.restart")}</div>}
           {on("clearicons") && <div className="menu-item" onClick={() => { handleClearIconCache(); closeMenu(); }}>{t("dockmenu.clearIconCache")}</div>}
           {hasTop && on("quit") && <div className="menu-divider" />}
-          {on("quit") && <div className="menu-item quit" onClick={() => invoke('quit_nectar')}>{t("general.quit")}</div>}
+          {on("quit") && <div className="menu-item quit" onClick={() => invoke('quit_dz_island')}>{t("general.quit")}</div>}
         </div>
       </div>
     );
@@ -1282,8 +1282,8 @@ const Dock = memo(function Dock() {
     const next = [...hiddenApps, { id, name: app.name }];
     setHiddenApps(next);
     const value = JSON.stringify(next);
-    localStorage.setItem("nectar-dock-hidden-apps", value);
-    invoke("save_setting", { key: "nectar-dock-hidden-apps", value }).catch(console.error);
+    localStorage.setItem("dz-island-dock-hidden-apps", value);
+    invoke("save_setting", { key: "dz-island-dock-hidden-apps", value }).catch(console.error);
     closeMenu();
   };
 
@@ -1690,7 +1690,7 @@ const Dock = memo(function Dock() {
                       handleAppClick(startItem);
                     }}
                   >
-                    <img src={resolveStartIcon(startIcon)} alt="Start" className={startIcon === "default" ? "nectar-icon-img" : "nectar-icon-img start-img"} style={startIcon.startsWith("custom:") ? { borderRadius: "8px" } : undefined} draggable={false} />
+                    <img src={resolveStartIcon(startIcon)} alt="Start" className={startIcon === "default" ? "dz-island-icon-img" : "dz-island-icon-img start-img"} style={startIcon.startsWith("custom:") ? { borderRadius: "8px" } : undefined} draggable={false} />
                   </motion.div>
                 </motion.div>
               )}
@@ -1851,10 +1851,10 @@ const Dock = memo(function Dock() {
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
 
-                    const isNectarOrSettings = isNectarWindow(app);
+                    const isDzIslandOrSettings = isDzIslandWindow(app);
 
-                    return (icon || isNectarOrSettings) ? (
-                      <DockAppIcon src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} nectar={isNectarOrSettings} />
+                    return (icon || isDzIslandOrSettings) ? (
+                      <DockAppIcon src={isDzIslandOrSettings ? "/serginho.png" : (icon ?? undefined)} alt={app.name} isIslandApp={isDzIslandOrSettings} />
                     ) : (
                       <div className="fallback-icon">{app.name[0]}</div>
                     );
@@ -1935,9 +1935,9 @@ const Dock = memo(function Dock() {
                         // Running host items skip the shared path fallback, or the browser's icon leaks onto its PWAs.
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
-                          const isNectarOrSettings = isNectarWindow(app);
-                          return (icon || isNectarOrSettings) ? (
-                            <DockAppIcon src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} nectar={isNectarOrSettings} />
+                          const isDzIslandOrSettings = isDzIslandWindow(app);
+                          return (icon || isDzIslandOrSettings) ? (
+                            <DockAppIcon src={isDzIslandOrSettings ? "/serginho.png" : (icon ?? undefined)} alt={app.name} isIslandApp={isDzIslandOrSettings} />
                           ) : (
                             <div className="fallback-icon">{app.name[0]}</div>
                           );
@@ -2016,9 +2016,9 @@ const Dock = memo(function Dock() {
                           // Running host items skip the shared path fallback, or the browser's icon leaks onto its PWAs.
                     const allowPathFallback = !isHost || !app.is_running;
                     const icon = customIcons[cacheKey] || (allowPathFallback && customIcons[app.path]) || iconsRef.current[cacheKey] || (allowPathFallback && iconsRef.current[app.path]) || app.icon;
-                          const isNectarOrSettings = isNectarWindow(app);
-                          return (icon || isNectarOrSettings) ? (
-                            <DockAppIcon src={isNectarOrSettings ? "/nectar.png" : (icon ?? undefined)} alt={app.name} nectar={isNectarOrSettings} />
+                          const isDzIslandOrSettings = isDzIslandWindow(app);
+                          return (icon || isDzIslandOrSettings) ? (
+                            <DockAppIcon src={isDzIslandOrSettings ? "/serginho.png" : (icon ?? undefined)} alt={app.name} isIslandApp={isDzIslandOrSettings} />
                           ) : (
                             <div className="fallback-icon">{app.name[0]}</div>
                           );
@@ -2121,7 +2121,7 @@ const Dock = memo(function Dock() {
               <div className="menu-item" onClick={() => { setShowAddPopup(true); closeMenu(); }}>
                 {t("dockmenu.addApp")}
               </div>
-              {nectarOptionsMenu()}
+              {dzIslandOptionsMenu()}
               {contextMenu.app.is_running && (
                 <>
                   <div className="menu-divider" />
@@ -2144,7 +2144,7 @@ const Dock = memo(function Dock() {
               <div className="menu-item" onClick={() => { setShowAddPopup(true); closeMenu(); }}>
                 {t("dockmenu.addApp")}
               </div>
-              {nectarOptionsMenu()}
+              {dzIslandOptionsMenu()}
             </>
           )}
         </div>

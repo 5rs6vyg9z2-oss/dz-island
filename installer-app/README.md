@@ -1,7 +1,7 @@
-# Nectar installer
+# DZ Island installer
 
 A second, self-contained Tauri v2 app — not NSIS. This is what users actually
-download and run to install Nectar. It's a real webview, so the UI is plain
+download and run to install DZ Island. It's a real webview, so the UI is plain
 HTML/CSS matching the app's own dark theme, not NSIS's native-dialog wizard.
 
 The release packages are built for manual installation from the DZ Island repository.
@@ -37,7 +37,7 @@ the user redo the wizard after the UAC prompt.
    ```
 
    This runs `tauri build --no-bundle` on the main app and zips
-   `src-tauri/target/release/nectar.exe` into
+   `src-tauri/target/release/dz-island.exe` into
    `installer-app/src-tauri/payload.zip`. Re-run it whenever the main app
    changes — `payload.zip` is not checked in (it's build output).
 
@@ -51,8 +51,8 @@ the user redo the wizard after the UAC prompt.
 
    `bundle.active` is `false` in `installer-app/src-tauri/tauri.conf.json`, so
    this just compiles a normal native exe — no NSIS/MSI wrapping. The output
-   at `installer-app/src-tauri/target/release/nectar-installer.exe` **is**
-   the shippable `Nectar-Setup.exe`; rename/upload it as-is.
+   at `installer-app/src-tauri/target/release/dz-island-installer.exe` **is**
+   the shippable `DZ Island-Setup.exe`; rename/upload it as-is.
 
 ## Known limitations
 

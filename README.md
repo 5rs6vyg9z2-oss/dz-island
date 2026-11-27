@@ -1,198 +1,24 @@
 # DZ Island
 
-Ilha dinâmica para Windows derivada do Nectar, com interface em português, bateria dos dispositivos, integração local com agentes de IA e o mascote Serginho.
+Ilha dinâmica para Windows com o dragão Serginho, controles de conexões, indicadores de bateria e integração local com agentes de IA.
 
-Veja [USO-LOCAL.md](USO-LOCAL.md) para usar a cópia portátil.
+## Download para Windows 10 e 11 de 64 bits
 
-## Documentação original
+[Baixar o instalador](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest/download/DZ-Island-Setup.exe) ou [baixar o DZ Island portátil](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest/download/DZ-Island-portable-windows-x64.zip). Na edição portátil, extraia toda a pasta e execute `DZ-Island.exe`. Os outros arquivos da pasta incluem o serviço de bateria e o atualizador.
 
-<div align="center">
+Consulte o [guia de uso local](USO-LOCAL.md), as [configurações](SETTINGS.md) e as [versões no GitHub](https://github.com/5rs6vyg9z2-oss/dz-island/releases).
 
-<img src="docs/logo.png" width="128" alt="Nectar logo" />
+## Compilar
 
-<br />
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.png" />
-  <img src="docs/wordmark-light.png" height="44" alt="Nectar" />
-</picture>
-
-<p><strong>A notch and a dock for Windows.<br />Physics-animated, reactive, and built to replace your taskbar.</strong></p>
-
-[![Platform](https://shieldcn.dev/badge/platform-Windows.svg?logo=ri:FaWindows)](https://www.microsoft.com/windows)
-
-[**Download**](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Install](#install) &nbsp;·&nbsp; [Settings](SETTINGS.md) &nbsp;·&nbsp; [Report a bug](https://github.com/5rs6vyg9z2-oss/dz-island/issues/new/choose)
-
-<br />
-
-<img src="docs/screenshots/desktop-150.webp" width="860" alt="Nectar's notch and dock on a Windows desktop" />
-
-<br /><br />
-
-
-</div>
-
-<br />
-
-> **Disclaimer:** I'm a solo dev and I really DID NOT expect this sudden traction for Nectar. I really appreciate the recent support, and I'm trying my best to release fixes as quickly as possible to keep you all happy. But fixing one issue often causes another one. So moving forward I'll do weekly releases with stable builds, plus a pre-release for smaller fixes, and a toggle to decide which version of Nectar you run. This gives me time to search through all the bugs, find the most critical ones, and also have a private life. Thank you for understanding.
-
-> **Antivirus warnings:** We've been getting a lot of reports of Windows, Avast and Kaspersky marking Nectar's exe as a trojan or malware. This happens because Nectar isn't code-signed, and code signing certificates are pretty pricey. We're going to try to enroll in Kaspersky's [Allowlist program](https://www.kaspersky.com/partners/allowlist-program), which can take a while depending on how fast they are. Like I've said before, Nectar is open source: anyone can go through the code line by line and compile it themselves. I make no money from this project and there is no telemetry or tracking in it. There's a saying, "if it's free, you're the product", and that isn't the case here. I purely enjoy making small projects on the side.
->
-> If you'd like to help, I'd appreciate any donations through the Buy Me a Coffee link at the bottom of this README or in the side panel. They go towards the signing certificate. If 15 people sent a dollar a month, it would help a lot.
-
-## Features
-
-| What you get | How |
-| --- | --- |
-| **A notch that does things** | Music, a Control Center you arrange yourself, status, a calendar and a file shelf in one spring-animated island. |
-| **A dock that replaces your taskbar** | Mirrors your real taskbar, same pinned apps and order, with real icons and names, and a dot on apps that want your attention. |
-| **Native where it counts** | The tray opens the real Windows flyout, and Quit ends an app like Task Manager's End task. |
-| **Out of your way** | Fixed, Smart or Peek modes, and both stay hidden over fullscreen games. |
-| **Made for your setup** | Every monitor, one monitor, or a specific one. Solid, glass or Material You styles with your own accent color. English and Turkish. Every option lives in a plain `settings.json`. |
-| **Light on the system** | Audio capture, cursor tracking and thumbnail work pause themselves when nothing needs them. |
-
-<div align="center">
-<table>
-  <tr>
-    <td align="center"><img src="docs/screenshots/island.webp" width="420" alt="The Nectar notch" /></td>
-    <td align="center"><img src="docs/screenshots/dock.webp" width="420" alt="The Nectar dock" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>The notch</sub></td>
-    <td align="center"><sub>The dock</sub></td>
-  </tr>
-</table>
-</div>
-
-## Install
-
-1. Download the installer from the [latest release](https://github.com/5rs6vyg9z2-oss/dz-island/releases/latest).
-2. Choose **Just me** or **All users**. An all-users install asks for administrator permission once.
-3. Nectar starts with a short splash, then the notch and dock appear together.
-
-Nectar updates itself: a green dot on the notch means an update is ready, and **Auto Update** in **Settings › About** installs it for you. Turn on **Get pre-releases** there to receive early builds before the weekly release. **Uninstall** from Windows Settings › Apps or from **Settings › About**, either puts your taskbar back.
-
-<details>
-<summary>Verify your download</summary>
-
-<br />
-
-Only download Nectar from the [releases page](https://github.com/5rs6vyg9z2-oss/dz-island/releases) of this repository. Each release has a `SHA256SUMS.txt`. Compare the output of this command with the matching line:
+Com Rust, Bun e as ferramentas C++ do Windows instalados:
 
 ```powershell
-Get-FileHash .\Nectar-Setup-<version>.exe -Algorithm SHA256
+bun install --frozen-lockfile
+bun run tauri build --no-bundle
 ```
 
-</details>
+O GitHub Actions gera o pacote completo, incluindo o serviço de bateria. [Detalhes das atualizações](docs/AUTO-UPDATE.md).
 
-## Usage
+## Licença
 
-**Notch panels.** Scroll or swipe on the notch to change panel.
-
-| Panel | What it does |
-| --- | --- |
-| **Music** | Album art, track info, playback controls, a visualizer, and a switch between several playing apps. |
-| **Control Center** | Wi-Fi, Bluetooth, Do Not Disturb, volume and brightness. Drag tiles, buttons and sliders into your own layout. |
-| **Status** | Battery (hidden on desktops without one) and weather, in a layout you choose. |
-| **Calendar** | Day, week, month and agenda views, a timer, a stopwatch and Pomodoro. |
-| **Shelf** | Drop files or text on the notch and drag them out later. |
-
-**Visibility modes.** The notch and the dock each have their own.
-
-| Mode | Behavior |
-| --- | --- |
-| **Fixed** | Always visible. The dock reserves screen space like a normal taskbar. |
-| **Smart** | Hides when another window overlaps it and reveals on hover. |
-| **Peek** | Hidden until the cursor reaches the screen edge, or a media event arrives. |
-
-In Smart and Peek both stay hidden, and click-through, while a fullscreen app is in front.
-
-**Multiple monitors.** Under **Show On**, pick **Primary Monitor** (the default), **All Monitors** or a **Specific Monitor** for the dock and the notch separately. Each extra monitor gets its own windows, so **All Monitors** uses more memory than a single display.
-
-## Troubleshooting
-
-<details>
-<summary><b>The dock shows over my game</b></summary>
-
-<br />
-
-Nectar hides the dock and notch over a fullscreen window that covers the whole monitor, in Smart and Peek. Fixed mode stays visible by design. If something still appears, open an issue with the game and its display mode (fullscreen, borderless or windowed).
-
-</details>
-
-<details>
-<summary><b>The Windows taskbar did not come back</b></summary>
-
-<br />
-
-Start Nectar again, it restores the taskbar on launch even after a crash. Uninstalling from Windows Settings › Apps or from **Settings › About** brings it back too.
-
-</details>
-
-<details>
-<summary><b>Nectar uses a lot of memory</b></summary>
-
-<br />
-
-Every window runs in its own WebView2 process, so each monitor adds a notch and a dock. Set **Show On** to one monitor to cut it down.
-
-</details>
-
-<details>
-<summary><b>Brightness does not change on my external monitor</b></summary>
-
-<br />
-
-External monitors are controlled over DDC/CI. Turn DDC/CI on in the monitor's own menu, and connect it directly if you use a dock or adapter, since some do not pass it on.
-
-</details>
-
-<details>
-<summary><b>Something else is broken</b></summary>
-
-<br />
-
-Open **Settings › About › Copy Diagnostics** and paste the result into a [bug report](https://github.com/5rs6vyg9z2-oss/dz-island/issues/new/choose). It includes your versions, monitors and recent log.
-
-</details>
-
-## Build from source
-
-You need [Rust](https://rustup.rs/) and [Bun](https://bun.sh/) on Windows.
-
-```bash
-git clone https://github.com/5rs6vyg9z2-oss/dz-island.git
-cd dz-island
-bun install
-bun run tauri dev
-```
-
-`bun run tauri build` makes a release build. Before a pull request, read [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Roadmap
-
-These are ideas under consideration, not promises.
-
-- [ ] Background tray programs (antivirus, VPN) in the notch
-- [ ] Lower memory use, with Settings loaded on demand
-- [ ] Code signing for the installer
-- [x] Stable and pre-release update channels
-- [x] Multiple media sessions, Task Manager in the dock menu, show desktop corner
-
-See the [open issues](https://github.com/5rs6vyg9z2-oss/dz-island/issues) for requests and known bugs.
-
-## Built with
-
-[![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-
-## License
-
-DZ Island is open source under the [GPLv3](LICENSE).
-
-## Credits
-
-Nectar began as a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and the original concept and the codebase it grew from are theirs. Nectar has since been rebuilt and is maintained independently, with its own features, fixes and direction.
+Distribuído sob a [GPLv3](LICENSE). Os avisos de autoria e as contribuições anteriores constam na licença, nos arquivos de origem e no histórico Git. A [licença do motor de bateria](vendor/batteryhub/LICENSE) e os [avisos das dependências](scripts/BATTERY-THIRD-PARTY-NOTICES.txt) acompanham o código.

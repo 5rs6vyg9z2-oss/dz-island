@@ -1879,8 +1879,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "nectar-installer"
-version = "1.10.0"
+name = "dz-island-installer"
+version = "1.17.0"
 dependencies = [
  "serde",
  "serde_json",

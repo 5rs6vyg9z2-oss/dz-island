@@ -1,13 +1,13 @@
 <#
-Shared helpers for measuring Nectar's memory footprint.
+Shared helpers for measuring DZ Island's memory footprint.
 
 Dot-source from other scripts:
-    . "$PSScriptRoot\nectar-mem.ps1"
+    . "$PSScriptRoot\dz-island-mem.ps1"
 
-Why a process tree: a Tauri app is nectar.exe plus the WebView2 processes it
+Why a process tree: a Tauri app is dz-island.exe plus the WebView2 processes it
 owns -- one browser process, one GPU process, one renderer per site, network
 and storage utility processes, and a crashpad handler. Task Manager's number
-for "nectar" is the sum of their private working sets, so that is what these
+for "dz-island" is the sum of their private working sets, so that is what these
 functions report, next to commit (private bytes) and total working set.
 
 Parent PIDs come back from CIM as UInt32 and PowerShell hashtables compare
@@ -15,20 +15,20 @@ strictly, so every key is cast to Int32. Skipping that cast silently reports
 "no children" and understates an app like this by an order of magnitude.
 #>
 
-$script:NectarExeName = 'nectar'
+$script:DzIslandExeName = 'dz-island'
 
 function Format-MemMB {
   param([double]$Bytes)
   '{0,8:N1} MB' -f ($Bytes / 1MB)
 }
 
-function Get-NectarProcessTree {
+function Get-DzIslandProcessTree {
   <#
     Returns every process belonging to the app: the root process plus all
     descendants (the WebView2 browser process and, under it, the GPU,
     renderer, utility and crashpad processes).
   #>
-  param([string]$ProcessName = $script:NectarExeName)
+  param([string]$ProcessName = $script:DzIslandExeName)
 
   $roots = @(Get-Process -Name $ProcessName -ErrorAction SilentlyContinue)
   if ($roots.Count -eq 0) { return $null }
@@ -72,7 +72,7 @@ function Get-NectarProcessTree {
   } catch { }
 
   function Get-Role([string]$commandLine, [string]$name) {
-    if ($name -eq $script:NectarExeName) { return 'host' }
+    if ($name -eq $script:DzIslandExeName) { return 'host' }
     if (-not $commandLine) { return 'unknown' }
     if ($commandLine -match '--type=renderer')  { return 'renderer' }
     if ($commandLine -match '--type=gpu-process') { return 'gpu' }
@@ -113,7 +113,7 @@ function Get-NectarProcessTree {
   }
 }
 
-function Show-NectarMemory {
+function Show-DzIslandMemory {
   param(
     [Parameter(Mandatory)] $Sample,
     [switch]$Detail
@@ -137,11 +137,11 @@ function Show-NectarMemory {
 }
 
 function Restore-NativeTaskbar {
-  # Nectar hides Shell_TrayWnd while running. This is the fallback for when a
+  # DZ Island hides Shell_TrayWnd while running. This is the fallback for when a
   # run ends without going through the app's own restore path.
   try {
-    if (-not ('NectarMem.Native' -as [type])) {
-      Add-Type -Namespace NectarMem -Name Native -MemberDefinition @'
+    if (-not ('DzIslandMem.Native' -as [type])) {
+      Add-Type -Namespace DzIslandMem -Name Native -MemberDefinition @'
 [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
 public static extern System.IntPtr FindWindowA(string cls, string win);
 [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -149,31 +149,31 @@ public static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
 '@
     }
     foreach ($cls in @('Shell_TrayWnd', 'Shell_SecondaryTrayWnd')) {
-      $h = [NectarMem.Native]::FindWindowA($cls, $null)
-      if ($h -ne [IntPtr]::Zero) { [void][NectarMem.Native]::ShowWindow($h, 5) }
+      $h = [DzIslandMem.Native]::FindWindowA($cls, $null)
+      if ($h -ne [IntPtr]::Zero) { [void][DzIslandMem.Native]::ShowWindow($h, 5) }
     }
   } catch { }
 }
 
-function Stop-Nectar {
+function Stop-DZ Island {
   <#
-    Shuts Nectar down the way the user would: a close request, which the app
+    Shuts DZ Island down the way the user would: a close request, which the app
     handles by unregistering its app bars, restoring the taskbar and exiting.
   #>
   param([int]$TimeoutSeconds = 15)
 
-  $proc = Get-Process -Name $script:NectarExeName -ErrorAction SilentlyContinue | Select-Object -First 1
+  $proc = Get-Process -Name $script:DzIslandExeName -ErrorAction SilentlyContinue | Select-Object -First 1
   if (-not $proc) { return $true }
 
   $proc.CloseMainWindow() | Out-Null
   $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
   while ((Get-Date) -lt $deadline) {
-    if (-not (Get-Process -Name $script:NectarExeName -ErrorAction SilentlyContinue)) { return $true }
+    if (-not (Get-Process -Name $script:DzIslandExeName -ErrorAction SilentlyContinue)) { return $true }
     Start-Sleep -Milliseconds 300
   }
 
   Write-Host "  close request was ignored; stopping the process tree" -ForegroundColor Yellow
-  Get-Process -Name $script:NectarExeName -ErrorAction SilentlyContinue | Stop-Process -Force
+  Get-Process -Name $script:DzIslandExeName -ErrorAction SilentlyContinue | Stop-Process -Force
   Start-Sleep -Milliseconds 700
   Restore-NativeTaskbar
   return $false

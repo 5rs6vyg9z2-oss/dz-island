@@ -16,7 +16,7 @@ import { ShortcutField } from "./ShortcutField";
 const SEARCH_PROVIDERS = ["windows", "cmdpal", "ptrun", "raycast", "shortcut"];
 
 const START_ICON_PRESETS = [
-  { key: "default", src: "/nectar.png", label: "Nectar" },
+  { key: "default", src: "/serginho.png", label: "DZ Island" },
   { key: "windows", src: "/windows.svg", label: "Windows" },
 ];
 
@@ -24,8 +24,8 @@ const startIconTileStyle = (active: boolean): CSSProperties => ({
   width: "48px",
   height: "48px",
   borderRadius: "12px",
-  border: active ? "2px solid var(--nectar-accent, #007aff)" : "2px solid rgba(255,255,255,0.1)",
-  background: active ? "color-mix(in srgb, var(--nectar-accent, #007aff) 16%, transparent)" : "rgba(255,255,255,0.05)",
+  border: active ? "2px solid var(--dz-island-accent, #007aff)" : "2px solid rgba(255,255,255,0.1)",
+  background: active ? "color-mix(in srgb, var(--dz-island-accent, #007aff) 16%, transparent)" : "rgba(255,255,255,0.05)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -204,7 +204,7 @@ export function DockTab({
             )}
 
             {dockMode !== "fixed" && <HideDelay />}
-            {dockMode !== "fixed" && <EdgeArea settingKey="nectar-dock-edge-area" />}
+            {dockMode !== "fixed" && <EdgeArea settingKey="dz-island-dock-edge-area" />}
 
             <SettingRow icon={MonitorCheck} label={t("common.showOn")} desc={t("dock.showOn.desc")}>
               <Dropdown

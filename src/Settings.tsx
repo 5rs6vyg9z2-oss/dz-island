@@ -1,3 +1,4 @@
+import "./migrateSettings";
 import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -56,7 +57,7 @@ function SettingsApp() {
     let tries = 0;
     const timer = setInterval(() => {
       tries++;
-      window.dispatchEvent(new Event("nectar-settings-reveal"));
+      window.dispatchEvent(new Event("dz-island-settings-reveal"));
       const row = Array.from(document.querySelectorAll<HTMLElement>(".setting-item, .setting-section-header")).find(
         (el) => (el.querySelector(".setting-label") ?? el.querySelector("span"))?.textContent?.trim() === label
       );
@@ -155,8 +156,8 @@ function SettingsApp() {
               lowBatteryThreshold={settings.lowBatteryThreshold}
               hasBattery={settings.hasBattery}
               handleThresholdChange={settings.handleThresholdChange}
-              restartNectar={settings.restartNectar}
-              quitNectar={settings.quitNectar}
+              restartDzIsland={settings.restartDzIsland}
+              quitDzIsland={settings.quitDzIsland}
             />
           )}
           {!query.trim() && activeTab === "appearance" && (
@@ -346,7 +347,7 @@ function SettingsApp() {
               handleResetSettings={settings.handleResetSettings}
               uninstallStatus={settings.uninstallStatus}
               uninstallError={settings.uninstallError}
-              handleUninstallNectar={settings.handleUninstallNectar}
+              handleUninstallDzIsland={settings.handleUninstallDzIsland}
             />
           )}
           {!query.trim() && activeTab === "diagnostics" && <DiagnosticsTab />}

@@ -4,7 +4,7 @@ import { SwatchBook } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { useT } from "../i18n";
 
-const KEY = "nectar-sync-windows-accent";
+const KEY = "dz-island-sync-windows-accent";
 
 export function WindowsAccentSync({ color }: { color: string }) {
   const t = useT();

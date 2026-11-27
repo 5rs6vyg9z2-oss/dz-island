@@ -50,9 +50,9 @@ jobs:
         shell: pwsh
         run: ./scripts/test-portable-update.ps1
       - name: Test Zeus Bluetooth and estimate transitions
-        run: 'cargo test --release --manifest-path src-tauri/Cargo.toml --bin nectar zeus_estimate::'
+        run: 'cargo test --release --manifest-path src-tauri/Cargo.toml --bin dz-island zeus_estimate::'
       - name: Test pending agent question recovery
-        run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin nectar question_recovery_tests
+        run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin dz-island question_recovery_tests
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -73,7 +73,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path release-package/Battery -Force | Out-Null
-          Copy-Item src-tauri/target/release/nectar.exe release-package/Nectar.exe
+          Copy-Item src-tauri/target/release/dz-island.exe release-package/DZ-Island.exe
           Copy-Item src-tauri/target/release/dz-update-helper.exe release-package/DZUpdater.exe
           $loader = Get-ChildItem src-tauri/target/release/build -Filter WebView2Loader.dll -Recurse | Where-Object FullName -Match '\\out\\x64\\' | Select-Object -First 1
           if (!$loader) { throw 'Missing x64 WebView2Loader.dll' }
@@ -82,20 +82,42 @@ jobs:
           Copy-Item vendor/batteryhub/BatteryHub.exe release-package/Battery/BatteryEngine.exe
           Copy-Item vendor/batteryhub/LICENSE release-package/Battery/LICENSE.txt
           Copy-Item scripts/Perguntar-Na-Ilha.ps1,scripts/PERGUNTAS-NA-ILHA.txt release-package/
-          Copy-Item scripts/ZEUS-ESTIMATIVA.md release-package/LEIA-ME.txt
+          Copy-Item scripts/LEIA-ME-WINDOWS.txt release-package/LEIA-ME.txt
           Invoke-WebRequest https://github.com/Sapd/HeadsetControl/releases/download/4.3.0/headsetcontrol-windows-x86_64.exe -OutFile release-package/Battery/headsetcontrol.exe
           if ((Get-FileHash release-package/Battery/headsetcontrol.exe -Algorithm SHA256).Hash -ne 'E371DA043710DDB8FC70AF77F2CCAD1CD03F8C6F49BA423E08764AD7A94A3C40') { throw 'HeadsetControl checksum mismatch' }
           Copy-Item scripts/BATTERY-THIRD-PARTY-NOTICES.txt release-package/Battery/THIRD_PARTY_NOTICES.txt
-          Compress-Archive -Path release-package/* -DestinationPath DZ-Island-windows-x64.zip
-          $sha = (Get-FileHash DZ-Island-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$sha  DZ-Island-windows-x64.zip" | Set-Content SHA256SUMS.txt -Encoding ascii
-          # Validate the actual release ZIP against the installer's unchanged allowlist.
-          New-Item -ItemType Directory -Path update-package-check -Force | Out-Null
-          Copy-Item DZ-Island-windows-x64.zip update-package-check/package.zip
-          @{root=(Resolve-Path release-package).Path;parent=0;version=$env:RELEASE_VERSION;digest=$sha} | ConvertTo-Json -Compress | Set-Content update-package-check/plan.json -Encoding utf8NoBOM
-          $planPath = (Resolve-Path update-package-check/plan.json).Path
-          $validation = Start-Process -FilePath ((Resolve-Path release-package/DZUpdater.exe).Path) -ArgumentList @(('"' + $planPath + '"'), '--validate-only') -WindowStyle Hidden -Wait -PassThru
-          if ($validation.ExitCode -ne 0) { throw 'Release ZIP is incompatible with the native updater.' }
+          $nsis = Join-Path $env:RUNNER_TEMP 'dz-island-nsis'
+          New-Item -ItemType Directory -Path $nsis -Force | Out-Null
+          $nsisArchive = Join-Path $nsis 'nsis-3.0.4.1.7z'
+          Invoke-WebRequest https://github.com/electron-userland/electron-builder-binaries/releases/download/nsis-3.0.4.1/nsis-3.0.4.1.7z -OutFile $nsisArchive
+          if ((Get-FileHash -LiteralPath $nsisArchive).Hash -ne '9877DF902530F96357D13A7A31AE2B9DF67F48B11FFC9A1700A7C961574EC5FA') { throw 'NSIS checksum mismatch' }
+          tar -xf $nsisArchive -C $nsis
+          if ($LASTEXITCODE -ne 0) { throw 'NSIS extraction failed' }
+          $setup = Join-Path $PWD.Path 'DZ-Island-Setup.exe'
+          $payload = (Resolve-Path release-package).Path
+          & (Join-Path $nsis 'Bin/makensis.exe') /NOCD /V2 "/DVERSION=$env:RELEASE_VERSION" "/DPAYLOAD=$payload" "/DOUTPUT=$setup" scripts/DZ-Island-Setup.nsi
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $setup)) { throw 'Installer compilation failed' }
+          ./scripts/test-windows-setup.ps1 -Setup $setup -Payload $payload -Version $env:RELEASE_VERSION
+          $checksums = foreach ($variant in @(
+            @{ asset='DZ-Island-portable-windows-x64.zip'; exe='DZ-Island.exe' },
+            @{ asset='DZ-Island-windows-x64.zip'; exe='Nectar.exe' }
+          )) {
+            # Preserve the exact legacy archive layout for already installed updaters.
+            if ($variant.exe -eq 'Nectar.exe') {
+              Move-Item -LiteralPath release-package/DZ-Island.exe -Destination release-package/Nectar.exe
+            }
+            Compress-Archive -Path release-package/* -DestinationPath $variant.asset
+            $sha = (Get-FileHash -LiteralPath $variant.asset -Algorithm SHA256).Hash.ToLowerInvariant()
+            $check = Join-Path 'update-package-check' $variant.exe
+            New-Item -ItemType Directory -Path $check -Force | Out-Null
+            Copy-Item -LiteralPath $variant.asset -Destination (Join-Path $check 'package.zip')
+            $planPath = Join-Path (Resolve-Path $check).Path 'plan.json'
+            @{root=(Resolve-Path release-package).Path;parent=0;version=$env:RELEASE_VERSION;digest=$sha} | ConvertTo-Json -Compress | Set-Content -LiteralPath $planPath -Encoding utf8NoBOM
+            $validation = Start-Process -FilePath ((Resolve-Path release-package/DZUpdater.exe).Path) -ArgumentList @(('"' + $planPath + '"'), '--validate-only') -WindowStyle Hidden -Wait -PassThru
+            if ($validation.ExitCode -ne 0) { throw "Invalid release ZIP: $($variant.asset)" }
+            "$sha  $($variant.asset)"
+          }
+          @($checksums; ((Get-FileHash -LiteralPath $setup).Hash.ToLowerInvariant() + "  DZ-Island-Setup.exe")) | Set-Content SHA256SUMS.txt -Encoding ascii
       - name: Publish the stable release
         shell: pwsh
         env:
@@ -105,6 +127,7 @@ jobs:
           $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Version already exists. Start a new workflow run instead of rerunning this release.' }
           @'
+          - Novo executável DZ-Island.exe e instalador em português. Configurações e atualizações de versões existentes continuam compatíveis.
           - Motor de bateria: leitura alternativa do Windows e HID quando o protocolo específico não fornece porcentagem, com diagnóstico da origem e dos IDs.
           - Receptores identificados sem leitura permanecem visíveis com bateria indisponível, sem porcentagens inventadas.
           - Attack Shark: interpretação passiva ampliada para a família X8 e outros modelos BK; X8 Pro ainda requer validação no hardware.
@@ -118,7 +141,7 @@ jobs:
           O receptor USB do Zeus Pro continua sem fornecer bateria, carregamento ou desligamento: sem Bluetooth, esses estados exigem controle manual da estimativa.
           '@ | Set-Content release-notes.md -Encoding utf8
           "`nCommit: $env:GITHUB_SHA" | Add-Content release-notes.md -Encoding utf8
-          gh release create $tag DZ-Island-windows-x64.zip SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "DZ Island $env:RELEASE_VERSION" --notes-file release-notes.md
+          gh release create $tag DZ-Island-Setup.exe DZ-Island-portable-windows-x64.zip DZ-Island-windows-x64.zip SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "DZ Island $env:RELEASE_VERSION" --notes-file release-notes.md
           if ($LASTEXITCODE -ne 0) { throw 'GitHub release failed' }
           if ($env:RELEASE_VERSION -eq '1.11.3') {
             gh release edit v1.11.2 --repo $env:GITHUB_REPOSITORY --prerelease --notes 'Substituída pela versão estável 1.11.3, com instalador nativo. Use a Release estável mais recente.'

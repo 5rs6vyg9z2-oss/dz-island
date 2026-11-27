@@ -80,10 +80,10 @@ HWND g_hwnd;
 HANDLE g_refreshEvt, g_stopEvt, g_worker;
 UINT g_taskbarCreatedMsg;
 bool g_lightTaskbar;
-HANDLE g_nectarParent = nullptr;
+HANDLE g_dzIslandParent = nullptr;
 bool g_nativeDisplay = true;
-constexpr UINT WM_NECTAR_BATTERY_MENU = WM_APP + 42;
-constexpr UINT ID_NECTAR_DISPLAY = 900;
+constexpr UINT WM_DZ_ISLAND_BATTERY_MENU = WM_APP + 42;
+constexpr UINT ID_DZ_ISLAND_DISPLAY = 900;
 bool g_wantWidget = true;      // user's choice: taskbar widget (default) or tray icons
 bool g_useWidget = false;      // what is actually shown right now
 bool g_hideLastKnown = false;  // hide (last known) / asleep devices from taskbar and tray
@@ -816,7 +816,7 @@ void SmoothCharging(DeviceStatus& s) {
 }
 
 void PublishDockBattery() {
-    if (!g_nectarParent) return;
+    if (!g_dzIslandParent) return;
     std::vector<DeviceStatus> devices;
     devices.reserve(g_entries.size());
     for (const auto* item : OrderedEntries(false)) {
@@ -1243,8 +1243,8 @@ void ShowMenu() {
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     // Display settings (PR #3292): how and where the devices are shown, in one submenu.
     HMENU display = CreatePopupMenu();
-    if (g_nectarParent)
-        AppendMenuW(display, MF_STRING | (!g_nativeDisplay ? MF_CHECKED : 0), ID_NECTAR_DISPLAY, T(L"Show only in Nectar"));
+    if (g_dzIslandParent)
+        AppendMenuW(display, MF_STRING | (!g_nativeDisplay ? MF_CHECKED : 0), ID_DZ_ISLAND_DISPLAY, T(L"Show only in DZ Island"));
     AppendMenuW(display, MF_STRING | (g_nativeDisplay && g_wantWidget ? MF_CHECKED : 0), ID_MODE_WIDGET, T(L"Show on the taskbar (icon + percentage)"));
     AppendMenuW(display, MF_STRING | (g_nativeDisplay && !g_wantWidget ? MF_CHECKED : 0), ID_MODE_TRAY, T(L"Show as tray icons"));
     if (g_nativeDisplay)
@@ -1379,10 +1379,10 @@ void ShowMenu() {
         icons.SetLast(m, 0xE916);  // Stopwatch
     }
     AppendMenuW(m, MF_STRING, ID_REFRESH, T(L"Refresh now"));
-    if (!g_nectarParent)
+    if (!g_dzIslandParent)
         AppendMenuW(m, MF_STRING | (AutostartEnabled() ? MF_CHECKED : 0), ID_AUTOSTART, T(L"Start with Windows"));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
-    if (!g_nectarParent) AppendMenuW(m, MF_STRING, ID_EXIT, T(L"Exit"));
+    if (!g_dzIslandParent) AppendMenuW(m, MF_STRING, ID_EXIT, T(L"Exit"));
     icons.Set(m, ID_REFRESH, false, 0xE72C);         // Refresh
     icons.Set(m, ID_EXIT, false, 0xE711);            // Cancel
     POINT pt;
@@ -1438,7 +1438,7 @@ void ShowMenu() {
             if (!g_beforeApps && g_farLeft) SetFarLeft(false);
             SetBeforeApps(!g_beforeApps);
             break;
-        case ID_NECTAR_DISPLAY:
+        case ID_DZ_ISLAND_DISPLAY:
             g_nativeDisplay = false;
             widget::Destroy();
             if (g_placeholder) { TrayDelete(PLACEHOLDER_ID); g_placeholder = false; }
@@ -1663,8 +1663,8 @@ LRESULT CALLBACK WndProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
                 case NIN_KEYSELECT: ShowMenu(); break;
             }
             return 0;
-        case WM_NECTAR_BATTERY_MENU:
-            if (g_nectarParent) { ShowMenu(); PublishDockBattery(); }
+        case WM_DZ_ISLAND_BATTERY_MENU:
+            if (g_dzIslandParent) { ShowMenu(); PublishDockBattery(); }
             return 0;
         case WM_WIDGET_CLICK:
             ShowMenu();
@@ -1732,7 +1732,7 @@ LRESULT CALLBACK WndProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
                 SetEvent(g_refreshEvt);
             }
             if (wp == TIMER_WIDGET) {
-                if (g_nectarParent && WaitForSingleObject(g_nectarParent, 0) == WAIT_OBJECT_0) {
+                if (g_dzIslandParent && WaitForSingleObject(g_dzIslandParent, 0) == WAIT_OBJECT_0) {
                     DestroyWindow(h);
                     return 0;
                 }
@@ -1877,13 +1877,13 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     g_inst = inst;
     g_demo = cmdLine && wcsstr(cmdLine, L"--demo");
 
-    constexpr wchar_t parentSwitch[] = L"--nectar-parent=";
+    constexpr wchar_t parentSwitch[] = L"--dz-island-parent=";
     if (const wchar_t* parent = cmdLine ? wcsstr(cmdLine, parentSwitch) : nullptr) {
         wchar_t* end = nullptr;
         const auto pid = wcstoul(parent + ARRAYSIZE(parentSwitch) - 1, &end, 10);
         if (!pid || *end) return 1;
-        g_nectarParent = OpenProcess(SYNCHRONIZE, FALSE, pid);
-        if (!g_nectarParent || WaitForSingleObject(g_nectarParent, 0) != WAIT_TIMEOUT) return 1;
+        g_dzIslandParent = OpenProcess(SYNCHRONIZE, FALSE, pid);
+        if (!g_dzIslandParent || WaitForSingleObject(g_dzIslandParent, 0) != WAIT_TIMEOUT) return 1;
         g_nativeDisplay = false;
     }
 
@@ -1897,7 +1897,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     WNDCLASSEXW wc{ sizeof(wc) };
     wc.lpfnWndProc = WndProc;
     wc.hInstance = inst;
-    wc.lpszClassName = g_nectarParent ? L"NectarBatteryEngineWnd" : L"WirelessBatteryWnd";
+    wc.lpszClassName = g_dzIslandParent ? L"DzIslandBatteryEngineWnd" : L"WirelessBatteryWnd";
     RegisterClassExW(&wc);
     // A hidden top-level window (not message-only) so it receives the TaskbarCreated broadcast.
     g_hwnd = CreateWindowExW(WS_EX_TOOLWINDOW, wc.lpszClassName, kAppName, WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, inst, nullptr);
@@ -1969,7 +1969,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdLine, int) {
     ClearBluetoothRadioWatches();
     if (displayNotify) UnregisterPowerSettingNotification(displayNotify);
     if (g_worker) CloseHandle(g_worker);
-    if (g_nectarParent) CloseHandle(g_nectarParent);
+    if (g_dzIslandParent) CloseHandle(g_dzIslandParent);
     ReleaseMutex(mutex);
     CloseHandle(mutex);
     return 0;

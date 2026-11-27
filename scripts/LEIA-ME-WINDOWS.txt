@@ -1,0 +1,18 @@
+DZ Island para Windows 10 e 11 (64 bits)
+
+Instalador: abra DZ-Island-Setup.exe e siga as instruções. Depois, abra DZ Island
+pelo Menu Iniciar. Feche o aplicativo antes de reinstalar ou desinstalar.
+
+Portátil: extraia todo o ZIP para uma pasta gravável e abra DZ-Island.exe.
+Conserve os arquivos e a pasta Battery no mesmo lugar.
+
+Migração de uma cópia portátil: feche o aplicativo, guarde uma cópia da pasta
+data e copie essa pasta para junto do novo DZ-Island.exe. Atualize seus atalhos
+para o novo executável. Se você configurou os agentes manualmente, atualize
+também o caminho no cliente de IA.
+
+Atualizações: o programa consulta as versões estáveis no GitHub do DZ Island.
+O instalador também pode ser removido nas configurações de Aplicativos do
+Windows. O perfil data é preservado pelo desinstalador.
+
+Código, versões e manuais: https://github.com/5rs6vyg9z2-oss/dz-island

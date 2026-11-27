@@ -5,7 +5,7 @@ import { SettingRow } from "./SettingRow";
 import { Dropdown } from "./Dropdown";
 import { useT } from "../i18n";
 
-export function EdgeArea({ settingKey }: { settingKey: "nectar-notch-edge-area" | "nectar-dock-edge-area" }) {
+export function EdgeArea({ settingKey }: { settingKey: "dz-island-notch-edge-area" | "dz-island-dock-edge-area" }) {
   const t = useT();
   const [value, setValue] = useState(() => (localStorage.getItem(settingKey) === "narrow" ? "narrow" : "full"));
 
@@ -16,7 +16,7 @@ export function EdgeArea({ settingKey }: { settingKey: "nectar-notch-edge-area" 
   };
 
   return (
-    <SettingRow icon={MousePointer2} label={t("edgeArea.label")} desc={t(settingKey === "nectar-notch-edge-area" ? "edgeArea.notch.desc" : "edgeArea.dock.desc")}>
+    <SettingRow icon={MousePointer2} label={t("edgeArea.label")} desc={t(settingKey === "dz-island-notch-edge-area" ? "edgeArea.notch.desc" : "edgeArea.dock.desc")}>
       <Dropdown
         value={value}
         onChange={change}

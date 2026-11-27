@@ -5,9 +5,9 @@
   --window-bar-line: rgba(255, 255, 255, 0.05);
   --window-title: rgba(255, 255, 255, 0.7);
   --bg-color: var(--window-bg);
-  --group-bg: var(--nectar-group-bg, rgba(255, 255, 255, 0.04));
-  --text-color: var(--nectar-text, #f5f5f5);
-  --text-muted: var(--nectar-text-muted, #999999);
+  --group-bg: var(--dz-island-group-bg, rgba(255, 255, 255, 0.04));
+  --text-color: var(--dz-island-text, #f5f5f5);
+  --text-muted: var(--dz-island-text-muted, #999999);
 }
 
 .light-mode {
@@ -86,7 +86,7 @@ body {
 .settings-sidebar {
   width: 170px;
   background: rgba(255, 255, 255, 0.015);
-  border-right: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
+  border-right: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
   display: flex;
   flex-direction: column;
   padding: 12px 8px;
@@ -99,7 +99,7 @@ body {
 
 .light-mode .settings-sidebar {
   background: rgba(0, 0, 0, 0.01);
-  border-right: 1px solid var(--nectar-border, rgba(0, 0, 0, 0.08));
+  border-right: 1px solid var(--dz-island-border, rgba(0, 0, 0, 0.08));
 }
 
 .sidebar-tab {
@@ -225,14 +225,14 @@ body {
 }
 
 .settings-content::-webkit-scrollbar-thumb {
-  background: var(--nectar-scrollbar-thumb, rgba(255, 255, 255, 0.1));
+  background: var(--dz-island-scrollbar-thumb, rgba(255, 255, 255, 0.1));
   border-radius: 10px;
 }
 
 .setting-group-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
   text-transform: uppercase;
   margin: 18px 6px 8px 6px;
   letter-spacing: 0.5px;
@@ -250,7 +250,7 @@ body {
   background: var(--group-bg);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
 }
 
 .setting-group--menu {
@@ -265,7 +265,7 @@ body {
 
 .setting-divider {
   height: 1px;
-  background: var(--nectar-border, rgba(255, 255, 255, 0.05));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.05));
   margin-inline-start: 54px;
 }
 
@@ -304,7 +304,7 @@ body {
 .setting-label {
   font-size: 14px;
   font-weight: 500;
-  color: var(--nectar-text, rgba(255, 255, 255, 0.95));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.95));
 }
 
 .setting-desc {
@@ -315,7 +315,7 @@ body {
 
 .setting-divider {
   height: 1px;
-  background: var(--nectar-border, rgba(255, 255, 255, 0.06));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.06));
   margin-inline-start: 52px; /* Align with text */
 }
 
@@ -340,10 +340,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--nectar-group-bg, rgba(255, 255, 255, 0.15));
+  background-color: var(--dz-island-group-bg, rgba(255, 255, 255, 0.15));
   transition: .3scubic-bezier(0.4, 0.0, 0.2, 1);
   border-radius: 24px;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
 }
 
 .slider:before {
@@ -360,8 +360,8 @@ body {
 }
 
 input:checked + .slider {
-  background-color: var(--nectar-highlight, #34c759);
-  border-color: var(--nectar-highlight, #34c759);
+  background-color: var(--dz-island-highlight, #34c759);
+  border-color: var(--dz-island-highlight, #34c759);
 }
 
 input:checked + .slider:before {
@@ -376,12 +376,12 @@ input:checked + .slider:before {
 
 .unit-toggle-minimal {
   display: flex;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.08));
   padding: 2px;
   border-radius: 6px;
   gap: 2px;
   cursor: pointer;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
 }
 
 .unit-toggle-minimal span {
@@ -393,13 +393,13 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
   transition: all 0.2s ease;
 }
 
 .unit-toggle-minimal span.active {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.15));
-  color: var(--nectar-text, white);
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.15));
+  color: var(--dz-island-text, white);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
@@ -442,13 +442,13 @@ input:checked + .slider:before {
   background: transparent;
   border: none;
   font-size: 12px;
-  color: var(--nectar-text, #fff);
+  color: var(--dz-island-text, #fff);
   padding: 4px 20px 4px 0;
   outline: none;
 }
 
 .city-input-row input::placeholder {
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.2));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.2));
 }
 
 .city-clear-btn {
@@ -458,7 +458,7 @@ input:checked + .slider:before {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.3));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.3));
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -469,15 +469,15 @@ input:checked + .slider:before {
 }
 
 .city-clear-btn:hover {
-  color: var(--nectar-text, #fff);
+  color: var(--dz-island-text, #fff);
   background: rgba(255, 255, 255, 0.1);
 }
 
 .city-dropdown {
   position: static;
   margin: 4px 0 6px;
-  background: var(--nectar-group-bg, rgba(30, 30, 30, 0.95));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(30, 30, 30, 0.95));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
   border-radius: 8px;
   padding: 4px;
   z-index: 100;
@@ -507,13 +507,13 @@ input:checked + .slider:before {
 
 .city-dropdown-name {
   font-size: 12px;
-  color: var(--nectar-text, #fff);
+  color: var(--dz-island-text, #fff);
   font-weight: 500;
 }
 
 .city-dropdown-country {
   font-size: 10px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.35));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.35));
 }
 
 .dropdown {
@@ -526,9 +526,9 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.1));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.07));
-  color: var(--nectar-text, white);
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.07));
+  color: var(--dz-island-text, white);
   font: inherit;
   font-size: 11px;
   font-weight: 500;
@@ -541,11 +541,11 @@ input:checked + .slider:before {
 }
 
 .dropdown-trigger:hover {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.15));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.15));
 }
 
 .dropdown-trigger.open {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.15));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.15));
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -556,7 +556,7 @@ input:checked + .slider:before {
 }
 
 .dropdown-chevron {
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.45));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.45));
   flex-shrink: 0;
   transition: transform 0.18s ease;
 }
@@ -571,8 +571,8 @@ input:checked + .slider:before {
   min-width: 100%;
   width: max-content;
   max-width: 260px;
-  background: var(--nectar-group-bg, rgba(30, 30, 30, 0.95));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(30, 30, 30, 0.95));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
   padding: 4px;
   z-index: 200;
@@ -616,7 +616,7 @@ input:checked + .slider:before {
   width: 100%;
   background: none;
   border: none;
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
   font: inherit;
   font-size: 11px;
   padding: 7px 9px;
@@ -632,12 +632,12 @@ input:checked + .slider:before {
 }
 
 .dropdown-item.selected {
-  color: var(--nectar-accent, #007aff);
+  color: var(--dz-island-accent, #007aff);
   font-weight: 600;
 }
 
 .dropdown-item svg {
-  color: var(--nectar-accent, #007aff);
+  color: var(--dz-island-accent, #007aff);
   flex-shrink: 0;
 }
 
@@ -650,7 +650,7 @@ input:checked + .slider:before {
 .processes-refresh-btn {
   background: none;
   border: none;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -660,7 +660,7 @@ input:checked + .slider:before {
 }
 
 .processes-refresh-btn:hover {
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -680,7 +680,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   padding: 8px 14px;
-  border-bottom: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
 }
 
 .process-row:last-child {
@@ -709,7 +709,7 @@ input:checked + .slider:before {
   width: 100%;
   height: 100%;
   border-radius: 6px;
-  background: var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.08));
 }
 
 .process-info {
@@ -723,7 +723,7 @@ input:checked + .slider:before {
 .process-name {
   font-size: 13px;
   font-weight: 500;
-  color: var(--nectar-text, rgba(255, 255, 255, 0.95));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.95));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -738,7 +738,7 @@ input:checked + .slider:before {
 .process-end-btn {
   background: none;
   border: none;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
   cursor: pointer;
   padding: 5px;
   display: flex;
@@ -764,11 +764,11 @@ input:checked + .slider:before {
 }
 
 .setting-item.action:hover {
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.08));
 }
 
 .setting-item.action:active {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.12));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.12));
 }
 
 .setting-item.action.danger:hover {
@@ -788,7 +788,7 @@ input:checked + .slider:before {
   appearance: none;
   width: 100px;
   height: 4px;
-  background: var(--nectar-scrollbar-thumb, rgba(255, 255, 255, 0.1));
+  background: var(--dz-island-scrollbar-thumb, rgba(255, 255, 255, 0.1));
   border-radius: 2px;
   outline: none;
 }
@@ -798,7 +798,7 @@ input:checked + .slider:before {
   appearance: none;
   width: 14px;
   height: 14px;
-  background: var(--nectar-text, white);
+  background: var(--dz-island-text, white);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -808,8 +808,8 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.1));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.1));
   border-radius: 6px;
   padding: 2px 4px;
   user-select: none;
@@ -818,7 +818,7 @@ input:checked + .slider:before {
 .scale-adjust-btn {
   background: transparent;
   border: none;
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
   font-size: 11px;
   font-weight: 700;
   width: 20px;
@@ -833,11 +833,11 @@ input:checked + .slider:before {
 }
 
 .scale-adjust-btn:hover:not(:disabled) {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.12));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.12));
 }
 
 .scale-adjust-btn:active:not(:disabled) {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.2));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.2));
 }
 
 .scale-adjust-btn:disabled {
@@ -850,7 +850,7 @@ input:checked + .slider:before {
   font-weight: 600;
   min-width: 32px;
   text-align: center;
-  color: var(--nectar-text, rgba(255, 255, 255, 0.9));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.9));
 }
 
 /* Color picker row */
@@ -881,23 +881,23 @@ input:checked + .slider:before {
   width: 120px;
   padding: 5px 8px;
   border-radius: 6px;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.12));
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.04));
-  color: var(--nectar-text, #fff);
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.12));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.04));
+  color: var(--dz-island-text, #fff);
   font-size: 12px;
   text-align: center;
   outline: none;
 }
 
 .shortcut-input:focus {
-  border-color: var(--nectar-highlight, var(--nectar-accent, #007aff));
+  border-color: var(--dz-island-highlight, var(--dz-island-accent, #007aff));
 }
 
 .shortcut-recorder { display: flex; align-items: center; gap: 6px; }
 .shortcut-record { cursor: pointer; min-width: 120px; }
-.shortcut-record.recording { border-color: var(--nectar-highlight, var(--nectar-accent, #007aff)); opacity: 0.9; }
-.shortcut-clear { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 6px; background: none; color: var(--nectar-text, #fff); opacity: 0.55; cursor: pointer; }
-.shortcut-clear:hover { opacity: 1; background: var(--nectar-group-bg, rgba(255, 255, 255, 0.08)); }
+.shortcut-record.recording { border-color: var(--dz-island-highlight, var(--dz-island-accent, #007aff)); opacity: 0.9; }
+.shortcut-clear { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 6px; background: none; color: var(--dz-island-text, #fff); opacity: 0.55; cursor: pointer; }
+.shortcut-clear:hover { opacity: 1; background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.08)); }
 .shortcut-input.invalid {
   border-color: #ff453a;
 }
@@ -976,7 +976,7 @@ input:checked + .slider:before {
 }
 
 .update-pill--available {
-  background: var(--nectar-accent, #007aff);
+  background: var(--dz-island-accent, #007aff);
   color: #ffffff;
 }
 
@@ -1034,7 +1034,7 @@ input:checked + .slider:before {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.25));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.25));
   width: 40px;
   flex-shrink: 0;
 }
@@ -1065,12 +1065,12 @@ input:checked + .slider:before {
 
 .widget-config-empty {
   font-size: 11px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.15));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.15));
   font-style: italic;
 }
 
 .widget-config-pool {
-  border-top: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.06));
   padding-top: 8px;
 }
 
@@ -1089,7 +1089,7 @@ input:checked + .slider:before {
   border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--nectar-text, rgba(255, 255, 255, 0.7));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.7));
   white-space: nowrap;
   user-select: none;
 }
@@ -1117,8 +1117,8 @@ input:checked + .slider:before {
 }
 
 .widget-pill--available {
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.03));
-  border: 1px dashed var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.03));
+  border: 1px dashed var(--dz-island-border, rgba(255, 255, 255, 0.08));
   cursor: grab;
   transition: background 0.1s, border-color 0.1s;
 }
@@ -1154,7 +1154,7 @@ input:checked + .slider:before {
   border: none;
   border-radius: 3px;
   background: transparent;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.2));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.2));
   cursor: pointer;
   padding: 0;
   transition: background 0.1s, color 0.1s;
@@ -1162,7 +1162,7 @@ input:checked + .slider:before {
 
 .widget-pill-btn:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: var(--nectar-text, rgba(255, 255, 255, 0.7));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.7));
 }
 
 .widget-pill-btn--x:hover {
@@ -1187,7 +1187,7 @@ input:checked + .slider:before {
   padding: 14px 4px;
   min-height: 0;
   border: none;
-  border-top: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.06));
   border-radius: 0;
 }
 
@@ -1258,9 +1258,9 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.1));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
-  color: var(--nectar-text, white);
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
+  color: var(--dz-island-text, white);
   font-size: 11px;
   border-radius: 6px;
   padding: 4px 10px;
@@ -1268,7 +1268,7 @@ input:checked + .slider:before {
 }
 
 .caldav-btn:hover:not(:disabled) {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.15));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.15));
 }
 
 .caldav-btn:disabled {
@@ -1277,8 +1277,8 @@ input:checked + .slider:before {
 }
 
 .caldav-btn.primary {
-  background: var(--nectar-text, white);
-  color: var(--nectar-bg-expanded, black);
+  background: var(--dz-island-text, white);
+  color: var(--dz-island-bg-expanded, black);
 }
 
 .caldav-btn.danger {
@@ -1295,17 +1295,17 @@ input:checked + .slider:before {
 .caldav-form input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
   border-radius: 6px;
-  color: var(--nectar-text, #fff);
+  color: var(--dz-island-text, #fff);
   font-size: 12px;
   padding: 6px 8px;
   outline: none;
 }
 
 .caldav-form input::placeholder {
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.3));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.3));
 }
 
 .caldav-form-footer {
@@ -1318,7 +1318,7 @@ input:checked + .slider:before {
 .caldav-hint {
   font-size: 10px;
   line-height: 1.4;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.35));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.35));
 }
 
 .caldav-error {
@@ -1340,21 +1340,21 @@ input:checked + .slider:before {
   gap: 2px;
   background: transparent;
   border: none;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.55));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.55));
   font-size: 12px;
   padding: 2px 4px 2px 0;
   cursor: pointer;
 }
 
 .caldav-back:hover {
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
 }
 
 .caldav-intro {
   margin: 10px 14px 4px 14px;
   font-size: 11px;
   line-height: 1.45;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
 }
 
 .caldav-error--page {
@@ -1378,20 +1378,20 @@ input:checked + .slider:before {
   border: none;
   padding: 0;
   font-size: 11px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.5));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.5));
   text-decoration: underline;
   cursor: pointer;
 }
 
 .caldav-link-btn:hover {
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
 }
 
 .caldav-guide {
   margin: 2px 14px 12px 54px;
   font-size: 11px;
   line-height: 1.45;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.55));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.55));
 }
 
 .caldav-chips {
@@ -1402,26 +1402,26 @@ input:checked + .slider:before {
 }
 
 .caldav-chips button {
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
   border-radius: 999px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.6));
   font-size: 11px;
   padding: 2px 10px;
   cursor: pointer;
 }
 
 .caldav-chips button.active {
-  background: var(--nectar-text, white);
+  background: var(--dz-island-text, white);
   border-color: transparent;
-  color: var(--nectar-bg-expanded, black);
+  color: var(--dz-island-bg-expanded, black);
   font-weight: 600;
 }
 
 .caldav-guide ol {
   margin: 0 0 6px 0;
   padding-left: 16px;
-  color: var(--nectar-text, rgba(255, 255, 255, 0.85));
+  color: var(--dz-island-text, rgba(255, 255, 255, 0.85));
 }
 
 .caldav-guide li + li {
@@ -1452,11 +1452,11 @@ input:checked + .slider:before {
     min-height: 40px;
     padding: 0 12px 0 6px;
     border-radius: 10px;
-    background: var(--nectar-group-bg, rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.07));
+    background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.07));
     font-size: 12px;
     font-weight: 500;
-    color: var(--nectar-text, #fff);
+    color: var(--dz-island-text, #fff);
     transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1465,7 +1465,7 @@ input:checked + .slider:before {
 }
 
 .panel-order-item.dragging {
-    background: var(--nectar-bg-expanded, rgba(40, 40, 46, 0.98));
+    background: var(--dz-island-bg-expanded, rgba(40, 40, 46, 0.98));
     border-color: rgba(255, 255, 255, 0.24);
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
 }
@@ -1480,13 +1480,13 @@ input:checked + .slider:before {
     border: none;
     border-radius: 6px;
     background: none;
-    color: var(--nectar-text-muted, rgba(255, 255, 255, 0.45));
+    color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.45));
     cursor: grab;
     touch-action: none;
 }
 
 .panel-order-grip:hover {
-    color: var(--nectar-text, #fff);
+    color: var(--dz-island-text, #fff);
     background: rgba(255, 255, 255, 0.06);
 }
 
@@ -1502,7 +1502,7 @@ input:checked + .slider:before {
     height: 26px;
     border-radius: 7px;
     background: rgba(255, 255, 255, 0.08);
-    color: var(--nectar-text, #fff);
+    color: var(--dz-island-text, #fff);
     flex-shrink: 0;
 }
 
@@ -1517,7 +1517,7 @@ input:checked + .slider:before {
     font-size: 11px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+    color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
 }
 
 .panel-order-reset {
@@ -1526,10 +1526,10 @@ input:checked + .slider:before {
     gap: 6px;
     align-self: flex-end;
     padding: 5px 12px;
-    border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.1));
     border-radius: 8px;
     background: transparent;
-    color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+    color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.6));
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
@@ -1538,7 +1538,7 @@ input:checked + .slider:before {
 
 .panel-order-reset:hover {
     background: rgba(255, 255, 255, 0.06);
-    color: var(--nectar-text, rgba(255, 255, 255, 0.9));
+    color: var(--dz-island-text, rgba(255, 255, 255, 0.9));
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -1557,20 +1557,20 @@ input:checked + .slider:before {
     margin: 12px 0 6px;
     padding: 11px 14px;
     background: var(--group-bg);
-    border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.05));
     border-radius: 12px;
     font-size: 12.5px;
     font-weight: 600;
     letter-spacing: 0.2px;
     text-transform: none;
-    color: var(--nectar-text, #fff);
+    color: var(--dz-island-text, #fff);
     text-align: left;
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
 .setting-group-label.setting-section-header:hover {
-    background: var(--nectar-border, rgba(255, 255, 255, 0.08));
+    background: var(--dz-island-border, rgba(255, 255, 255, 0.08));
 }
 
 .setting-group-label.setting-section-header:focus {
@@ -1578,7 +1578,7 @@ input:checked + .slider:before {
 }
 
 .setting-group-label.setting-section-header:focus-visible {
-    box-shadow: 0 0 0 1px var(--nectar-text-muted, rgba(255, 255, 255, 0.4));
+    box-shadow: 0 0 0 1px var(--dz-island-text-muted, rgba(255, 255, 255, 0.4));
 }
 
 .setting-section:not(.collapsed) > .setting-group-label.setting-section-header {
@@ -1637,18 +1637,18 @@ input:checked + .slider:before {
   border-radius: 12px;
   background: none;
   border: 1.5px solid transparent;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.6));
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .style-tile:hover {
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.04));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.04));
 }
 
 .style-tile.active {
-  border-color: var(--nectar-highlight, var(--nectar-accent, #007aff));
-  color: var(--nectar-text, #fff);
+  border-color: var(--dz-island-highlight, var(--dz-island-accent, #007aff));
+  color: var(--dz-island-text, #fff);
 }
 
 /* Miniature of the notch on a flat two-colour backdrop, so blur, clarity and tint read at a glance */
@@ -1708,12 +1708,12 @@ input:checked + .slider:before {
 }
 
 .style-preview-material .style-tile-pill {
-  background: color-mix(in srgb, var(--nectar-accent, #007aff) 24%, #14161b);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nectar-accent, #007aff) 38%, transparent);
+  background: color-mix(in srgb, var(--dz-island-accent, #007aff) 24%, #14161b);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dz-island-accent, #007aff) 38%, transparent);
 }
 
 .style-preview-material .style-tile-pill i:first-child {
-  background: color-mix(in srgb, var(--nectar-accent, #007aff) 65%, white);
+  background: color-mix(in srgb, var(--dz-island-accent, #007aff) 65%, white);
 }
 
 .style-tile-label {
@@ -1737,7 +1737,7 @@ input:checked + .slider:before {
   height: 22px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.12));
   cursor: pointer;
   transition: transform 0.15s ease;
 }
@@ -1753,7 +1753,7 @@ input:checked + .slider:before {
 }
 
 .preset-swatch.active {
-  outline: 2px solid var(--nectar-highlight, var(--nectar-text, #fff));
+  outline: 2px solid var(--dz-island-highlight, var(--dz-island-text, #fff));
   outline-offset: 2px;
 }
 
@@ -1769,9 +1769,9 @@ input:checked + .slider:before {
   height: 28px;
   padding: 0 11px;
   border-radius: 8px;
-  border: 1px solid var(--nectar-border, rgba(255, 255, 255, 0.08));
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.08));
-  color: var(--nectar-text, #fff);
+  border: 1px solid var(--dz-island-border, rgba(255, 255, 255, 0.08));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.08));
+  color: var(--dz-island-text, #fff);
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
@@ -1780,7 +1780,7 @@ input:checked + .slider:before {
 }
 
 .agent-sound-btn:hover {
-  background: var(--nectar-border, rgba(255, 255, 255, 0.16));
+  background: var(--dz-island-border, rgba(255, 255, 255, 0.16));
 }
 
 .agent-sound-btn:active {
@@ -1797,13 +1797,13 @@ input:checked + .slider:before {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid transparent;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.6));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.6));
   box-sizing: border-box;
   flex-shrink: 0;
 }
 
 .settings-search:focus-within {
-  border-color: var(--nectar-accent, #0a84ff);
+  border-color: var(--dz-island-accent, #0a84ff);
   background: rgba(255, 255, 255, 0.09);
 }
 
@@ -1813,13 +1813,13 @@ input:checked + .slider:before {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
   font: inherit;
   font-size: 12px;
 }
 
 .settings-search input::placeholder {
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.45));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.45));
 }
 
 .settings-search-clear {
@@ -1857,7 +1857,7 @@ input:checked + .slider:before {
   border: none;
   border-radius: 10px;
   background: transparent;
-  color: var(--nectar-text, white);
+  color: var(--dz-island-text, white);
   text-align: start;
   cursor: pointer;
   font: inherit;
@@ -1887,7 +1887,7 @@ input:checked + .slider:before {
 
 .settings-search-result-desc {
   font-size: 11px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.55));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.55));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1899,14 +1899,14 @@ input:checked + .slider:before {
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.65));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.65));
 }
 
 .settings-search-empty {
   padding: 28px 16px;
   text-align: center;
   font-size: 12px;
-  color: var(--nectar-text-muted, rgba(255, 255, 255, 0.55));
+  color: var(--dz-island-text-muted, rgba(255, 255, 255, 0.55));
 }
 
 .setting-item.setting-flash {
@@ -1914,7 +1914,7 @@ input:checked + .slider:before {
 }
 
 @keyframes setting-flash {
-  0%, 35% { background: color-mix(in srgb, var(--nectar-accent, #0a84ff) 28%, transparent); }
+  0%, 35% { background: color-mix(in srgb, var(--dz-island-accent, #0a84ff) 28%, transparent); }
   100% { background: transparent; }
 }
 
@@ -1931,7 +1931,7 @@ input:checked + .slider:before {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: var(--nectar-group-bg, rgba(255, 255, 255, 0.04));
+  background: var(--dz-island-group-bg, rgba(255, 255, 255, 0.04));
 }
 
 .agent-legend-item > div {

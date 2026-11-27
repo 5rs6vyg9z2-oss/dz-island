@@ -4,7 +4,9 @@ use sha2::{Digest, Sha256};
 use std::{collections::HashSet, fs, io::{Read, Write}, path::{Path, PathBuf}, time::Duration};
 use std::os::windows::process::CommandExt;
 use zip::HasZipMetadata;
-const ALLOWED: &[&str] = &["Nectar.exe","DZUpdater.exe","WebView2Loader.dll","LICENSE.txt","LEIA-ME.txt","Perguntar-Na-Ilha.ps1","PERGUNTAS-NA-ILHA.txt","Battery/BatteryEngine.exe","Battery/headsetcontrol.exe","Battery/LICENSE.txt","Battery/THIRD_PARTY_NOTICES.txt"];
+const APP: &str = "DZ-Island.exe";
+const LEGACY_APP: &str = "Nectar.exe";
+const ALLOWED: &[&str] = &[APP,LEGACY_APP,"DZUpdater.exe","WebView2Loader.dll","LICENSE.txt","LEIA-ME.txt","Perguntar-Na-Ilha.ps1","PERGUNTAS-NA-ILHA.txt","Battery/BatteryEngine.exe","Battery/headsetcontrol.exe","Battery/LICENSE.txt","Battery/THIRD_PARTY_NOTICES.txt"];
 #[derive(Deserialize)]
 struct Plan { root: PathBuf, parent: u32, version: String, digest: String }
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -30,7 +32,7 @@ fn move_retry(from: &Path, to: &Path) -> std::io::Result<()> {
     }
     unreachable!()
 }
-fn validate(stage: &Path, plan: &Plan) -> Result<Vec<String>> {
+fn validate(stage: &Path, plan: &Plan, app: &str) -> Result<Vec<String>> {
     let package=stage.join("package.zip");
     if fs::metadata(&package)?.len() > 150 * 1024 * 1024 { return Err("Package too large".into()); }
     let mut hash=Sha256::new(); let mut file=fs::File::open(&package)?; let mut buf=[0u8;65536];
@@ -44,6 +46,7 @@ fn validate(stage: &Path, plan: &Plan) -> Result<Vec<String>> {
         let raw=entry.name()?.replace('\\',"/");
         if raw=="Battery/" {continue}
         let name=*ALLOWED.iter().find(|n| n.eq_ignore_ascii_case(&raw)).ok_or("Unexpected package entry")?;
+        if matches!(name, APP | LEGACY_APP) && name != app { return Err("Unexpected application name".into()); }
         if !seen.insert(name) { return Err("Duplicate package entry".into()); }
         total=total.checked_add(entry.size()).ok_or("Package size overflow")?;
         if entry.size()>150*1024*1024 || total>250*1024*1024 { return Err("Unpacked package too large".into()); }
@@ -54,8 +57,8 @@ fn validate(stage: &Path, plan: &Plan) -> Result<Vec<String>> {
         if copied!=entry.size() { return Err("Unpacked size mismatch".into()); }
         output.flush()?; names.push(name.to_owned());
     }
-    if !seen.contains("Nectar.exe") { return Err("Missing application".into()); }
-    let mut magic=[0;2];fs::File::open(stage.join("unpack/Nectar.exe"))?.read_exact(&mut magic)?;
+    if !seen.contains(app) { return Err("Missing application".into()); }
+    let mut magic=[0;2];fs::File::open(stage.join("unpack").join(app))?.read_exact(&mut magic)?;
     if magic!=*b"MZ" { return Err("Invalid Windows application".into()); }
     Ok(names)
 }
@@ -72,10 +75,10 @@ fn result(plan:&Plan,status:&str,message:&str) {
     let _=fs::create_dir_all(path.parent().unwrap());
     let _=fs::write(path,serde_json::json!({"status":status,"version":plan.version,"message":message}).to_string());
 }
-fn restart(root:&Path)->Result<()> {
-    std::process::Command::new(root.join("Nectar.exe")).current_dir(root).creation_flags(0x08000000).spawn()?;Ok(())
+fn restart(root:&Path, app:&str)->Result<()> {
+    std::process::Command::new(root.join(app)).current_dir(root).creation_flags(0x08000000).spawn()?;Ok(())
 }
-fn apply(stage:&Path,plan:&Plan,names:&[String])->Result<()> {
+fn apply(stage:&Path,plan:&Plan,names:&[String],app:&str)->Result<()> {
     let mut changed=Vec::new();
     let installation=(||->Result<()> {
         for name in names {
@@ -105,23 +108,24 @@ fn apply(stage:&Path,plan:&Plan,names:&[String])->Result<()> {
             };
             if let Err(error) = restored { message.push_str(&format!("; restoring {name}: {error}")); }
         }
-        result(plan,"failed",&message);let _=restart(&plan.root);return Err(message.into());
+        result(plan,"failed",&message);let _=restart(&plan.root,app);return Err(message.into());
     }
-    result(plan,"installed","Update installed; settings preserved.");restart(&plan.root)
+    result(plan,"installed","Update installed; settings preserved.");restart(&plan.root,app)
 }
 fn run()->Result<()> {
     let mut args=std::env::args_os().skip(1);let path=PathBuf::from(args.next().ok_or("Missing plan")?);
     let validate_only=args.any(|a|a=="--validate-only");
     let stage=path.parent().ok_or("Missing stage")?;
     let plan:Plan=serde_json::from_slice(&fs::read(&path)?)?;
-    if !plan.root.join("Nectar.exe").is_file() {return Err("Missing installed application".into())}
-    let validation=validate(stage,&plan);
+    let app = [APP, LEGACY_APP].into_iter().find(|name| plan.root.join(name).is_file())
+        .ok_or("Missing installed application")?;
+    let validation=validate(stage,&plan,app);
     let names=match validation {Ok(n)=>n,Err(e)=>{fs::write(stage.join("error.txt"),e.to_string())?;return Err(e)}};
     if validate_only {return Ok(())}
     fs::write(stage.join("ready.flag"),b"ready")?;
     wait_parent(plan.parent)?;
     std::thread::sleep(Duration::from_secs(2));
-    apply(stage,&plan,&names)
+    apply(stage,&plan,&names,app)
 }
 fn main(){if let Err(error)=run(){
     if let Some(path)=std::env::args_os().nth(1).map(PathBuf::from).and_then(|p|p.parent().map(Path::to_path_buf)){let _=fs::write(path.join("error.txt"),error.to_string());}

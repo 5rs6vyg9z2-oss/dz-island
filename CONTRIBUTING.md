@@ -1,4 +1,4 @@
-# Contributing to Nectar
+# Contributing to DZ Island
 
 Thanks for wanting to help. Bug reports, ideas, translations and pull requests are all welcome.
 
@@ -24,17 +24,17 @@ Useful checks before you push:
 
 ```bash
 npx tsc --noEmit
-cd src-tauri && cargo test --bin nectar
+cd src-tauri && cargo test --bin dz-island
 ```
 
-To try a release build, run `bun run tauri build --no-bundle`. The exe is `src-tauri/target/release/nectar.exe`.
+To try a release build, run `bun run tauri build --no-bundle`. The exe is `src-tauri/target/release/dz-island.exe`.
 
 ## Pull requests
 
 - Keep one change per pull request. A small, focused change is reviewed much faster.
 - Say what changed and why, and which Windows version and monitor setup you tested on.
 - Test on a real build. Many things, like the dock, the taskbar and the tray flyout, behave differently in a dev server than in the real app.
-- If you add or change a `nectar-*` setting, document it in [SETTINGS.md](SETTINGS.md) in the same pull request.
+- If you add or change a `dz-island-*` setting, document it in [SETTINGS.md](SETTINGS.md) in the same pull request.
 - User-facing text goes in `src/locales/en.json`. Add the same keys to the other languages if you can; missing keys fall back to English.
 - Keep code comments to a minimum. Match the style of the code around your change.
 - Do not commit generated files, build output or your own settings.
@@ -45,4 +45,4 @@ Translations live in `src/locales/<code>.json`. To add a language, add the file,
 
 ## License
 
-Nectar is licensed under the [GPLv3](LICENSE). By sending a pull request you agree that your contribution is released under the same license. Nectar is a fork of [Bloom](https://github.com/SehajveerSingh2005/bloom) by Sehajveer Singh, and some code is adapted from it.
+DZ Island is licensed under the [GPLv3](LICENSE). By sending a pull request you agree that your contribution is released under the same license.

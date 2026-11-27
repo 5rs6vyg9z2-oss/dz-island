@@ -3,7 +3,7 @@ import { Palette } from "lucide-react";
 import { SettingRow } from "./SettingRow";
 import { useT } from "../i18n";
 
-const SEEN = "nectar-agent-intro-seen";
+const SEEN = "dz-island-agent-intro-seen";
 
 const COLORS = [
   { color: "#60a5fa", key: "working" },

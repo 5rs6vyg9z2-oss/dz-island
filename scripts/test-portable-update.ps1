@@ -4,19 +4,19 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('dz-updater-tests-' + [guid]::NewGuid().ToString('N'))
 
 $cases = @(
-    @{name='valid';entries=@('Nectar.exe','WebView2Loader.dll');fail=$false},
-    @{name='traversal';entries=@('Nectar.exe','../outside.txt');fail=$true},
-    @{name='settings';entries=@('Nectar.exe','data/settings.json');fail=$true},
-    @{name='duplicate';entries=@('Nectar.exe','NECTAR.EXE');fail=$true},
+    @{name='valid';entries=@('DZ-Island.exe','WebView2Loader.dll');fail=$false},
+    @{name='traversal';entries=@('DZ-Island.exe','../outside.txt');fail=$true},
+    @{name='settings';entries=@('DZ-Island.exe','data/settings.json');fail=$true},
+    @{name='duplicate';entries=@('DZ-Island.exe','DZ-ISLAND.EXE');fail=$true},
     @{name='missing-exe';entries=@('LICENSE.txt');fail=$true},
-    @{name='unexpected-script';entries=@('Nectar.exe','run.bat');fail=$true},
-    @{name='bad-digest';entries=@('Nectar.exe');fail=$true}
+    @{name='unexpected-script';entries=@('DZ-Island.exe','run.bat');fail=$true},
+    @{name='bad-digest';entries=@('DZ-Island.exe');fail=$true}
 )
 foreach ($case in $cases) {
     $stage = Join-Path $testRoot $case.name
     $root = Join-Path $stage 'installed'
     [void][IO.Directory]::CreateDirectory((Join-Path $root 'data'))
-    [IO.File]::WriteAllBytes((Join-Path $root 'Nectar.exe'),[byte[]](77,90,0))
+    [IO.File]::WriteAllBytes((Join-Path $root 'DZ-Island.exe'),[byte[]](77,90,0))
     [IO.File]::WriteAllText((Join-Path $root 'data/settings.json'),'{"preserve":true}')
     $archive = [IO.Compression.ZipFile]::Open((Join-Path $stage 'package.zip'),[IO.Compression.ZipArchiveMode]::Create)
     try {
@@ -34,7 +34,7 @@ foreach ($case in $cases) {
     $failed=Test-Path -LiteralPath (Join-Path $stage 'error.txt')
     if ($failed -ne $case.fail) { throw "Unexpected validation result: $($case.name)" }
     if ([IO.File]::ReadAllText((Join-Path $root 'data/settings.json')) -ne '{"preserve":true}') { throw 'Settings modified during validation.' }
-    if ([IO.File]::ReadAllBytes((Join-Path $root 'Nectar.exe'))[2] -ne 0) { throw 'Application changed during validation.' }
+    if ([IO.File]::ReadAllBytes((Join-Path $root 'DZ-Island.exe'))[2] -ne 0) { throw 'Application changed during validation.' }
     Write-Output "PASS $($case.name)"
 }
 Write-Output '7 archive boundary tests passed.'
@@ -50,17 +50,18 @@ foreach ($item in @(@{marker='old';path=$oldExe},@{marker='new';path=$newExe})) 
     & $compiler /nologo /target:winexe "/out:$($item.path)" $mockSource
     if ($LASTEXITCODE -ne 0) { throw 'Mock application compilation failed.' }
 }
-foreach ($scenario in @('replace','running-background','rollback')) {
+foreach ($scenario in @('replace','legacy','running-background','rollback')) {
     $stage = Join-Path $testRoot $scenario
     $root = Join-Path $stage 'installed'
     [void][IO.Directory]::CreateDirectory((Join-Path $root 'data'))
-    Copy-Item -LiteralPath $oldExe -Destination (Join-Path $root 'Nectar.exe')
+    $app = if ($scenario -eq 'legacy') { 'Nectar.exe' } else { 'DZ-Island.exe' }
+    Copy-Item -LiteralPath $oldExe -Destination (Join-Path $root $app)
     [IO.File]::WriteAllText((Join-Path $root 'data/settings.json'),'preserved')
     [IO.File]::WriteAllText((Join-Path $root 'LICENSE.txt'),'old-license')
     [IO.File]::WriteAllText((Join-Path $root 'WebView2Loader.dll'),'old-loader')
     $archive = [IO.Compression.ZipFile]::Open((Join-Path $stage 'package.zip'),[IO.Compression.ZipArchiveMode]::Create)
     try {
-        [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive,$newExe,'Nectar.exe')
+        [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive,$newExe,$app)
         foreach ($name in @('LICENSE.txt','WebView2Loader.dll')) {
             $entry=$archive.CreateEntry($name); $writer=[IO.StreamWriter]::new($entry.Open())
             try { $writer.Write('new-content') } finally { $writer.Dispose() }
@@ -72,7 +73,7 @@ foreach ($scenario in @('replace','running-background','rollback')) {
     $background=$null
     try {
         if ($scenario -eq 'running-background') {
-            $background=Start-Process -FilePath (Join-Path $root 'Nectar.exe') -ArgumentList '--background' -PassThru -WindowStyle Hidden
+            $background=Start-Process -FilePath (Join-Path $root 'DZ-Island.exe') -ArgumentList '--background' -PassThru -WindowStyle Hidden
             $deadline=(Get-Date).AddSeconds(10)
             while (-not (Test-Path (Join-Path $root 'background.ready')) -and (Get-Date) -lt $deadline) {
                 Start-Sleep -Milliseconds 100
@@ -96,4 +97,4 @@ foreach ($scenario in @('replace','running-background','rollback')) {
     if ($scenario -eq 'rollback' -and [IO.File]::ReadAllText((Join-Path $root 'LICENSE.txt')) -ne 'old-license') { throw 'Rollback did not restore all files.' }
     Write-Output "PASS $scenario and restart"
 }
-Write-Output '3 install/restart/rollback tests passed.'
+Write-Output '4 install/restart/rollback tests passed.'

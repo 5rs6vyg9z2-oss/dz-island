@@ -11,7 +11,7 @@ use tauri::{AppHandle, Emitter};
 const MAX_CONNECTIONS: usize = 8;
 const ASK_WAIT: u64 = 600;
 const DETAIL_MAX: usize = 600;
-const SETTING: &str = "nectar-agent-api";
+const SETTING: &str = "dz-island-agent-api";
 
 static ACTIVE: AtomicUsize = AtomicUsize::new(0);
 static NEXT_ASK: AtomicU64 = AtomicU64::new(1);
@@ -45,8 +45,8 @@ pub fn agent_pending_questions() -> Vec<Activity> {
 fn notify_agent(app: &AppHandle, state: &str) {
     use windows::core::PCWSTR;
     use windows::Win32::Media::Audio::{PlaySoundW, SND_ASYNC, SND_MEMORY, SND_NODEFAULT};
-    let enabled = crate::utils::get_setting_str(app, &format!("nectar-agent-sound-{state}"));
-    if crate::utils::get_setting_str(app, "nectar-agent-sounds").as_deref() == Some("false")
+    let enabled = crate::utils::get_setting_str(app, &format!("dz-island-agent-sound-{state}"));
+    if crate::utils::get_setting_str(app, "dz-island-agent-sounds").as_deref() == Some("false")
         || enabled.as_deref() == Some("false")
         || (state == "done" && enabled.as_deref() != Some("true")) { return; }
     // Static PCM bytes remain alive for asynchronous WinMM playback. This does
@@ -412,8 +412,12 @@ fn hook_entry(exe: &str, provider: &str) -> serde_json::Value {
 fn is_ours(hook: &serde_json::Value, exe: &str) -> bool {
     let Some(command) = hook["command"].as_str() else { return false };
     let path = exe.replace('\\', "/").replace('\'', "''");
-    (command == exe && hook["args"][0].as_str() == Some("agent"))
-        || (command.contains(&path) && command.contains("agent hook --name"))
+    let legacy_exe = std::path::Path::new(exe).with_file_name("Nectar.exe");
+    let legacy_exe = legacy_exe.to_string_lossy();
+    let legacy_path = legacy_exe.replace('\\', "/").replace('\'', "''");
+    ((command.eq_ignore_ascii_case(exe) || command.eq_ignore_ascii_case(&legacy_exe))
+        && hook["args"][0].as_str() == Some("agent"))
+        || ((command.contains(&path) || command.contains(&legacy_path)) && command.contains("agent hook --name"))
 }
 
 fn sync_hooks(path: PathBuf, provider: &str, enable: bool, exe: &str) {
@@ -462,13 +466,23 @@ fn sync_hooks(path: PathBuf, provider: &str, enable: bool, exe: &str) {
         if enable {
             let servers = object.entry("mcpServers").or_insert_with(|| serde_json::json!({}));
             if let Some(servers) = servers.as_object_mut() {
-                servers.entry("nectar-island").or_insert_with(|| serde_json::json!({
+                let legacy = std::path::Path::new(exe).with_file_name("Nectar.exe");
+                if servers.get("nectar-island").is_some_and(|server| {
+                    server["command"].as_str().is_some_and(|path| std::path::Path::new(path) == legacy)
+                        && server["args"][0].as_str() == Some("agent")
+                }) {
+                    servers.remove("nectar-island");
+                }
+                servers.entry("dz-island").or_insert_with(|| serde_json::json!({
                     "command": exe, "args": ["agent", "mcp", "--name", "Gemini CLI"], "timeout": 135000
                 }));
             }
         } else if let Some(servers) = object.get_mut("mcpServers").and_then(serde_json::Value::as_object_mut) {
-            if servers.get("nectar-island").is_some_and(|server| server["command"].as_str() == Some(exe)) {
-                servers.remove("nectar-island");
+            if servers.get("dz-island").is_some_and(|server| server["command"].as_str().is_some_and(|path| {
+                let legacy = std::path::Path::new(exe).with_file_name("Nectar.exe");
+                std::path::Path::new(path) == std::path::Path::new(exe) || std::path::Path::new(path) == legacy
+            }) && server["args"][0].as_str() == Some("agent")) {
+                servers.remove("dz-island");
             }
         }
     }
@@ -479,12 +493,12 @@ fn sync_hooks(path: PathBuf, provider: &str, enable: bool, exe: &str) {
     let Ok(mut out) = serde_json::to_string_pretty(&root) else { return };
     out.push('\n');
     if let Some(text) = &text {
-        let backup = path.with_extension("json.nectar-backup");
+        let backup = path.with_extension("json.dz-island-backup");
         if !backup.exists() {
             let _ = std::fs::write(&backup, text);
         }
     }
-    let temp = path.with_extension("json.nectar-tmp");
+    let temp = path.with_extension("json.dz-island-tmp");
     if std::fs::write(&temp, out).is_ok() && std::fs::rename(&temp, &path).is_err() {
         let _ = std::fs::remove_file(&temp);
     }
@@ -515,7 +529,7 @@ pub fn start(app: AppHandle) {
     }
     restore_questions();
     // A local question bridge does not need to modify other agents' hook files.
-    if crate::utils::get_setting_str(&app, "nectar-agent-hooks").as_deref() != Some("false") {
+    if crate::utils::get_setting_str(&app, "dz-island-agent-hooks").as_deref() != Some("false") {
         std::thread::spawn(|| set_hooks(true));
     }
     let Some(token) = random_token() else { return };
@@ -715,7 +729,7 @@ fn ask_from_event(args: &[String], event: serde_json::Value) {
     }
     let behavior = match decision.as_ref().and_then(|d| d["decision"].as_str()) {
         Some("allow") => serde_json::json!({ "behavior": "allow" }),
-        Some("deny") => serde_json::json!({ "behavior": "deny", "message": "Denied from Nectar" }),
+        Some("deny") => serde_json::json!({ "behavior": "deny", "message": "Denied from DZ Island" }),
         _ => return,
     };
     println!("{}", serde_json::json!({ "hookSpecificOutput": { "hookEventName": "PermissionRequest", "decision": behavior } }));
@@ -774,7 +788,7 @@ fn island_tool_result(text: String, error: bool) -> serde_json::Value {
 fn island_mcp_call(request: &serde_json::Value, agent: &str) -> serde_json::Value {
     let args = &request["params"]["arguments"];
     if request["params"]["name"] != "ask_island" {
-        return island_tool_result("Unknown Nectar tool.".into(), true);
+        return island_tool_result("Unknown DZ Island tool.".into(), true);
     }
     let Ok(questions) = serde_json::from_value::<Vec<AskQuestion>>(args["questions"].clone()) else {
         return island_tool_result("Provide questions and their answer options.".into(), true);
@@ -801,7 +815,7 @@ fn island_mcp_call(request: &serde_json::Value, agent: &str) -> serde_json::Valu
     });
     match selected {
         Some(answers) => island_tool_result(serde_json::json!({ "answers": answers }).to_string(), false),
-        None => island_tool_result("Nectar received no answer. Ask in the original chat instead.".into(), true),
+        None => island_tool_result("DZ Island received no answer. Ask in the original chat instead.".into(), true),
     }
 }
 
@@ -814,13 +828,13 @@ fn run_island_mcp(agent: &str) {
             Some("initialize") => serde_json::json!({
                 "protocolVersion": request["params"]["protocolVersion"].as_str().unwrap_or("2024-11-05"),
                 "capabilities": { "tools": {} },
-                "serverInfo": { "name": "nectar-island", "version": env!("CARGO_PKG_VERSION") },
-                "instructions": "For user choices in this local session, prefer ask_island. It shows options in the Nectar island and returns the answer. Use normal agent approval UI for tool permissions. If Nectar gives no answer, use the original chat."
+                "serverInfo": { "name": "dz-island", "version": env!("CARGO_PKG_VERSION") },
+                "instructions": "For user choices in this local session, prefer ask_island. It shows options in the DZ Island island and returns the answer. Use normal agent approval UI for tool permissions. If DZ Island gives no answer, use the original chat."
             }),
             Some("ping") => serde_json::json!({}),
             Some("tools/list") => serde_json::json!({ "tools": [{
                 "name": "ask_island",
-                "description": "Present one or more multiple-choice questions to the user in the local Nectar island and wait for the user's answer. Use for questions and decisions, not tool permissions.",
+                "description": "Present one or more multiple-choice questions to the user in the local DZ Island island and wait for the user's answer. Use for questions and decisions, not tool permissions.",
                 "inputSchema": {
                     "type": "object", "required": ["questions"], "additionalProperties": false,
                     "properties": { "questions": { "type": "array", "minItems": 1, "maxItems": 4,

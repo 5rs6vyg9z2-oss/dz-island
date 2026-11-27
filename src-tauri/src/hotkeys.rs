@@ -19,7 +19,7 @@ fn apply(app: &AppHandle, registered: &mut bool) {
             let _ = UnregisterHotKey(None, NOTCH_HOTKEY_ID);
             *registered = false;
         }
-        let Some(spec) = crate::utils::get_setting_str(app, "nectar-notch-hotkey").filter(|s| !s.trim().is_empty()) else { return };
+        let Some(spec) = crate::utils::get_setting_str(app, "dz-island-notch-hotkey").filter(|s| !s.trim().is_empty()) else { return };
         let Some((modifiers, key)) = crate::launchers::parse_shortcut(&spec) else {
             crate::diagnostics::log(&format!("hotkey: could not read \"{spec}\""));
             return;

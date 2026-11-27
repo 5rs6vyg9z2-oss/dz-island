@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { dateLocale } from "./i18n";
 import { useSettingsSync } from "./hooks/useSettingsSync";
 
-export const WEEK_START_KEY = "nectar-week-start";
+export const WEEK_START_KEY = "dz-island-week-start";
 
 export function resolveWeekStart(raw: string | null | undefined): number {
   if (raw === "monday") return 1;

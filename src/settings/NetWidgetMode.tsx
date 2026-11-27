@@ -10,14 +10,14 @@ const MODES = ["speed", "status"];
 export function NetWidgetMode() {
   const t = useT();
   const [value, setValue] = useState(() => {
-    const saved = localStorage.getItem("nectar-net-widget-mode");
+    const saved = localStorage.getItem("dz-island-net-widget-mode");
     return saved && MODES.includes(saved) ? saved : "speed";
   });
 
   const change = (next: string) => {
     setValue(next);
-    localStorage.setItem("nectar-net-widget-mode", next);
-    invoke("save_setting", { key: "nectar-net-widget-mode", value: next }).catch(() => { });
+    localStorage.setItem("dz-island-net-widget-mode", next);
+    invoke("save_setting", { key: "dz-island-net-widget-mode", value: next }).catch(() => { });
   };
 
   return (

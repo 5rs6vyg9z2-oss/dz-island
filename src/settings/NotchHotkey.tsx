@@ -7,12 +7,12 @@ import { useT } from "../i18n";
 
 export function NotchHotkey() {
   const t = useT();
-  const [value, setValue] = useState(() => localStorage.getItem("nectar-notch-hotkey") || "");
+  const [value, setValue] = useState(() => localStorage.getItem("dz-island-notch-hotkey") || "");
 
   const commit = (next: string) => {
     setValue(next);
-    localStorage.setItem("nectar-notch-hotkey", next);
-    invoke("save_setting", { key: "nectar-notch-hotkey", value: next }).catch(() => { });
+    localStorage.setItem("dz-island-notch-hotkey", next);
+    invoke("save_setting", { key: "dz-island-notch-hotkey", value: next }).catch(() => { });
   };
 
   return (

@@ -27,7 +27,7 @@ fn read_setting(key: &str) -> Option<serde_json::Value> {
     let content = std::fs::read_to_string(path).ok()?;
     let map: std::collections::HashMap<String, serde_json::Value> =
         serde_json::from_str(&content).ok()?;
-    map.get(key).cloned()
+    crate::utils::normalize_settings(map).remove(key)
 }
 
 fn flag_enabled(key: &str) -> bool {
@@ -40,7 +40,7 @@ fn flag_enabled(key: &str) -> bool {
 
 pub fn arguments() -> String {
     let mut args = String::from(BASE_ARGS);
-    if flag_enabled("nectar-ram-ultra") {
+    if flag_enabled("dz-island-ram-ultra") {
         args.push_str(ULTRA_ARGS);
     }
     args

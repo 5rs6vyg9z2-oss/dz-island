@@ -54,7 +54,16 @@ pub async fn check_for_updates(app: AppHandle, force: bool) -> Result<UpdateChec
         let release: Release = serde_json::from_slice(&bounded_body(response, 2 * 1024 * 1024).await?).map_err(|e| e.to_string())?;
         let candidate = version(&release.tag_name);
         let newer = !release.draft && !release.prerelease && candidate.zip(version(env!("CARGO_PKG_VERSION"))).is_some_and(|(a,b)| a > b);
-        let asset = release.assets.into_iter().find(valid_asset).filter(|_| newer);
+        let installed = std::env::current_exe().map_err(|error| error.to_string())?;
+        let asset_name = if installed.file_name().and_then(|name| name.to_str())
+            .is_some_and(|name| name.eq_ignore_ascii_case("dz-island.exe"))
+        {
+            crate::update_policy::ASSET
+        } else {
+            crate::update_policy::LEGACY_ASSET
+        };
+        let asset = release.assets.into_iter().find(|asset| asset.name == asset_name && valid_asset(asset))
+            .filter(|_| newer);
         (UpdateCheckResult { available: asset.is_some(), version: candidate.map(|v| format!("{}.{}.{}", v[0],v[1],v[2])), date: release.published_at, body: release.body }, asset)
     };
     *STATE.lock().map_err(|_| "Update state unavailable")? = Some((Instant::now(), result.clone(), asset));

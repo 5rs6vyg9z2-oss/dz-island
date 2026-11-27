@@ -112,7 +112,7 @@ pub async fn wait_for_splash() {
 #[tauri::command]
 pub async fn init_dock(app: AppHandle, mode: String) {
     // Backend guard: bail if dock is disabled in settings.
-    let enabled = get_setting_str(&app, "nectar-dock-enabled")
+    let enabled = get_setting_str(&app, "dz-island-dock-enabled")
         .unwrap_or_else(|| "true".to_string());
     if enabled != "true" {
         if let Some(dock_win) = app.get_webview_window("dock") {
@@ -214,7 +214,7 @@ pub async fn toggle_dock(app: AppHandle, enable: bool) {
     if let Some(dock_win) = app.get_webview_window("dock") {
         if enable {
             // Saved dock mode, smart on a fresh install.
-            let saved_mode = crate::utils::get_setting_str(&app, "nectar-dock-mode")
+            let saved_mode = crate::utils::get_setting_str(&app, "dz-island-dock-mode")
                 .unwrap_or_else(|| "smart".to_string());
             init_dock(app.clone(), saved_mode).await;
         } else {
@@ -241,7 +241,7 @@ pub async fn toggle_dock(app: AppHandle, enable: bool) {
 
 #[tauri::command]
 pub async fn sync_appbar(app: AppHandle) {
-    let dock_enabled = get_setting_str(&app, "nectar-dock-enabled")
+    let dock_enabled = get_setting_str(&app, "dz-island-dock-enabled")
         .unwrap_or_else(|| "true".to_string());
     for (label, win) in app.webview_windows() {
         if crate::state::is_notch_label(&label) {
@@ -265,7 +265,7 @@ pub async fn sync_appbar(app: AppHandle) {
 pub async fn change_dock_mode(app: AppHandle, mode: String) {
     // A disabled dock keeps the mode in settings (init_dock applies it on re-enable),
     // just don't show it now.
-    let enabled = get_setting_str(&app, "nectar-dock-enabled").unwrap_or_else(|| "true".to_string());
+    let enabled = get_setting_str(&app, "dz-island-dock-enabled").unwrap_or_else(|| "true".to_string());
     if enabled != "true" {
         return;
     }
@@ -399,8 +399,8 @@ pub async fn init_notch_window(app: &AppHandle, main_win: tauri::WebviewWindow, 
         let m_pos = monitor.position();
         let m_size = monitor.size();
         let scale = monitor.scale_factor();
-        let nectar_scale = crate::utils::get_nectar_scale(app);
-        let target_height = (420.0 * nectar_scale * scale) as u32;
+        let dz_island_scale = crate::utils::get_dz_island_scale(app);
+        let target_height = (420.0 * dz_island_scale * scale) as u32;
         let _ = main_win.set_position(tauri::PhysicalPosition::new(m_pos.x, m_pos.y));
         let _ = main_win.set_size(tauri::PhysicalSize::new(m_size.width, target_height));
     }
@@ -585,9 +585,9 @@ pub async fn open_app(app: AppHandle, window: Window, app_name: String, args: Op
     }
 
     if app_name == "search" {
-        let legacy = get_setting_str(&app, "nectar-legacy-mode").is_some_and(|v| v == "true");
-        let provider = if legacy { String::new() } else { get_setting_str(&app, "nectar-dock-search-provider").unwrap_or_default() };
-        let shortcut = get_setting_str(&app, "nectar-dock-search-shortcut");
+        let legacy = get_setting_str(&app, "dz-island-legacy-mode").is_some_and(|v| v == "true");
+        let provider = if legacy { String::new() } else { get_setting_str(&app, "dz-island-dock-search-provider").unwrap_or_default() };
+        let shortcut = get_setting_str(&app, "dz-island-dock-search-shortcut");
         let label = window.label().to_string();
         tauri::async_runtime::spawn_blocking(move || {
             if let Some(note) = crate::launchers::open_search(&provider, shortcut.as_deref()) {
@@ -625,7 +625,7 @@ pub async fn open_app(app: AppHandle, window: Window, app_name: String, args: Op
         return;
     }
 
-    if app_name == "nectar-settings" {
+    if app_name == "dz-island-settings" {
         open_settings_window(app);
         return;
     }
@@ -1516,7 +1516,7 @@ pub async fn get_app_icon(app: AppHandle, path: String, name: Option<String>, hw
     let cache_path = cache_dir.join("icons_cache.json");
     let cache_key = get_cache_key(&path, name.as_deref());
 
-    if path == "nectar-settings" {
+    if path == "dz-island-settings" {
         if let Some(icon) = app.default_window_icon() {
             if let Some(rgba) = image::RgbaImage::from_raw(icon.width(), icon.height(), icon.rgba().to_vec()) {
                 let mut out = Vec::new();
@@ -1869,7 +1869,7 @@ pub async fn load_pinned_apps(app: AppHandle) -> Vec<AppInfo> {
         AppInfo { name: "File Explorer".into(), path: "C:\\Windows\\explorer.exe".into(), icon: None, is_running: false, hwnd: None, executable: Some("explorer.exe".into()), all_hwnds: None, args: None },
         AppInfo { name: "Microsoft Edge".into(), path: "msedge".into(), icon: None, is_running: false, hwnd: None, executable: Some("msedge.exe".into()), all_hwnds: None, args: None },
         AppInfo { name: "Notepad".into(), path: "notepad.exe".into(), icon: None, is_running: false, hwnd: None, executable: Some("notepad.exe".into()), all_hwnds: None, args: None },
-        AppInfo { name: "Settings".into(), path: "nectar-settings".into(), icon: None, is_running: false, hwnd: None, executable: None, all_hwnds: None, args: None },
+        AppInfo { name: "Settings".into(), path: "dz-island-settings".into(), icon: None, is_running: false, hwnd: None, executable: None, all_hwnds: None, args: None },
     ]
 }
 
@@ -2645,13 +2645,13 @@ pub fn restore_taskbar_and_exit(handle: &AppHandle) {
 }
 
 #[tauri::command]
-pub async fn quit_nectar(handle: AppHandle) {
+pub async fn quit_dz_island(handle: AppHandle) {
     restore_taskbar_and_exit(&handle);
 }
 
 #[tauri::command]
-pub async fn uninstall_nectar() -> Result<(), String> {
-    Err("Feche o Nectar e mova a pasta Portatil para a Lixeira.".into())
+pub async fn uninstall_dz_island() -> Result<(), String> {
+    Err("Feche o DZ Island e mova a pasta Portatil para a Lixeira.".into())
 }
 
 #[tauri::command]
@@ -2682,7 +2682,7 @@ pub fn get_hitbox_logging() -> bool {
 }
 
 #[tauri::command]
-pub async fn restart_nectar(handle: AppHandle) {
+pub async fn restart_dz_island(handle: AppHandle) {
     #[cfg(debug_assertions)]
     {
         // Dev just reloads the pages. Leave SHUTTING_DOWN alone here or the hooks stay off.
@@ -2707,17 +2707,17 @@ pub async fn restart_nectar(handle: AppHandle) {
     }
     #[cfg(not(debug_assertions))]
     {
-        relaunch_nectar(&handle);
+        relaunch_dz_island(&handle);
     }
 }
 
 /// Relaunches the process. Also used for webview crashes, reloading pages can't fix those.
-pub fn relaunch_nectar(handle: &AppHandle) {
+pub fn relaunch_dz_island(handle: &AppHandle) {
     SHUTTING_DOWN.store(true, Ordering::Relaxed);
     if let Some(w) = handle.get_webview_window("main") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("dock") { if let Ok(hwnd) = w.hwnd() { unregister_appbar_native(hwnd); } }
     if let Some(w) = handle.get_webview_window("settings") { let _ = w.destroy(); }
-    std::env::set_var("NECTAR_RESTARTING", "1");
+    std::env::set_var("DZ_ISLAND_RESTARTING", "1");
     close_single_instance_handles();
     handle.restart();
 }
@@ -2850,8 +2850,8 @@ pub async fn close_window(hwnd: isize) {
 }
 
 fn re_register_appbars(app: &AppHandle, settings: &HashMap<String, serde_json::Value>) {
-    let notch_fixed = settings.get("nectar-notch-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(true);
-    let dock_fixed = settings.get("nectar-dock-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(false);
+    let notch_fixed = settings.get("dz-island-notch-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(true);
+    let dock_fixed = settings.get("dz-island-dock-mode").map(|v| v.as_str() == Some("fixed")).unwrap_or(false);
     for (label, win) in app.webview_windows() {
         if crate::state::is_notch_label(&label) && notch_fixed {
             crate::services::register_appbar(win);
@@ -2862,11 +2862,11 @@ fn re_register_appbars(app: &AppHandle, settings: &HashMap<String, serde_json::V
 }
 
 const MONITOR_TARGETING_KEYS: [&str; 5] = [
-    "nectar-dock-monitor-mode",
-    "nectar-dock-monitor-id",
-    "nectar-notch-monitor-mode",
-    "nectar-notch-monitor-id",
-    "nectar-dock-enabled",
+    "dz-island-dock-monitor-mode",
+    "dz-island-dock-monitor-id",
+    "dz-island-notch-monitor-mode",
+    "dz-island-notch-monitor-id",
+    "dz-island-dock-enabled",
 ];
 
 #[tauri::command]
@@ -2874,7 +2874,7 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
     let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     if let Some(parent) = path.parent() { let _ = std::fs::create_dir_all(parent); }
     let mut settings = HashMap::new();
-    if let Ok(content) = std::fs::read_to_string(&path) { if let Ok(existing) = serde_json::from_str::<HashMap<String, serde_json::Value>>(&content) { settings = existing; } }
+    if let Ok(content) = std::fs::read_to_string(&path) { if let Ok(existing) = serde_json::from_str::<HashMap<String, serde_json::Value>>(&content) { settings = crate::utils::normalize_settings(existing); } }
     settings.insert(key.clone(), value);
     let content = serde_json::to_string(&settings).map_err(|e| e.to_string())?;
     std::fs::write(path, content).map_err(|e| e.to_string())?;
@@ -2883,22 +2883,22 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
 
     let _ = app.emit("settings-changed", serde_json::json!({ "key": &key, "value": &settings[&key] }));
 
-    if key == "nectar-scale" {
+    if key == "dz-island-scale" {
         re_register_appbars(&app, &settings);
     }
 
-    if key == "nectar-agent-api" {
+    if key == "dz-island-agent-api" {
         let on = matches!(settings[&key].as_str(), Some("true")) || settings[&key].as_bool() == Some(true);
-        if !on || crate::utils::get_setting_str(&app, "nectar-agent-hooks").as_deref() != Some("false") {
+        if !on || crate::utils::get_setting_str(&app, "dz-island-agent-hooks").as_deref() != Some("false") {
             std::thread::spawn(move || crate::agent_api::set_hooks(on));
         }
     }
 
-    if key == "nectar-notch-hotkey" {
+    if key == "dz-island-notch-hotkey" {
         crate::hotkeys::reload();
     }
 
-    if key == "nectar-language" {
+    if key == "dz-island-language" {
         crate::i18n::refresh_tray_labels(&app);
     }
 
@@ -2906,14 +2906,14 @@ pub fn save_setting(app: AppHandle, key: String, value: serde_json::Value) -> Re
         let app_clone = app.clone();
         tauri::async_runtime::spawn(async move {
             crate::monitors::sync_monitor_windows(&app_clone);
-            let dock_enabled = crate::utils::get_setting_str(&app_clone, "nectar-dock-enabled")
+            let dock_enabled = crate::utils::get_setting_str(&app_clone, "dz-island-dock-enabled")
                 .map(|v| v == "true").unwrap_or(true);
             if dock_enabled {
-                let dock_mode = crate::utils::get_setting_str(&app_clone, "nectar-dock-mode")
+                let dock_mode = crate::utils::get_setting_str(&app_clone, "dz-island-dock-mode")
                     .unwrap_or_else(|| "smart".to_string());
                 change_dock_mode(app_clone.clone(), dock_mode).await;
             }
-            let notch_mode = crate::utils::get_setting_str(&app_clone, "nectar-notch-mode")
+            let notch_mode = crate::utils::get_setting_str(&app_clone, "dz-island-notch-mode")
                 .unwrap_or_else(|| "fixed".to_string());
             change_notch_mode(app_clone.clone(), notch_mode).await;
         });
@@ -2954,7 +2954,7 @@ pub fn load_settings(app: AppHandle) -> Result<HashMap<String, serde_json::Value
         Ok(p) => p.join("settings.json"),
         Err(_) => return Ok(HashMap::new()),
     };
-    if let Ok(content) = std::fs::read_to_string(path) { if let Ok(settings) = serde_json::from_str(&content) { return Ok(settings); } }
+    if let Ok(content) = std::fs::read_to_string(path) { if let Ok(settings) = serde_json::from_str(&content) { return Ok(crate::utils::normalize_settings(settings)); } }
     Ok(HashMap::new())
 }
 
@@ -3403,7 +3403,7 @@ const PROTECTED_PROCESS_NAMES: &[&str] = &[
     "smss.exe",
     "explorer.exe",
     "dwm.exe",
-    "nectar.exe",
+    "dz-island.exe",
 ];
 
 #[tauri::command]
@@ -3670,8 +3670,8 @@ pub async fn export_settings_dialog(app: AppHandle) -> Result<bool, String> {
     let file_path = app
         .dialog()
         .file()
-        .set_title("Export Nectar Settings")
-        .set_file_name("nectar-settings.json")
+        .set_title("Export DZ Island Settings")
+        .set_file_name("dz-island-settings.json")
         .add_filter("JSON", &["json"])
         .blocking_save_file();
 
@@ -3692,7 +3692,7 @@ pub async fn import_settings_dialog(app: AppHandle) -> Result<bool, String> {
     let file_path = app
         .dialog()
         .file()
-        .set_title("Import Nectar Settings")
+        .set_title("Import DZ Island Settings")
         .add_filter("JSON", &["json"])
         .blocking_pick_file();
 
@@ -3715,7 +3715,7 @@ pub async fn import_settings_dialog(app: AppHandle) -> Result<bool, String> {
 #[tauri::command]
 pub fn import_settings(app: AppHandle, settings: String) -> Result<(), String> {
     let imported: HashMap<String, serde_json::Value> =
-        serde_json::from_str(&settings).map_err(|e| format!("Invalid JSON: {}", e))?;
+        crate::utils::normalize_settings(serde_json::from_str(&settings).map_err(|e| format!("Invalid JSON: {}", e))?);
 
     let path = crate::utils::portable_data_dir().map_err(|e| e.to_string())?.join("settings.json");
     if let Some(parent) = path.parent() {
@@ -3732,7 +3732,7 @@ pub fn import_settings(app: AppHandle, settings: String) -> Result<(), String> {
         let _ = app.emit("settings-changed", serde_json::json!({ "key": key, "value": value }));
     }
 
-    if imported.get("nectar-scale").is_some() {
+    if imported.get("dz-island-scale").is_some() {
         re_register_appbars(&app, &imported);
     }
 
@@ -3814,6 +3814,7 @@ pub fn setup_settings_watcher(app: AppHandle) {
 
                 if let Ok(new_content) = std::fs::read_to_string(&settings_path) {
                     if let Ok(new_settings) = serde_json::from_str::<HashMap<String, serde_json::Value>>(&new_content) {
+                        let new_settings = crate::utils::normalize_settings(new_settings);
                         // Collect diffs while holding the lock, then drop before emitting
                         let (changed, removed) = {
                             let mut cache = crate::state::SETTINGS_CACHE
@@ -4124,7 +4125,7 @@ pub fn shelf_text_file(text: String) -> Option<String> {
         .map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' || c == '_' { c } else { '_' })
         .collect();
     let name = if name.trim().is_empty() { "note".to_string() } else { name.trim().to_string() };
-    let dir = std::env::temp_dir().join("nectar-shelf");
+    let dir = std::env::temp_dir().join("dz-island-shelf");
     std::fs::create_dir_all(&dir).ok()?;
     let path = dir.join(format!("{name}.txt"));
     std::fs::write(&path, text).ok()?;

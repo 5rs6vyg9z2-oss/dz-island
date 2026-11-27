@@ -153,14 +153,14 @@ pub fn trim_tree() -> usize {
 }
 
 fn ram_saver_enabled(app: &tauri::AppHandle) -> bool {
-    crate::utils::get_setting_str(app, "nectar-ram-saver")
+    crate::utils::get_setting_str(app, "dz-island-ram-saver")
         .map(|v| v == "true")
         .unwrap_or(false)
 }
 
 pub fn start_reclaim_worker(app: tauri::AppHandle) {
     std::thread::Builder::new()
-        .name("nectar-mem".into())
+        .name("dz-island-mem".into())
         .spawn(move || {
             let mut last_trim = 0i64;
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Nectar Setup",
-  "version": "1.16.0",
-  "identifier": "com.kua8.nectar.installer",
+  "productName": "DZ Island Setup",
+  "version": "1.17.0",
+  "identifier": "local.dz-island.installer",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1421",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Nectar Setup",
+        "title": "DZ Island Setup",
         "width": 620,
         "height": 560,
         "resizable": false,

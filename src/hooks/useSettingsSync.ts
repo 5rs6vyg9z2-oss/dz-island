@@ -10,17 +10,17 @@ function convertSettingValue(value: any): any {
 
 /**
  * Centralized settings sync hook. Listens to:
- * - `settings-changed` — emitted by save_setting (nectar keys, native values)
- * - `settings-external-changed` — emitted by file watcher for external edits (nectar keys, string values)
+ * - `settings-changed` — emitted by save_setting (dz-island keys, native values)
+ * - `settings-external-changed` — emitted by file watcher for external edits (dz-island keys, string values)
  *
- * Both events use the same nectar-prefixed keys (e.g. "nectar-dock-enabled").
+ * Both events use the same dz-island-prefixed keys (e.g. "dz-island-dock-enabled").
  * Values may pass through String() conversion in the frontend, producing
  * "true"/"false" strings — the hook auto-converts these to booleans.
  *
  * Uses a ref for handlers so listeners are registered once (not re-registered
  * on every render when a new object literal is passed).
  *
- * @param handlers - Map of nectar-prefixed key → setter
+ * @param handlers - Map of dz-island-prefixed key → setter
  * @param deps - Optional additional dependency array
  */
 export function useSettingsSync(

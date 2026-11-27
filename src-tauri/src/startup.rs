@@ -10,7 +10,7 @@ use windows::Win32::System::Threading::{
     PROCESS_CREATION_FLAGS,
 };
 
-const TASK_NAME: &str = "Nectar";
+const TASK_NAME: &str = "DZ Island";
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const BOOST_LIMIT: Duration = Duration::from_secs(20);
 
@@ -104,7 +104,7 @@ fn create_task() -> bool {
     for unit in xml.encode_utf16() {
         bytes.extend_from_slice(&unit.to_le_bytes());
     }
-    let path = std::env::temp_dir().join("nectar-logon-task.xml");
+    let path = std::env::temp_dir().join("dz-island-logon-task.xml");
     if std::fs::write(&path, bytes).is_err() {
         return false;
     }
@@ -147,7 +147,7 @@ pub fn migrate(app: &AppHandle) {
     }
     if let (Some(command), Ok(exe)) = (task_command(), std::env::current_exe()) {
         if !command.eq_ignore_ascii_case(&exe.to_string_lossy()) && create_task() {
-            crate::diagnostics::log("startup: pointed the logon task at this Nectar");
+            crate::diagnostics::log("startup: pointed the logon task at this DZ Island");
         }
         return;
     }

@@ -20,7 +20,7 @@ async function sourceFor(state: SoundState) {
   return source;
 }
 
-export const soundKey = (state: SoundState) => `nectar-agent-sound-${state}`;
+export const soundKey = (state: SoundState) => `dz-island-agent-sound-${state}`;
 
 export function stateSoundOn(state: SoundState) {
   try {
@@ -33,7 +33,7 @@ export function stateSoundOn(state: SoundState) {
 
 export async function playAgentSound(state: SoundState, force = false) {
   try {
-    if (!force && (localStorage.getItem("nectar-agent-sounds") === "false" || !stateSoundOn(state))) return;
+    if (!force && (localStorage.getItem("dz-island-agent-sounds") === "false" || !stateSoundOn(state))) return;
     const audio = new Audio(await sourceFor(state));
     audio.volume = 0.6;
     await audio.play();
