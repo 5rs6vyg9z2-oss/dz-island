@@ -22,6 +22,8 @@ struct DeviceStatus {
     int  millivolts = 0;       // battery voltage when reported (0 = unknown)
     int  graceSec   = 0;       // keep showing the last value this long if the device stops answering
     unsigned short vid = 0;    // USB / Bluetooth HID vendor id when known (picks the brand color)
+    unsigned short pid = 0;
+    std::wstring source;        // vendor, windows-bluetooth, standard-hid, unavailable
     std::wstring displayName;  // optional alias for the embedded dock
     bool hidden = false;       // hidden from the user-facing device list
 };

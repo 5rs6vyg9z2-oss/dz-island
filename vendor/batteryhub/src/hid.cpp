@@ -37,6 +37,11 @@ std::vector<HidColl> EnumHid() {
         if (h != INVALID_HANDLE_VALUE) {
             HIDD_ATTRIBUTES a{ sizeof(a) };
             if (HidD_GetAttributes(h, &a)) { c.vid = a.VendorID; c.pid = a.ProductID; c.version = a.VersionNumber; }
+            wchar_t product[128] = {};
+            if (HidD_GetProductString(h, product, sizeof(product) - sizeof(wchar_t))) {
+                c.product = product;
+                while (!c.product.empty() && iswspace(c.product.back())) c.product.pop_back();
+            }
             PHIDP_PREPARSED_DATA pp;
             if (HidD_GetPreparsedData(h, &pp)) { HidP_GetCaps(pp, &c.caps); HidD_FreePreparsedData(pp); }
             CloseHandle(h);
@@ -256,6 +261,7 @@ bool HidDev::GetFeatureByte(BYTE reportId, BYTE& value) {
 // ---- helpers ----------------------------------------------------------------------------------
 
 std::wstring HidProduct(const HidColl& c) {
+    if (!c.product.empty()) return c.product;
     HANDLE h = CreateFileW(c.path.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
     if (h == INVALID_HANDLE_VALUE) return L"";
     wchar_t name[128] = {};

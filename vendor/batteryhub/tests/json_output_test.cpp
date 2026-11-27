@@ -22,6 +22,9 @@ int main() {
     s.connected = true;
     s.millivolts = 0;
     s.graceSec = 900;
+    s.vid = 0x1D57; s.pid = 0xFA60;
+    s.source = L"standard-hid";
+    s.note = L"Diagnostics with \"quotes\"";
 
     const std::string json = DevicesToJson({s});
     assert(json.front() == '[' && json.back() == '\n');
@@ -32,6 +35,10 @@ int main() {
     assert(json.find("\"connected\":true") != std::string::npos);
     assert(json.find("\"graceSec\":900") != std::string::npos);
     assert(json.find("He said \\\"hi\\\" and left") != std::string::npos);
+
+    assert(json.find("\"source\":\"standard-hid\"") != std::string::npos);
+    assert(json.find("\"vid\":7511") != std::string::npos);
+    assert(json.find("\"pid\":64096") != std::string::npos);
 
     // Backslashes and control characters are escaped too.
     DeviceStatus weird = s;

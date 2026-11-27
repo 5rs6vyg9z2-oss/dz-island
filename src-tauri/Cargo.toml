@@ -1,7 +1,7 @@
 [package]
 name = "nectar"
 default-run = "nectar"
-version = "1.15.0"
+version = "1.16.0"
 description = ""
 authors = ["kua8"]
 edition = "2021"

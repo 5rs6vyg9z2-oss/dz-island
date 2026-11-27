@@ -1,3 +1,11 @@
+# Motor de bateria da ilha
+
+A ilha usa as leituras dos protocolos suportados, do Windows e dos campos padrão HID. Quando um driver específico fica sem porcentagem, o motor tenta complementar a leitura sem duplicar ou confundir os dispositivos. A identificação e a atualização seguem automáticas, inclusive após reconexões.
+
+Um receptor pode ser detectado sem fornecer bateria legível. Nesse caso, aparece com bateria indisponível. A presença do USB não comprova que o periférico esteja ligado. Nomes genéricos, dispositivos sem interface HID e protocolos não suportados ainda podem exigir diagnóstico adicional.
+
+O diagnóstico local `data/battery-snapshot.json` registra a origem da leitura, IDs e observações. O motor não aprende protocolos desconhecidos sozinho nem envia comandos arbitrários. O X8 Pro ganhou interpretação de mensagens passivas do receptor BK compatível, ainda sem validação no hardware daquele usuário.
+
 # Bateria automática do Zeus Pro
 
 O motor de bateria identifica os periféricos compatíveis automaticamente. A ilha não exige um Zeus Pro: o perfil específico só aparece quando um Zeus Pro é detectado localmente pelo Bluetooth conectado ou por uma saída de áudio ativa com seu nome. Histórico salvo sozinho não ativa esse perfil. Nenhum cadastro ou identificação pessoal é necessário.

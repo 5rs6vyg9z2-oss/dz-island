@@ -36,6 +36,10 @@ struct BatteryHubDevice {
     detail: String,
     charging: bool,
     #[serde(default)]
+    source: String,
+    #[serde(default)]
+    note: String,
+    #[serde(default)]
     hidden: bool,
     #[serde(default, rename = "displayName")]
     display_name: String,
@@ -199,7 +203,9 @@ fn merge_devices(mut devices: Vec<DockBluetoothDevice>, batteries: &[BatteryHubD
         let bluetooth = battery.key.starts_with("bt:") || battery.via.to_ascii_lowercase().contains("bluetooth");
         let display_name = if battery.display_name.is_empty() { &battery.name } else { &battery.display_name };
         let address = battery.key.strip_prefix("bt:").and_then(address_from_id);
-        let percent = u8::try_from(battery.percent).ok().filter(|&n| n <= 100);
+        let percent = (!battery.asleep).then(|| u8::try_from(battery.percent).ok().filter(|&n| n <= 100)).flatten();
+        let detail = [&battery.detail, &battery.note, &battery.source].into_iter()
+            .filter(|value| !value.is_empty()).cloned().collect::<Vec<_>>().join(" · ");
         let matched = devices.iter().position(|device| {
             address.as_ref() == Some(&device.id)
                 || (bluetooth && names.get(&name) == Some(&1) && battery_names.get(&name) == Some(&1)
@@ -216,12 +222,12 @@ fn merge_devices(mut devices: Vec<DockBluetoothDevice>, batteries: &[BatteryHubD
             device.percent = percent.or(device.percent);
             device.charging = battery.charging;
             device.kind = battery.kind.clone();
-            device.detail = battery.detail.clone();
+            device.detail = detail.clone();
         } else if !battery.hidden && (!bluetooth || !names.contains_key(&name)) {
             devices.push(DockBluetoothDevice {
                 id: battery.key.clone(), name: display_name.clone(), percent,
                 connected: battery.connected, charging: battery.charging,
-                kind: battery.kind.clone(), detail: battery.detail.clone(), order,
+                kind: battery.kind.clone(), detail, order,
             });
         }
     }

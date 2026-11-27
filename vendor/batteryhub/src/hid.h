@@ -32,7 +32,7 @@ struct HIDP_CAPS {
 
 struct HidColl {
     std::wstring path;
-    std::wstring product;  // filled by the Linux backend from sysfs; unused on Windows
+    std::wstring product;  // product descriptor cached during enumeration (sysfs on Linux)
     USHORT vid = 0, pid = 0, version = 0;
     int iface = -1;  // USB interface number (MI_xx in the path), -1 when unknown
     HIDP_CAPS caps{};

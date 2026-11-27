@@ -6,6 +6,7 @@
 //    Earbuds that send Google Fast Pair battery broadcasts get their left / right / case split from
 //    those (fastpair.cpp); Windows itself only has one level for them.
 #include "drivers.h"
+#include "../battery_discovery.h"
 #include "bluetooth_identity.h"
 #include "ble_adverts.h"
 
@@ -177,7 +178,7 @@ std::wstring StripServiceSuffix(std::wstring n) {
 // Container id ("{...}") of the physical device an HID interface belongs to, formatted like
 // PollBluetooth's keys, or "" if unknown. Uses SetupAPI: CM_Get_Device_Interface_PropertyW is
 // missing from older MinGW import libraries.
-std::wstring ContainerOf(const std::wstring& path) {
+std::wstring ReadContainerOf(const std::wstring& path) {
     HDEVINFO di = SetupDiCreateDeviceInfoList(nullptr, nullptr);
     if (di == INVALID_HANDLE_VALUE) return L"";
     std::wstring result;
@@ -196,7 +197,27 @@ std::wstring ContainerOf(const std::wstring& path) {
     SetupDiDestroyDeviceInfoList(di);
     return result;
 }
+// One poll owns this cache. Repeated HID collections reuse metadata; the next poll
+// clears it so an unplug/replug never retains a stale device-container association.
+std::map<std::wstring, std::wstring> g_containerCache;
+std::wstring ContainerOf(const std::wstring& path) {
+    const auto found = g_containerCache.find(path);
+    if (found != g_containerCache.end()) return found->second;
+    return g_containerCache.emplace(path, ReadContainerOf(path)).first->second;
+}
 std::wstring HidContainer(const std::wstring& path) { return ContainerOf(path); }
+
+bool UniquePhysicalDevice(const PollContext& ctx, USHORT vid, USHORT pid) {
+    std::set<std::wstring> containers;
+    for (const auto& collection : ctx.colls) {
+        if (collection.vid != vid || collection.pid != pid) continue;
+        auto container = ContainerOf(collection.path);
+        if (container.empty()) return false;
+        containers.insert(container);
+        if (containers.size() > 1) return false;
+    }
+    return containers.size() == 1;
+}
 
 }  // namespace
 
@@ -207,7 +228,13 @@ void PollGenericHid(PollContext& ctx) {
     for (const auto& c : ctx.colls)
         if (c.page() == 0x0D) digitizers.push_back({ c.vid, c.pid });
     for (const auto& c : ctx.colls) {
-        if (ctx.IsClaimed(c.vid, c.pid)) continue;
+        if (ctx.IsClaimed(c.vid, c.pid)) {
+            if (!UniquePhysicalDevice(ctx, c.vid, c.pid)) continue;
+            bool needsFallback = false;
+            for (const auto& device : ctx.out)
+                if (device.vid == c.vid && device.pid == c.pid && battery_discovery::NeedsFallback(device)) needsFallback = true;
+            if (!needsFallback) continue;
+        }
         if (c.page() == 0x84 || c.page() == 0x85) continue;  // UPS / power supplies
         if (std::find(digitizers.begin(), digitizers.end(), std::make_pair(c.vid, c.pid)) != digitizers.end()) continue;
         if (!c.caps.NumberFeatureValueCaps && !c.caps.NumberInputValueCaps) continue;
@@ -256,11 +283,13 @@ void PollGenericHid(PollContext& ctx) {
         s.kind = KindFromCollections(ctx.colls, c.vid, c.pid);
         if (s.kind == DeviceKind::Other) s.kind = GuessKind(s.name);
         s.percent = pct;
-        ctx.Add(s, c.vid, c.pid);
+        s.source = L"standard-hid";
+        if (!battery_discovery::MergeFallback(ctx.out, s, c.vid, c.pid)) ctx.Add(s, c.vid, c.pid);
     }
 }
 
 void PollBluetooth(PollContext& ctx) {
+    g_containerCache.clear();
     HDEVINFO di = SetupDiGetClassDevsW(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
     if (di == INVALID_HANDLE_VALUE) return;
 
@@ -330,7 +359,10 @@ void PollBluetooth(PollContext& ctx) {
     for (const auto& c : ctx.colls) {
         std::wstring cont = HidContainer(c.path);
         hidIds[cont] = { c.vid, c.pid };
-        if (ctx.IsClaimed(c.vid, c.pid)) reported.insert(cont);
+        if (ctx.IsClaimed(c.vid, c.pid)) {
+            for (const auto& device : ctx.out)
+                if (device.vid == c.vid && device.pid == c.pid && !battery_discovery::NeedsFallback(device)) reported.insert(cont);
+        }
     }
 
     bool watching = false, waited = false;
@@ -346,7 +378,7 @@ void PollBluetooth(PollContext& ctx) {
         // Bluetooth entries use the Windows container ID (s.key), never the display name.
         // Two Xbox controllers may both be named "Xbox Wireless Controller".
         // Preserve the name fallback for devices already reported by non-Bluetooth drivers.
-        if (IsDuplicateBluetoothDevice(s, ctx.out)) continue;
+
         s.via = L"Bluetooth";
         s.percent = f.pct;
         auto cod = containerCod.find(cid);
@@ -357,7 +389,7 @@ void PollBluetooth(PollContext& ctx) {
         }
         // Bluetooth LE devices have no class of device; their HID collections tell a mouse from a keyboard.
         auto ids = hidIds.find(cid);
-        if (ids != hidIds.end()) s.vid = ids->second.first;
+        if (ids != hidIds.end()) { s.vid = ids->second.first; s.pid = ids->second.second; }
         if (s.kind == DeviceKind::Other && ids != hidIds.end()) s.kind = KindFromBleIds(ids->second.first, ids->second.second);
         if (s.kind == DeviceKind::Other && ids != hidIds.end()) s.kind = KindFromCollections(ctx.colls, ids->second.first, ids->second.second);
         if (s.kind == DeviceKind::Mouse && ids != hidIds.end()) {
@@ -384,7 +416,45 @@ void PollBluetooth(PollContext& ctx) {
             waited |= justStarted;
             if (got) ApplyFastPair(s, b);
         }
-        ctx.out.push_back(s);
+        s.source = L"windows-bluetooth";
+        const bool merged = UniquePhysicalDevice(ctx, s.vid, s.pid)
+            && battery_discovery::MergeFallback(ctx.out, s, s.vid, s.pid);
+        if (!merged && !IsDuplicateBluetoothDevice(s, ctx.out)) ctx.out.push_back(s);
         ctx.btContainers.insert(cid);
+    }
+}
+
+
+void DiscoverUnreadDevices(PollContext& ctx) {
+    // Descriptor inspection only. No speculative vendor commands or output reports.
+    std::map<std::pair<USHORT, USHORT>, DeviceStatus> candidates;
+    std::set<std::pair<USHORT, USHORT>> digitizers;
+    for (const auto& collection : ctx.colls)
+        if (collection.page() == 0x0D) digitizers.insert({collection.vid, collection.pid});
+    for (const auto& collection : ctx.colls) {
+        const auto identity = std::make_pair(collection.vid, collection.pid);
+        if (ctx.IsClaimed(collection.vid, collection.pid) || digitizers.count(identity)) continue;
+        const auto name = HidProduct(collection);
+        if (!battery_discovery::ReceiverCandidate(collection.vid, collection.pid, name)) continue;
+        auto& device = candidates[identity];
+        device.key = L"discovery:" + Hex4(collection.vid) + L":" + Hex4(collection.pid);
+        device.name = name.empty() ? L"Wireless receiver" : name;
+        device.via = L"Receiver / HID";  // USB presence does not prove a live wireless link.
+        if (collection.page() == 0x01) {
+            if (collection.usage() == 0x02) device.kind = DeviceKind::Mouse;
+            else if (collection.usage() == 0x06 && device.kind != DeviceKind::Mouse) device.kind = DeviceKind::Keyboard;
+            else if ((collection.usage() == 0x04 || collection.usage() == 0x05) && device.kind == DeviceKind::Other)
+                device.kind = DeviceKind::Gamepad;
+        }
+    }
+    for (auto& [identity, device] : candidates) {
+        // Do not add another entry for a Bluetooth battery already associated with this HID device.
+        if (std::any_of(ctx.out.begin(), ctx.out.end(), [&](const DeviceStatus& existing) {
+                return existing.vid == identity.first && existing.pid == identity.second;
+            })) continue;
+        device.source = L"unavailable";
+        device.detail = L"VID:PID " + Hex4(identity.first) + L":" + Hex4(identity.second);
+        device.note = L"Device interface detected; no battery from Windows, standard HID or supported protocols";
+        ctx.Add(device, identity.first, identity.second);
     }
 }

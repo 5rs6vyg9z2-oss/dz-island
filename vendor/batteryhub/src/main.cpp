@@ -824,6 +824,13 @@ void PublishDockBattery() {
         auto status = entry.st;
         status.hidden = IsEntryHidden(entry) || (!status.connected && !g_showDisconnectedDevices);
         status.displayName = DisplayName(entry);
+        if (status.detail.empty() && status.vid && status.pid) {
+            wchar_t ids[32];
+            swprintf(ids, 32, L"VID:PID %04X:%04X", status.vid, status.pid);
+            status.detail = ids;
+        }
+        if (status.percent < 0 && status.note.empty())
+            status.note = status.asleep ? L"Device asleep; current battery unavailable" : L"No current battery reading";
         // The island must distinguish a current reading from a remembered level.
         // Keep percent=-1 here when polling did not return battery data.
         devices.push_back(std::move(status));

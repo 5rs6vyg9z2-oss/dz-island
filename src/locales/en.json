@@ -687,6 +687,7 @@
   "notch.agentSound.play": "Play",
   "notch.agentSound.choose": "Choose file",
   "notch.agentSound.reset": "Reset",
+  "dock.battery.unavailable": "Battery unavailable",
   "dock.bluetooth.connected": "Connected",
   "dock.battery.menu": "Device batteries"
 }

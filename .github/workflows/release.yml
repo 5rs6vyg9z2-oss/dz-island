@@ -58,6 +58,13 @@ jobs:
           msystem: MINGW64
           update: true
           install: make mingw-w64-x86_64-gcc
+      - name: Test battery discovery and passive protocols
+        shell: msys2 {0}
+        run: |
+          for name in battery_discovery attack_shark_battery json_output refresh_policy xbox_bluetooth_identity; do
+            g++ -std=c++17 -O2 -Wall -Wextra "vendor/batteryhub/tests/${name}_test.cpp" -o "${name}-tests.exe" || exit 1
+            "./${name}-tests.exe" || exit 1
+          done
       - name: Build the battery companion from source
         shell: msys2 {0}
         run: make -C vendor/batteryhub -j2 VERSION="$RELEASE_VERSION" CHANNEL=stable
@@ -98,7 +105,11 @@ jobs:
           $existing = gh release view $tag --repo $env:GITHUB_REPOSITORY --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Version already exists. Start a new workflow run instead of rerunning this release.' }
           @'
-          - Zeus Pro: nível informado pelo Windows quando conectado por Bluetooth; estimativa identificada com ≈ quando o Bluetooth está desconectado.
+          - Motor de bateria: leitura alternativa do Windows e HID quando o protocolo específico não fornece porcentagem, com diagnóstico da origem e dos IDs.
+          - Receptores identificados sem leitura permanecem visíveis com bateria indisponível, sem porcentagens inventadas.
+          - Attack Shark: interpretação passiva ampliada para a família X8 e outros modelos BK; X8 Pro ainda requer validação no hardware.
+          - Consultas de metadados reutilizadas por ciclo para reduzir aberturas repetidas de dispositivos.
+          - Zeus Pro opcional: nível informado pelo Windows quando conectado por Bluetooth; estimativa identificada com ≈ quando o Bluetooth está desconectado.
           - Recalibração automática a partir de novas leituras Bluetooth e controles manuais de pausa/carga completa.
           - Perguntas e avisos importantes abrem a ilha automaticamente, inclusive em tela cheia, com avisos sonoros nativos do Windows.
           - Perguntas com opções permanecem abertas com o mascote acenando até serem respondidas ou dispensadas, mesmo após a conclusão do agente ou reinicialização da ilha.

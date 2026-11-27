@@ -687,6 +687,7 @@
   "notch.agentSound.play": "Reproduzir",
   "notch.agentSound.choose": "Escolher arquivo",
   "notch.agentSound.reset": "Restaurar",
+  "dock.battery.unavailable": "Bateria indisponível",
   "dock.bluetooth.connected": "Conectado",
   "dock.battery.menu": "Bateria dos dispositivos"
 }

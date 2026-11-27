@@ -26,6 +26,8 @@ struct PollContext
     {
         out.push_back(s);
         if (!out.back().vid) out.back().vid = vid;
+        if (!out.back().pid) out.back().pid = pid;
+        if (out.back().source.empty()) out.back().source = L"vendor";
         Claim(vid, pid);
     }
     // A device key that stays the same when the receiver moves to another USB port (HID paths change
@@ -184,3 +186,5 @@ void PollGenericHid(PollContext &ctx);
 void PollBluetooth(PollContext &ctx);
 void PollXInput(PollContext &ctx);
 void PollMaono(PollContext &ctx);
+
+void DiscoverUnreadDevices(PollContext& ctx);

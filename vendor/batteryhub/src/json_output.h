@@ -52,6 +52,10 @@ inline std::string DevicesToJson(const std::vector<DeviceStatus>& list) {
                ",\"name\":\"" + JsonEscape(WideToUtf8(s.name)) + "\""
                ",\"via\":\"" + JsonEscape(WideToUtf8(s.via)) + "\""
                ",\"kind\":\"" + DeviceKindName(s.kind) + "\""
+               ",\"vid\":" + std::to_string(s.vid) +
+               ",\"pid\":" + std::to_string(s.pid) +
+               ",\"source\":\"" + JsonEscape(WideToUtf8(s.source)) + "\""
+               ",\"note\":\"" + JsonEscape(WideToUtf8(s.note)) + "\""
                ",\"percent\":" + std::to_string(s.percent) +
                ",\"level\":\"" + JsonEscape(WideToUtf8(s.levelText)) + "\""
                ",\"detail\":\"" + JsonEscape(WideToUtf8(s.detail)) + "\""

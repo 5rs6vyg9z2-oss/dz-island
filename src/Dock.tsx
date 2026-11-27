@@ -1650,7 +1650,7 @@ const Dock = memo(function Dock() {
                     const DeviceIcon = ({ mouse: Mouse, headset: Headphones, keyboard: Keyboard, gamepad: Gamepad2,
                       phone: Smartphone, microphone: Mic, speaker: Speaker, bluetooth: Bluetooth } as Record<string, typeof Battery>)[device.kind] ?? Battery;
                     const battery = !device.connected ? t("cc.notConnected") : device.percent === null
-                      ? t("dock.bluetooth.connected")
+                      ? t("dock.battery.unavailable")
                       : `${device.percent}%`;
                     return (
                       <button type="button" key={device.id} className="dock-bluetooth-device"
@@ -1659,7 +1659,7 @@ const Dock = memo(function Dock() {
                         <DeviceIcon size={14} aria-hidden="true" />
                         <span className="dock-bluetooth-name">{device.name}</span>
                         {device.charging && <span aria-label={t("battery.charging")}>⚡</span>}
-                        {device.connected && device.percent !== null && <span>{battery}</span>}
+                        {device.connected && <span>{device.percent === null ? "—" : battery}</span>}
                       </button>
                     );
                   })}

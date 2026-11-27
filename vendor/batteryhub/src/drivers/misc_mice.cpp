@@ -64,6 +64,7 @@
 #include "drivers.h"
 #include "incott_protocol.h"
 #include "xenta_protocol.h"
+#include "attack_shark_battery.h"
 #include "ardor_fury_v2_protocol.h"
 
 #include <algorithm>
@@ -134,6 +135,17 @@ const XentaModel kXentaModels[] = {
     { 0x3D, L"Delux M900 Pro", false },
     { 0x30, L"Delux M900 Pro", false },
     { 0x50, L"Delux M900 Pro", false },
+    { 0x08, L"Attack Shark X8 Pro", false },
+    { 0x02, L"Attack Shark X8 SE", false },
+    { 0x06, L"Attack Shark X8 Plus", false },
+    { 0xBE, L"Attack Shark X11 Pro", false },
+    { 0x01, L"Attack Shark X3 Pro", false },
+    { 0x03, L"Attack Shark V5 SE", false },
+    { 0x07, L"Attack Shark X11 SE", false },
+    { 0x04, L"Attack Shark G3", false },
+    { 0x0E, L"Attack Shark G3 Pro", false },
+    { 0xEA, L"Attack Shark V3", false },
+    { 0xB1, L"Attack Shark X1", false },
     { 0x55, L"Attack Shark X11", false },
     { 0x4E, L"Attack Shark X3 Max", false },
     { 0xE5, L"Attack Shark V3 Pro", false },
@@ -171,7 +183,8 @@ void PollXenta(PollContext& ctx) {
             ULONGLONG until = GetTickCount64() + (fresh ? 5000 : 0);
             std::vector<BYTE> r;
             int got = 0;
-            while (true) {
+            unsigned processed = 0;
+            while (processed++ < 64) {
                 int wait = fresh && got < 2 ? (int)std::max<LONGLONG>(1, (LONGLONG)until - (LONGLONG)GetTickCount64()) : 30;
                 if (fresh && got < 2 && (LONGLONG)until - (LONGLONG)GetTickCount64() <= 0) break;
                 if (l.dev->Read(r, wait) < 5) break;
@@ -239,6 +252,14 @@ void PollXenta(PollContext& ctx) {
                 if (ardorActive) s.percent = l.ardorConfirmed;
                 // While a tier changes, show the last confirmed value instead
                 // of flashing `asleep`. New tier is committed after 2 reports.
+            } else if (!cable && AttackSharkPercentModel(code)) {
+                // Stable unsolicited heartbeat; zero is a legitimate empty battery.
+                if (agreed && frame.event == 0x40) {
+                    s.percent = AttackSharkHeartbeatPercent(code, st, level);
+                    s.charging = s.percent >= 0 && st == 0x03;
+                    s.full = s.percent == 100 && st == 0x02;
+                }
+                s.source = L"vendor-passive";
             } else if (cable || st == 0x02 || st == 0x03) {
                 s.charging = true;  // the level is frozen on external power
                 if (st == 0x02 && !cable) s.percent = 100;

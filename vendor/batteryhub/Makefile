@@ -35,6 +35,10 @@ clean:
 
 test: test-update-core test-update-win test-update-signature
 	@mkdir -p build
+	$(CXX) -std=c++17 -O2 -Wall -Wextra tests/battery_discovery_test.cpp -o build/battery_discovery_test.exe
+	./build/battery_discovery_test.exe
+	$(CXX) -std=c++17 -O2 -Wall -Wextra tests/attack_shark_battery_test.cpp -o build/attack_shark_battery_test.exe
+	./build/attack_shark_battery_test.exe
 	$(CXX) -std=c++17 -O2 -Wall tests/device_aliases_test.cpp -o build/device_aliases_test.exe
 	./build/device_aliases_test.exe
 	$(CXX) -std=c++17 -O2 -Wall -Wextra tests/alert_rules_test.cpp -o build/alert_rules_test.exe
