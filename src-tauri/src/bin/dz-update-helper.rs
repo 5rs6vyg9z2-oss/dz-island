@@ -19,6 +19,17 @@ fn copy_retry(from: &Path, to: &Path) -> std::io::Result<()> {
     }
     unreachable!()
 }
+fn move_retry(from: &Path, to: &Path) -> std::io::Result<()> {
+    fs::create_dir_all(to.parent().unwrap())?;
+    for attempt in 0..10 {
+        match fs::rename(from, to) {
+            Ok(()) => return Ok(()),
+            Err(error) if attempt == 9 => return Err(error),
+            Err(_) => std::thread::sleep(Duration::from_millis(200)),
+        }
+    }
+    unreachable!()
+}
 fn validate(stage: &Path, plan: &Plan) -> Result<Vec<String>> {
     let package=stage.join("package.zip");
     if fs::metadata(&package)?.len() > 150 * 1024 * 1024 { return Err("Package too large".into()); }
@@ -70,17 +81,29 @@ fn apply(stage:&Path,plan:&Plan,names:&[String])->Result<()> {
         for name in names {
             let target=child(&plan.root,name)?;let backup=child(&stage.join("backup"),name)?;
             let existed=target.is_file();
-            if existed {copy_retry(&target,&backup)?;}
+            // Windows can move a loaded executable even when it cannot overwrite it.
+            // The staging directory and the application files share the same volume.
+            if existed {
+                move_retry(&target, &backup).map_err(|error| format!("Backing up {name}: {error}"))?;
+            }
             changed.push((name.clone(),existed));
-            copy_retry(&child(&stage.join("unpack"),name)?,&target)?;
+            copy_retry(&child(&stage.join("unpack"),name)?,&target)
+                .map_err(|error| format!("Installing {name}: {error}"))?;
         } Ok(())
     })();
     if let Err(error)=installation {
         let mut message=error.to_string();
         for (name,existed) in changed.iter().rev() {
             let target=child(&plan.root,name)?;
-            let restored=if *existed {copy_retry(&child(&stage.join("backup"),name)?,&target)} else {fs::remove_file(&target)};
-            if let Err(e)=restored {message.push_str(&format!("; rollback: {e}"));}
+            let restored = if *existed {
+                move_retry(&child(&stage.join("backup"), name)?, &target)
+            } else {
+                match fs::remove_file(&target) {
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                    outcome => outcome,
+                }
+            };
+            if let Err(error) = restored { message.push_str(&format!("; restoring {name}: {error}")); }
         }
         result(plan,"failed",&message);let _=restart(&plan.root);return Err(message.into());
     }
